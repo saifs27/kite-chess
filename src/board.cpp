@@ -15,7 +15,7 @@ BitBoard::BitBoard() {
     pieceBitBoard[king] = 0x1000000000000010;
 }
 
-U64 BitBoard::getPieceSet(const ColorType color, const PieceType piece) {
+U64 BitBoard::getPiece(const ColorType color, const PieceType piece) {
     return pieceBitBoard[color] & pieceBitBoard[piece];
 }
 
@@ -36,5 +36,5 @@ U64 BitBoard::kingAttacks(ColorType color) {
 }
 
 U64 BitBoard::knightAttacks(ColorType color) {
-    U64 knightPosition = getPieceSet(color, knight);
+    U64 knightPosition = getPiece(color, knight);
 }

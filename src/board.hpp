@@ -37,7 +37,7 @@ class BitBoard {
 
 
     BitBoard();
-    U64 getPieceSet(const ColorType color, const PieceType piece);
+    U64 getPiece(const ColorType color, const PieceType piece);
     U64 kingAttacks(ColorType color);
     U64 knightAttacks(ColorType color);
     
