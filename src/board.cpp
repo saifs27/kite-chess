@@ -37,4 +37,5 @@ U64 BitBoard::kingAttacks(ColorType color) {
 
 U64 BitBoard::knightAttacks(ColorType color) {
     U64 knightPosition = getPiece(color, knight);
+    return knightPosition;
 }
