@@ -3,14 +3,21 @@
 
 
 #include "../src/board.cpp"
+U64 kd4 = 0x8000000;
+BitBoard board;
 
-TEST_CASE("bitboards", "[BitBoard]") {
-    U64 kd4 = 0x8000000;
-    BitBoard board;
+TEST_CASE ("1 = 1", "[one]") {
+    REQUIRE (1 == 1);
+}
+
+TEST_CASE("bitboards", "[bitboard]") {
+
     board.getPiece(board.white, board.king);
     REQUIRE (board.getPiece(board.white, board.king) == 0x10);
-
     REQUIRE (board.kingAttacks(BitBoard::white) == 0x3828);
+}
+
+TEST_CASE("king on d4", "[king]") {
     board.pieceBitBoard[BitBoard::king] = 0x1000000008000000;  
     board.pieceBitBoard[BitBoard::white] = 0x800ffef;
     REQUIRE (board.kingAttacks(BitBoard::white) == 0x1c141c0000);
