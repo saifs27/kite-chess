@@ -13,15 +13,25 @@ int convert(Column column, int rank);
 typedef unsigned long long U64;
 
 class BitBoard {
+    U64 pieceBitBoard[8];
     public:
-    U64 white;
-    U64 black;
-    U64 pawn;
-    U64 knight;
-    U64 bishop;
-    U64 rook;
-    U64 queen;
-    U64 king;
+    enum ColorType {white, black};
+
+    enum PieceType {
+    pawn = 2,
+    knight,
+    bishop,
+    rook,
+    queen,
+    king,
+    };
+
+
+    BitBoard();
+    U64 getPiece(const ColorType color, const PieceType piece);
+    U64 kingAttacks();
+    
+
 
 
 
