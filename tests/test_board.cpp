@@ -9,5 +9,9 @@ TEST_CASE("bitboards", "[BitBoard]") {
     BitBoard board;
     board.getPiece(board.white, board.king);
     REQUIRE (board.getPiece(board.white, board.king) == 0x10);
-    REQUIRE (board.kingAttacks() == 0x3828);
+
+    REQUIRE (board.kingAttacks(BitBoard::white) == 0x3828);
+    board.pieceBitBoard[BitBoard::king] = 0x1000000008000000;  
+    board.pieceBitBoard[BitBoard::white] = 0x800ffef;
+    REQUIRE (board.kingAttacks(BitBoard::white) == 0x1c141c0000);
 }
