@@ -8,7 +8,7 @@ FetchContent_MakeAvailable(Catch2)
 # Tests need to be added as executables first
 add_executable(testing test_board.cpp)
 
-target_compile_features(testing PRIVATE cxx_std_14)
+target_compile_features(testing PRIVATE cxx_std_17)
 
 # Should be linked to the main library, as well as the Catch2 testing library
 target_link_libraries(testing PRIVATE Catch2::Catch2WithMain)
