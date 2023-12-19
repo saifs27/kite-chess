@@ -37,9 +37,11 @@ class BitBoard {
 
 
     BitBoard();
+    void startPosition();
     U64 getPiece(const ColorType color, const PieceType piece);
-    U64 kingAttacks(ColorType color);
-    U64 knightAttacks(ColorType color);
+    U64 kingAttacks(const ColorType color);
+    U64 knightAttacks(const ColorType color);
+    BitBoard shift();
     
 
 
