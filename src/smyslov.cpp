@@ -1,6 +1,7 @@
 #include <iostream>
+#include "board.hpp"
 
 int main() {
-
-    std::cout << "hello\n";
+    U64 result = knightAttacks(D4);
+    std::cout << result << '\n';
 }
