@@ -2,6 +2,9 @@
 #include "board.hpp"
 
 int main() {
-    U64 result = knightAttacks(D4);
-    std::cout << result << '\n';
+
+    U64 rookDirection = rookAttacks(D4);
+
+    std::cout << rookDirection << '\n';
+
 }
