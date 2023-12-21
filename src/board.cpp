@@ -41,17 +41,23 @@ U64 kingAttacks(BitBoard &bb, const ColorType color) {
 }
 
 U64 knightAttacks(const Square sq) {
-    const U64 bit = 0x1ULL;
+    const U64 bit = 0x1ULL << sq;
+    const U64 notAB = ~fileA_BB & ~fileB_BB;
+    const U64 notGH = ~fileG_BB & ~fileH_BB;
+    const U64 notA = ~fileA_BB;
+    const U64 notH = ~fileH_BB;
 
-    const U64 a = (sq + 17 < 64) ? bit << (sq + 17) : 0x0;
-    const U64 b = (sq + 15 < 64) ? bit << (sq + 15) : 0x0;
-    const U64 c = (sq + 10 < 64) ? bit << (sq + 10) : 0x0;
-    const U64 d = (sq + 6 < 64)  ? bit << (sq + 6) : 0x0;
 
-    const U64 e = (sq > 17) ? bit << (sq - 17) : 0x0;
-    const U64 f = (sq > 15) ? bit << (sq - 15) : 0x0;
-    const U64 g = (sq > 10) ? bit << (sq - 10) : 0x0;
-    const U64 h = (sq > 6)  ? bit << (sq - 6) : 0x0;
+
+    const U64 a = (bit & notH) << 17;
+    const U64 b = (bit & notA) << 15;
+    const U64 c = (bit & notGH) << 10;
+    const U64 d = (bit & notAB) << 6;
+
+    const U64 e = (bit & notA) >> 17;
+    const U64 f = (bit & notH) >> 15;
+    const U64 g = (bit & notAB) >> 10;
+    const U64 h = (bit & notGH) >> 6;
 
     return a | b | c | d | e | f | g | h ;
 

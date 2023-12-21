@@ -23,6 +23,9 @@ TEST_CASE("king on d4", "[king]") {
 
 TEST_CASE ("knight attacks", "[knight]") {
     REQUIRE (knightAttacks(D4) == 0x142200221400);
+    REQUIRE (knightAttacks(A1) == 0x20400);
+    REQUIRE (knightAttacks(A8) == 0x4020000000000);
+    
 }
 
 TEST_CASE ("rook attacks", "[rook]") {
