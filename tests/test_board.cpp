@@ -3,22 +3,28 @@
 
 
 #include "../src/board.cpp"
-U64 kd4 = 0x8000000;
-BitBoard board;
+U64 kd4 = 0x8000000ULL;
+    BitBoard board;
 
-TEST_CASE ("1 = 1", "[one]") {
-    REQUIRE (1 == 1);
-}
+
 
 TEST_CASE("bitboards", "[bitboard]") {
-
-    board.getPiece(board.white, board.king);
-    REQUIRE (board.getPiece(board.white, board.king) == 0x10);
-    REQUIRE (board.kingAttacks(BitBoard::white) == 0x3828);
+    board.startPosition();
+    board.getPieceBB(white, king);
+    REQUIRE (board.getPieceBB(white, king) == 0x10ULL);
+    REQUIRE (kingAttacks(board, white) == 0x3828ULL);
 }
 
 TEST_CASE("king on d4", "[king]") {
-    board.pieceBitBoard[BitBoard::king] = 0x1000000008000000;  
-    board.pieceBitBoard[BitBoard::white] = 0x800ffef;
-    REQUIRE (board.kingAttacks(BitBoard::white) == 0x1c141c0000);
+    board.pieceBitBoard[king] = 0x1000000008000000;  
+    board.pieceBitBoard[white] = 0x800ffef;
+    REQUIRE (kingAttacks(board, white) == 0x1c141c0000);
+}
+
+TEST_CASE ("knight attacks", "[knight]") {
+    REQUIRE (knightAttacks(D4) == 0x142200221400);
+}
+
+TEST_CASE ("rook attacks", "[rook]") {
+    REQUIRE (rookAttacks(D4) == 0x8080808f7080808);
 }

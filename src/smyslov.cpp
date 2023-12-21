@@ -1,6 +1,10 @@
 #include <iostream>
+#include "board.hpp"
 
 int main() {
 
-    std::cout << "hello\n";
+    U64 rookDirection = rookAttacks(D4);
+
+    std::cout << rookDirection << '\n';
+
 }
