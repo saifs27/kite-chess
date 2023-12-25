@@ -1,5 +1,5 @@
 #include "board.hpp"
-BitBoard::BitBoard() {
+Board::Board() {
     pieceBitBoard[white] = 0x0ULL;
     pieceBitBoard[black] = 0x0ULL;
     pieceBitBoard[pawn] = 0x0ULL;
@@ -9,23 +9,44 @@ BitBoard::BitBoard() {
     pieceBitBoard[queen] = 0x0ULL;
     pieceBitBoard[king] = 0x0ULL;
 }
-void BitBoard::startPosition() {
-    pieceBitBoard[white] = 0xffff;
-    pieceBitBoard[black] = 0xffff000000000000;
-    pieceBitBoard[pawn] = 0xff00000000ff00;
-    pieceBitBoard[knight] = 0x4200000000000042;
-    pieceBitBoard[bishop] = 0x2400000000000024;
-    pieceBitBoard[rook] = 0x8100000000000081;
-    pieceBitBoard[queen] = 0x800000000000008;
-    pieceBitBoard[king] = 0x1000000000000010;
+void Board::startPosition() {
+    pieceBitBoard[white] = 0xffffULL;
+    pieceBitBoard[black] = 0xffff000000000000ULL;
+    pieceBitBoard[pawn] = 0xff00000000ff00ULL;
+    pieceBitBoard[knight] = 0x4200000000000042ULL;
+    pieceBitBoard[bishop] = 0x2400000000000024ULL;
+    pieceBitBoard[rook] = 0x8100000000000081ULL;
+    pieceBitBoard[queen] = 0x800000000000008ULL;
+    pieceBitBoard[king] = 0x1000000000000010ULL;
 }
 
-U64 BitBoard::getPieceBB(const ColorType color, const PieceType piece) {
+U64 Board::getPieceBB(const ColorType color, const PieceType piece) {
     return pieceBitBoard[color] & pieceBitBoard[piece];
 }
 
-U64 kingAttacks(BitBoard &bb, const ColorType color) {
-    U64 kingPosition = bb.getPieceBB(color, king);
+void Board::make_move(const Move move) {
+    const U64 fromBB = 0x1ULL << move.from;
+    const U64 toBB = 0x1ULL << move.to;
+    
+    pieceBitBoard[move.color] ^= fromBB;
+    pieceBitBoard[move.color] |= toBB;
+
+    pieceBitBoard[move.piece] ^= fromBB;
+    pieceBitBoard[move.piece] |= toBB;
+}
+
+
+int population_count(U64 bitboard){
+    int count = 0;
+    while (bitboard) {
+        count += bitboard & 0x1ULL;
+        bitboard >>= 1;
+    }
+    return count;
+}
+
+U64 kingAttacks(Square sq) {
+    U64 kingPosition = 0x1ULL << sq;
     const U64 left = kingPosition >> 1;
     const U64 right = kingPosition << 1;
     U64 attacks = left | right;
@@ -47,8 +68,6 @@ U64 knightAttacks(const Square sq) {
     const U64 notA = ~fileA_BB;
     const U64 notH = ~fileH_BB;
 
-
-
     const U64 a = (bit & notH) << 17;
     const U64 b = (bit & notA) << 15;
     const U64 c = (bit & notGH) << 10;
@@ -60,7 +79,18 @@ U64 knightAttacks(const Square sq) {
     const U64 h = (bit & notGH) >> 6;
 
     return a | b | c | d | e | f | g | h ;
+}
 
+U64 pawnAttacks(const Square sq) {
+    const U64 notA = ~fileA_BB; 
+    const U64 notH = ~fileH_BB;
+
+    const U64 pawn = 0x1ULL << sq;
+
+    const U64 left = (pawn & notA) << 7;
+    const U64 right = (pawn & notH) << 9;
+
+    return left | right;
 }
 
 U64 rookAttacks(const Square sq) {
@@ -83,6 +113,14 @@ U64 rookAttacks(const Square sq) {
         board |= (bit << (sq - i));
     }
 
+    return board;
+}
+
+U64 bishopAttacks(const Square sq) {
+    const int column = sq % 8;
+    const int rank = sq / 8;
+    U64 bishop = 0x1ULL << sq;
+    U64 board = 0x0ULL;
     return board;
 }
 
