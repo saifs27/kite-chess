@@ -16,11 +16,20 @@ enum Square {
 
 enum Castling {WhiteKingside = 1, WhiteQueenside = 2, BlackKingside = 4, BlackQueenside = 8};
 
+/*
+White kingside castling: 0001
+0010
+0100
+1000
+*/
 
-enum ColorType {white, black}; 
-enum PieceType {pawn = 2, knight, bishop, rook, queen, king}; // to access bitboard class
+
+enum ColorType {WHITE, BLACK}; 
+enum PieceType {PAWN = 2, KNIGHT, BISHOP, ROOK, QUEEN, KING}; // to access position bitboard array
+enum MoveType {NORMAL, CASTLING, ENPASSANT, PROMOTION};
 
 struct Move {
+    MoveType move;
     Square from;
     Square to;
     PieceType piece;

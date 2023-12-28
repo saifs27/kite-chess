@@ -1,5 +1,5 @@
 #include <iostream>
-#include "board.hpp"
+#include "bitboards.hpp"
 
 int main() {
 

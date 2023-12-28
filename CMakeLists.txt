@@ -19,7 +19,7 @@ include(FetchContent)
 
 add_executable(smyslov
                 src/smyslov.cpp
-                src/board.cpp)
+                src/bitboards.cpp)
 
 target_include_directories(smyslov PRIVATE src)
 
