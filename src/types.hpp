@@ -11,7 +11,7 @@ enum Square {
     A6, B6, C6, D6, E6, F6, G6, H6,
     A7, B7, C7, D7, E7, F7, G7, H7,
     A8, B8, C8, D8, E8, F8, G8, H8,
-    EMPTY
+    EMPTY_SQUARE
 };
 
 enum Castling {WhiteKingside = 1, WhiteQueenside = 2, BlackKingside = 4, BlackQueenside = 8};
@@ -25,13 +25,14 @@ White kingside castling: 0001
 
 
 enum ColorType {WHITE, BLACK}; 
-enum PieceType {PAWN = 2, KNIGHT, BISHOP, ROOK, QUEEN, KING}; // to access position bitboard array
+enum PieceType {PAWN = 2, KNIGHT, BISHOP, ROOK, QUEEN, KING, EMPTY}; // to access position bitboard array
 enum MoveType {NORMAL, CASTLING, ENPASSANT, PROMOTION};
 
 struct Move {
-    MoveType move;
+    MoveType moveType;
     Square from;
     Square to;
     PieceType piece;
     ColorType color;
+    PieceType promoted;
 };

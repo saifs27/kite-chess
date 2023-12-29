@@ -1,10 +1,14 @@
+#pragma once
 #include <vector>
 #include "types.hpp"
 #include "bitboards.hpp"
+#include <string>
+#include <optional>
 
 class Position { 
     private:
     std::vector<Move> moveHistory; 
+    
     public:
     U64 pieceBitBoard[8];
     ColorType side;
@@ -14,12 +18,14 @@ class Position {
 
 
     Position();
+    Move uci_to_move(std::string uci);
     void startPosition();
     U64 getPieceBB(const ColorType color, const PieceType piece);
-    U64 attacks(const ColorType color);
+    U64 get_attacks(const ColorType color);
     bool can_castle(const Castling castleType);
     bool pseudo_legal(const Move move);
     bool legal(const Move move);
-    bool make_move(const Move move);
-    void unmake_move();
+    bool make_move(std::string);
+    void undo_move();
 };
+

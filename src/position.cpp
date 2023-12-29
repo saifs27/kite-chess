@@ -25,8 +25,7 @@ U64 Position::getPieceBB(const ColorType color, const PieceType piece) {
     return pieceBitBoard[color] & pieceBitBoard[piece];
 }
 
-
-U64 Position::attacks(const ColorType color) {
+U64 Position::get_attacks(const ColorType color) {
     const U64 pawn = pawnAttacks(getPieceBB(color, PAWN));
     const U64 king = kingAttacks(getPieceBB(color, KING));
     const U64 knight = knightAttacks(getPieceBB(color, KNIGHT));
@@ -35,6 +34,54 @@ U64 Position::attacks(const ColorType color) {
     const U64 queen = knightAttacks(getPieceBB(color, QUEEN));
     return pawn | king | knight | rook | bishop | queen;
 }
+
+Move Position::uci_to_move(std::string uci) {
+    Move move;
+    move.moveType = NORMAL;
+    move.color = side;
+    move.piece = EMPTY;
+    move.promoted = EMPTY;
+    move.from = EMPTY_SQUARE;
+    move.to = EMPTY_SQUARE;
+
+    if (uci.compare("0000") == 0) {return move;}
+
+
+
+
+    int from_file = static_cast<int>(uci[0])-97;
+    int from_rank = static_cast<int>(uci[1])-49;
+    int to_file = static_cast<int>(uci[2])-97;
+    int to_rank = static_cast<int>(uci[3])-49;
+
+    int input[4] = {from_file, from_rank, to_file, to_rank};
+
+    for (auto i: input) {
+        if (i < 0 || i >= 8) {
+            return {};
+        }
+    }
+
+    move.from = static_cast<Square>(from_rank * 8 + from_file);
+    move.to = static_cast<Square>(to_rank * 8 + to_file);
+    
+    for (int i = 2; i < 8; i++) {
+        if ((getPieceBB(move.color, static_cast<PieceType>(i)) & set_bit(move.from)) != 0x0ULL) {
+            move.piece = static_cast<PieceType>(i);
+            break;
+        }
+    }
+    if (move.piece == EMPTY) {
+        return {};
+    }
+
+    if (move.piece == KING && move.from == E1 && move.to == G1) {
+        move.moveType = CASTLING;
+    }
+
+    return move;
+}
+
 
 bool Position::can_castle(const Castling castleType) {
     ColorType color;
@@ -68,15 +115,22 @@ bool Position::can_castle(const Castling castleType) {
     }
 
     const U64 my_pieces = pieceBitBoard[color];
-    U64 opponent_attacks = attacks((ColorType)((color + 1) % 2));
+    U64 opponent_attacks = get_attacks(static_cast<ColorType>((color + 1) % 2));
     U64 blockers = my_pieces | opponent_attacks;
 
-    if (castling_squares & blockers != 0) {return false;}
+    if ((castling_squares & blockers != 0) || (king_sq & opponent_attacks) != 0) {
+        return false;
+    }
 
     return true;
 }
 
-bool Position::make_move(Move move) {
+bool Position::make_move(std::string uci) {
+    auto move = uci_to_move(uci);
+
+    if (move.piece == 0) {
+        return false;
+    }
     const int colorMask = move.color == WHITE ? 0b0011 : 0b1100;
     const U64 fromBB = 0x1ULL << move.from;
     const U64 toBB = 0x1ULL << move.to;
@@ -117,7 +171,7 @@ bool Position::make_move(Move move) {
     return true;
 }
 
-void Position::unmake_move() {
+void Position::undo_move() {
     Move move = moveHistory.back();
     moveHistory.pop_back();
 
