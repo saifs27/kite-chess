@@ -7,7 +7,7 @@ Position board;
 
 TEST_CASE("uci", "[uci]") {
     board.startPosition();
-    auto move = board.uci_to_move("e2e4");
+    auto move = board.uci_to_move("e2e4").value();
     REQUIRE (move.color == WHITE);
     REQUIRE (move.piece == PAWN);    
     REQUIRE (move.from == E2);
@@ -17,16 +17,10 @@ TEST_CASE("uci", "[uci]") {
     REQUIRE (move.promoted == EMPTY);
 }
 
-//TEST_CASE("make move", "[move]") {
-//    Move e4;
- //   e4.from = E2;
- //   e4.to = E4;
- //   e4.color = WHITE;
-//    e4.piece = PAWN;
- //   board.make_move("e2e4");
-//
- //   REQUIRE (board.getPieceBB(WHITE, PAWN) == 0x1000ef00);
-//}
+TEST_CASE("make move", "[move]") {
+    board.make_move("e2e4");
+    REQUIRE (board.getPieceBB(WHITE, PAWN) == 0x1000ef00);
+}
 
 TEST_CASE("population count", "[popcount]") {
     board.startPosition();

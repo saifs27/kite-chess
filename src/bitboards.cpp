@@ -72,10 +72,11 @@ U64 pawnAttacks(const U64 bb) {
 }
 
 U64 rookAttacks(const U64 bb) {
+    return bb;
 
 }
 
 U64 bishopAttacks(const U64 bb) {
-
+    return bb;
 }
 

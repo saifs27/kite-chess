@@ -24,7 +24,7 @@ White kingside castling: 0001
 */
 
 
-enum ColorType {WHITE, BLACK}; 
+enum ColorType {WHITE, BLACK, NONE}; 
 enum PieceType {PAWN = 2, KNIGHT, BISHOP, ROOK, QUEEN, KING, EMPTY}; // to access position bitboard array
 enum MoveType {NORMAL, CASTLING, ENPASSANT, PROMOTION};
 
