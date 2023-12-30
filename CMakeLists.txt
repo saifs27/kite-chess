@@ -18,7 +18,9 @@ enable_testing()
 include(FetchContent)
 
 add_executable(smyslov
-                src/main.cpp)
+                src/main.cpp
+                src/bitboards.cpp 
+                src/position.cpp)
 
 target_include_directories(smyslov PRIVATE src)
 
