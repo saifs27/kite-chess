@@ -3,9 +3,11 @@
 #include "position.hpp"
 #include "types.hpp"
 #include <string>
+
 int main() {
     Position board;
-    board.startPosition(); 
+    board.start_position();     
+
     while (true) {
         board.print_board();
         std::cout<<"Move: ";

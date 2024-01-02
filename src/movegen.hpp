@@ -1,6 +1,7 @@
 #pragma once
-#include "bitboards.hpp"
+#include "types.hpp"
 #include "position.hpp"
+
 
 class GenerateMove {
     public:

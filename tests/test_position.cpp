@@ -6,7 +6,7 @@
 Position board;
 
 TEST_CASE("uci", "[uci]") {
-    board.startPosition();
+    board.start_position();
     auto move = board.uci_to_move("e2e4").value();
     REQUIRE (move.color == WHITE);
     REQUIRE (move.piece == PAWN);    
@@ -19,16 +19,16 @@ TEST_CASE("uci", "[uci]") {
 
 TEST_CASE("make move", "[move]") {
     board.make_move("e2e4");
-    REQUIRE (board.getPieceBB(WHITE, PAWN) == 0x1000ef00);
+    REQUIRE (board.get_bitboard(WHITE, PAWN) == 0x1000ef00);
 }
 
 TEST_CASE("population count", "[popcount]") {
-    board.startPosition();
-    U64 whitepawn = board.getPieceBB(WHITE, PAWN);
-    REQUIRE (population_count(whitepawn) == 8);
+    board.start_position();
+    Bitboard whitepawn {board.get_bitboard(WHITE, PAWN)};
+    REQUIRE (whitepawn.population_count() == 8);
 }
 
 TEST_CASE("bitboards", "[bitboard]") {
-    board.startPosition();
-    REQUIRE (board.getPieceBB(WHITE, KING) == 0x10ULL);
+    board.start_position();
+    REQUIRE (board.get_bitboard(WHITE, KING) == 0x10ULL);
 }

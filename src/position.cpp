@@ -1,37 +1,37 @@
 #include "position.hpp"
 
 Position::Position() {
-    pieceBitBoard[WHITE] = 0x0ULL;
-    pieceBitBoard[BLACK] = 0x0ULL;
-    pieceBitBoard[PAWN] = 0x0ULL;
-    pieceBitBoard[KNIGHT] = 0x0ULL;
-    pieceBitBoard[BISHOP] = 0x0ULL;
-    pieceBitBoard[ROOK] = 0x0ULL;
-    pieceBitBoard[QUEEN] = 0x0ULL;
-    pieceBitBoard[KING] = 0x0ULL;
+    pieceBB[WHITE] = 0x0ULL;
+    pieceBB[BLACK] = 0x0ULL;
+    pieceBB[PAWN] = 0x0ULL;
+    pieceBB[KNIGHT] = 0x0ULL;
+    pieceBB[BISHOP] = 0x0ULL;
+    pieceBB[ROOK] = 0x0ULL;
+    pieceBB[QUEEN] = 0x0ULL;
+    pieceBB[KING] = 0x0ULL;
 }
-void Position::startPosition() {
-    pieceBitBoard[WHITE] = 0xffffULL;
-    pieceBitBoard[BLACK] = 0xffff000000000000ULL;
-    pieceBitBoard[PAWN] = 0xff00000000ff00ULL;
-    pieceBitBoard[KNIGHT] = 0x4200000000000042ULL;
-    pieceBitBoard[BISHOP] = 0x2400000000000024ULL;
-    pieceBitBoard[ROOK] = 0x8100000000000081ULL;
-    pieceBitBoard[QUEEN] = 0x800000000000008ULL;
-    pieceBitBoard[KING] = 0x1000000000000010ULL;
-}
-
-U64 Position::getPieceBB(const ColorType color, const PieceType piece) {
-    return pieceBitBoard[color] & pieceBitBoard[piece];
+void Position::start_position() {
+    pieceBB[WHITE] = 0xffffULL;
+    pieceBB[BLACK] = 0xffff000000000000ULL;
+    pieceBB[PAWN] = 0xff00000000ff00ULL;
+    pieceBB[KNIGHT] = 0x4200000000000042ULL;
+    pieceBB[BISHOP] = 0x2400000000000024ULL;
+    pieceBB[ROOK] = 0x8100000000000081ULL;
+    pieceBB[QUEEN] = 0x800000000000008ULL;
+    pieceBB[KING] = 0x1000000000000010ULL;
 }
 
-U64 Position::get_attacks(const ColorType color) {
-    const U64 pawn = pawnAttacks(getPieceBB(color, PAWN));
-    const U64 king = kingAttacks(getPieceBB(color, KING));
-    const U64 knight = knightAttacks(getPieceBB(color, KNIGHT));
-    const U64 rook = rookAttacks(getPieceBB(color, ROOK));
-    const U64 bishop = kingAttacks(getPieceBB(color, BISHOP));
-    const U64 queen = knightAttacks(getPieceBB(color, QUEEN));
+U64 Position::get_bitboard(const Color color, const Piece piece) {
+    return pieceBB[color] & pieceBB[piece];
+}
+
+U64 Position::get_attacks(const Color color) {
+    const U64 pawn = pawn_attacks(get_bitboard(color, PAWN));
+    const U64 king = king_attacks(get_bitboard(color, KING));
+    const U64 knight = knight_attacks(get_bitboard(color, KNIGHT));
+    const U64 rook = rook_attacks(get_bitboard(color, ROOK));
+    const U64 bishop = king_attacks(get_bitboard(color, BISHOP));
+    const U64 queen = knight_attacks(get_bitboard(color, QUEEN));
     return pawn | king | knight | rook | bishop | queen;
 }
 
@@ -39,8 +39,8 @@ std::optional<Move> Position::uci_to_move(std::string uci) {
     Move move;
     move.moveType = NORMAL;
     move.color = side;
-    move.piece = EMPTY;
-    move.promoted = EMPTY;
+    move.piece = Piece::EMPTY;
+    move.promoted = Piece::EMPTY;
     move.from = EMPTY_SQUARE;
     move.to = EMPTY_SQUARE;
 
@@ -63,8 +63,8 @@ std::optional<Move> Position::uci_to_move(std::string uci) {
     move.to = static_cast<Square>(to_rank * 8 + to_file);
     
     for (int i = 2; i < 8; i++) {
-        if ((getPieceBB(move.color, static_cast<PieceType>(i)) & set_bit(move.from)) != 0x0ULL) {
-            move.piece = static_cast<PieceType>(i);
+        if ((get_bitboard(move.color, static_cast<Piece>(i)) & set_bit(move.from)) != 0x0ULL) {
+            move.piece = static_cast<Piece>(i);
             break;
         }
     }
@@ -81,7 +81,7 @@ std::optional<Move> Position::uci_to_move(std::string uci) {
 
 
 bool Position::can_castle(const Move move) {
-    ColorType color;
+    Color color;
     U64 castling_squares;
     const int colorMask = color == WHITE ? 0b0011 : 0b1100;
 
@@ -105,14 +105,14 @@ bool Position::can_castle(const Move move) {
 
     Square expected_king_sq = (move.to == G1 || move.to == C1) ? E1 : E8;
 
-    U64 king_sq = getPieceBB(color, KING);
+    U64 king_sq = get_bitboard(color, KING);
 
     if (king_sq != set_bit(expected_king_sq)) {return false;}
 
     if (castlingPerm & colorMask == 0) {return false;}
 
-    const U64 my_pieces = pieceBitBoard[color];
-    U64 opponent_attacks = get_attacks(static_cast<ColorType>((color + 1) % 2));
+    const U64 my_pieces = pieceBB[color];
+    U64 opponent_attacks = get_attacks(static_cast<Color>((color + 1) % 2));
     U64 blockers = my_pieces | opponent_attacks;
 
     if ((castling_squares & blockers != 0) || (king_sq & opponent_attacks) != 0) {
@@ -162,16 +162,16 @@ bool Position::make_move(std::string uci) {
     const U64 fromBB = set_bit(move.from);
     const U64 toBB = set_bit(move.to);
 
-    if (fromBB & pieceBitBoard[move.color] == 0 || fromBB & pieceBitBoard[move.piece] == 0){
+    if (fromBB & pieceBB[move.color] == 0 || fromBB & pieceBB[move.piece] == 0){
         return false;
     }
 
     moveHistory.push_back(move);
-    pieceBitBoard[move.color] &= ~fromBB;
-    pieceBitBoard[move.color] |= toBB;
+    pieceBB[move.color] &= ~fromBB;
+    pieceBB[move.color] |= toBB;
 
-    pieceBitBoard[move.piece] &= ~fromBB;
-    pieceBitBoard[move.piece] |= toBB;
+    pieceBB[move.piece] &= ~fromBB;
+    pieceBB[move.piece] |= toBB;
 
     update_castlingPerm(move);
 
@@ -185,29 +185,29 @@ void Position::undo_move() {
 
     const U64 prevBB = 0x1ULL << move.to;
     const U64 currentBB = 0x1ULL << move.from;
-    pieceBitBoard[move.color] &= ~currentBB;
-    pieceBitBoard[move.color] |= prevBB;
+    pieceBB[move.color] &= ~currentBB;
+    pieceBB[move.color] |= prevBB;
 
-    pieceBitBoard[move.piece] &= ~currentBB;
-    pieceBitBoard[move.piece] |= prevBB;
+    pieceBB[move.piece] &= ~currentBB;
+    pieceBB[move.piece] |= prevBB;
 }
 
 void Position::print_board() {
     std::string printed_board[64];
     U64 check_sq = 0x1ULL;
-    ColorType color;
+    Color color;
     for (int i = 0; i < 64; i++) {
         check_sq = 0x1ULL << i;
         std::string symbol = " *";
         printed_board[i] = symbol;
         color = NONE;
-        if ((pieceBitBoard[WHITE] & check_sq) != 0) {color = WHITE;}
-        else if ((pieceBitBoard[BLACK] & check_sq) != 0) {color = BLACK;}
+        if ((pieceBB[WHITE] & check_sq) != 0) {color = WHITE;}
+        else if ((pieceBB[BLACK] & check_sq) != 0) {color = BLACK;}
         else {continue;}
 
         for (int j = 2; j < 8; j++) {
-            PieceType piece = static_cast<PieceType>(j);
-            if ((check_sq & getPieceBB(color, piece)) != 0) {
+            Piece piece = static_cast<Piece>(j);
+            if ((check_sq & get_bitboard(color, piece)) != 0) {
                 switch(piece) {
                     case PAWN:
                         printed_board[i] = (color == WHITE) ? " P" : " p";
@@ -228,8 +228,7 @@ void Position::print_board() {
                         printed_board[i] = (color == WHITE) ? " K" : " k";
                         break;
                     default:
-                        break;
-            
+                        break;  
                 }
             }
         }

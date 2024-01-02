@@ -1,10 +1,79 @@
 #include "bitboards.hpp"
+template <typename T>
+Bitboard Bitboard::operator|(T bb){
+    return Bitboard {bitboard | bb.bitboard};
+}
+
+void Bitboard::operator|=(Bitboard bb){
+     bitboard |= bb.bitboard;
+}
+
+Bitboard Bitboard::operator&(Bitboard bb){
+    return Bitboard {bitboard & bb.bitboard};
+}
+
+void Bitboard::operator&=(Bitboard bb){
+     bitboard &= bb.bitboard;
+}
+
+Bitboard Bitboard::operator^(Bitboard bb){
+    return Bitboard {bitboard ^ bb.bitboard};
+}
+
+void Bitboard::operator^=(Bitboard bb){
+     bitboard ^= bb.bitboard;
+}
+
+Bitboard Bitboard::operator~(){
+    return Bitboard {~bitboard};
+}
+
+Bitboard Bitboard::operator<<(int n){
+    return Bitboard {bitboard << n};
+}
+
+void Bitboard::operator<<=(int n){
+     bitboard <<= n;
+}
+
+Bitboard Bitboard::operator>>(int n){
+    return Bitboard {bitboard >> n};
+}
+
+void Bitboard::operator>>=(int n){
+     bitboard >>= n;
+}
+template <typename T>
+void Bitboard::operator=(T bitboard){
+     this->bitboard = bitboard;
+}
+template <typename T>
+bool Bitboard::operator==(T bb){
+    return bitboard == bb.bitboard;
+}
+template <typename T>
+bool Bitboard::operator!=(T bb){
+     return bitboard != bb.bitboard;
+}
+
+
+
+
+bool Bitboard::is_empty(){
+    return bitboard == 0x0ULL;
+}
+
+bool Bitboard::has(Square square) {
+    Bitboard check_sq {(bitboard & set_bit(square))};
+    return !(check_sq.is_empty());
+}
+
 
 U64 set_bit(Square sq) {
     return 0x1ULL << sq;
 }
 
-int population_count(U64 bitboard){
+int Bitboard::population_count(){
     int count = 0;
     while (bitboard) {
         count += bitboard & 0x1ULL;
@@ -13,19 +82,45 @@ int population_count(U64 bitboard){
     return count;
 }
 
-Square lsb(U64 bitboard) {
-    constexpr int debruijn[32] = {0, 1, 28, 2, 29, 14, 24, 3, 30, 22, 20, 15, 25, 17, 4, 8,
-    31, 27, 13, 23, 21, 19, 16, 7, 26, 12, 18, 6, 11, 5, 10, 9};
-    return (Square)debruijn[((bitboard & -bitboard) * 0x077CB531U) >> 27];
+Square Bitboard::lsb() {
+    U64 bit = 0x1ULL;
+    for (int i = 0; i < 64; i++) {
+        Square sq = static_cast<Square>(i);
+        if (bitboard & (set_bit(sq))) {
+            return sq;
+        }
+    }
+    return EMPTY_SQUARE;
 }
 
-Square pop_lsb(U64& bitboard) {
-    Square sq = lsb(bitboard);
+Square Bitboard::pop_lsb() {
+    Square sq = lsb();
     bitboard = bitboard - (bitboard & -bitboard);
     return sq;
 }
 
-U64 kingAttacks(const U64 bb) {
+void Bitboard::print_bitboard() {
+    U64 last_sq = 0x8000000000000000ULL;
+    U64 bb = bitboard;
+    std::string printed_board[64];
+    for (int i = 0; i < 64; i++) {
+        if ((bitboard & last_sq) != 0) {
+            printed_board[i] = " 1";
+        }
+        else {
+            printed_board[i] = " 0";
+        }
+        last_sq >>= 1;
+    }
+
+    for (int sq = 0; sq < 64; sq++) {
+        if (sq % 8 == 0) { std::cout << '\n';}
+        std::cout << printed_board[sq];
+    }
+    std::cout << '\n';
+}
+
+U64 king_attacks(const U64 bb) {
     U64 kingPosition = bb;
     const U64 left = kingPosition >> 1;
     const U64 right = kingPosition << 1;
@@ -41,11 +136,11 @@ U64 kingAttacks(const U64 bb) {
     return attacks;
 }
 
-U64 knightAttacks(const U64 bb) {
-    const U64 notAB = ~fileA_BB & ~fileB_BB;
-    const U64 notGH = ~fileG_BB & ~fileH_BB;
-    const U64 notA = ~fileA_BB;
-    const U64 notH = ~fileH_BB;
+U64 knight_attacks(const U64 bb) {
+    const U64 notAB = ~file::A & ~file::B;
+    const U64 notGH = ~file::G & ~file::H;
+    const U64 notA = ~file::A;
+    const U64 notH = ~file::H;
 
     const U64 a = (bb & notH) << 17;
     const U64 b = (bb & notA) << 15;
@@ -60,9 +155,9 @@ U64 knightAttacks(const U64 bb) {
     return a | b | c | d | e | f | g | h ;
 }
 
-U64 pawnAttacks(const U64 bb) {
-    const U64 notA = ~fileA_BB; 
-    const U64 notH = ~fileH_BB;
+U64 pawn_attacks(const U64 bb) {
+    const U64 notA = ~file::A; 
+    const U64 notH = ~file::H;
 
 
     const U64 left = (bb & notA) << 7;
@@ -71,12 +166,77 @@ U64 pawnAttacks(const U64 bb) {
     return left | right;
 }
 
-U64 rookAttacks(const U64 bb) {
+U64 rook_attacks(const U64 bb) {
+    //TODO
     return bb;
+    
 
 }
 
-U64 bishopAttacks(const U64 bb) {
+U64 bishop_attacks(const U64 bb) {
+    //TODO
     return bb;
 }
 
+U64 Slider::moves(const Square square, Bitboard blockers){
+    Bitboard moves {0x0ULL};
+
+    for (auto i: deltas) {
+        Square ray = square;
+        while (!blockers.has(ray)) {
+            std::optional<Square>(shifted) = ray;
+            if (shifted.has_value()) {
+                ray = shifted.value();
+                moves |= Bitboard{set_bit(ray)};
+            }
+        }
+    
+    
+    }
+}
+
+U64 Slider::get_relevant_blockers(const Square sq){
+
+}
+
+U64 magic_index(const Magic& entry, const U64 blockers) {
+    /*
+        Magic Hashing function:
+
+        (blockers * magic) >> (64 - n)
+        where blockers = blockers & mask
+
+        We will shift by n instead
+        and store 64-n to remove
+        one subtraction at runtime.
+
+    */
+
+    U64 blocker_mask = blockers & entry.mask;
+    U64 hash = blocker_mask % (0x1ULL << entry.magic);
+    U64 index = (hash >> entry.shift);
+    return entry.offset + index;
+}
+
+
+void find_magic(Slider& slider, const Square square, const u_int8_t index_bits) {
+    U64 mask = slider.get_relevant_blockers(square);
+
+    while (true) {
+        std::uniform_int_distribution<U64> dist(std::llround(std::pow(2, 61)), std::llround(std::pow(2,62)));
+        
+    }
+
+    
+}
+
+
+U64 get_rook_moves(Square sq, U64 blockers){
+    Magic magic = ROOK_MAGICS[sq];
+    return ROOK_MOVES[magic_index(magic, blockers)];
+}
+
+U64 get_bishop_moves(Square sq, U64 blockers){
+    Magic magic = BISHOP_MAGICS[sq];
+    return BISHOP_MOVES[magic_index(magic, blockers)];
+}

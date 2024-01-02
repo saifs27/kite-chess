@@ -14,6 +14,17 @@ enum Square {
     EMPTY_SQUARE
 };
 
+namespace file {
+inline constexpr U64 A = 0x101010101010101ULL;
+inline constexpr U64 B = 0x202020202020202ULL;
+inline constexpr U64 C = 0x404040404040404ULL;
+inline constexpr U64 D = 0x808080808080808ULL;
+inline constexpr U64 E = 0x1010101010101010ULL;
+inline constexpr U64 F = 0x2020202020202020ULL;
+inline constexpr U64 G = 0x4040404040404040ULL;
+inline constexpr U64 H = 0x8080808080808080ULL;
+}
+
 enum Castling {WhiteKingside = 1, WhiteQueenside = 2, BlackKingside = 4, BlackQueenside = 8};
 
 /*
@@ -24,15 +35,15 @@ White kingside castling: 0001
 */
 
 
-enum ColorType {WHITE, BLACK, NONE}; 
-enum PieceType {PAWN = 2, KNIGHT, BISHOP, ROOK, QUEEN, KING, EMPTY}; // to access position bitboard array
+enum Color {WHITE, BLACK, NONE}; 
+enum Piece {PAWN = 2, KNIGHT, BISHOP, ROOK, QUEEN, KING, EMPTY}; // to access position bitboard array
 enum MoveType {NORMAL, CASTLING, ENPASSANT, PROMOTION};
 
 struct Move {
     MoveType moveType;
     Square from;
     Square to;
-    PieceType piece;
-    ColorType color;
-    PieceType promoted;
+    Piece piece;
+    Color color;
+    Piece promoted;
 };
