@@ -14,6 +14,9 @@ enum Square {
     EMPTY_SQUARE
 };
 
+enum File {A, B, C, D, E, F, G, H};
+enum Rank {First, Second, Third, Fourth, Fifth};
+
 namespace file {
 inline constexpr U64 A = 0x101010101010101ULL;
 inline constexpr U64 B = 0x202020202020202ULL;
