@@ -86,7 +86,7 @@ Square Bitboard::lsb() {
     U64 bit = 0x1ULL;
     for (int i = 0; i < 64; i++) {
         Square sq = static_cast<Square>(i);
-        if (bitboard & (set_bit(sq))) {
+        if (bitboard & (set_bit(sq)) != 0) {
             return sq;
         }
     }
@@ -178,7 +178,7 @@ U64 bishop_attacks(const U64 bb) {
     return bb;
 }
 
-U64 Slider::moves(const Square square, Bitboard blockers){
+Bitboard Slider::moves(const Square square, Bitboard blockers){
     Bitboard moves {0x0ULL};
 
     for (auto i: deltas) {
@@ -189,14 +189,25 @@ U64 Slider::moves(const Square square, Bitboard blockers){
                 ray = shifted.value();
                 moves |= Bitboard{set_bit(ray)};
             }
+            else {break;}
         }
-    
-    
     }
+    return moves;
 }
 
-U64 Slider::get_relevant_blockers(const Square sq){
+Bitboard Slider::get_relevant_blockers(const Square sq){
+    Bitboard blockers {0x0ULL};
+    for (auto i: deltas) {
+        Square ray = sq;
+        std::optional<Square>(shifted) = ray;
+        while (shifted.has_value()) {
+            blockers |= Bitboard {set_bit(ray)};
+            ray = shifted.value();
+        }
 
+    }
+    blockers &= ~(Bitboard {set_bit(sq)});
+    return blockers;
 }
 
 U64 magic_index(const Magic& entry, const U64 blockers) {
@@ -220,7 +231,7 @@ U64 magic_index(const Magic& entry, const U64 blockers) {
 
 
 void find_magic(Slider& slider, const Square square, const u_int8_t index_bits) {
-    U64 mask = slider.get_relevant_blockers(square);
+    Bitboard mask = slider.get_relevant_blockers(square);
 
     while (true) {
         std::uniform_int_distribution<U64> dist(std::llround(std::pow(2, 61)), std::llround(std::pow(2,62)));
@@ -232,11 +243,11 @@ void find_magic(Slider& slider, const Square square, const u_int8_t index_bits) 
 
 
 U64 get_rook_moves(Square sq, U64 blockers){
-    Magic magic = ROOK_MAGICS[sq];
-    return ROOK_MOVES[magic_index(magic, blockers)];
+    //Magic magic = ROOK_MAGICS[sq];
+    //return ROOK_MOVES[magic_index(magic, blockers)];
 }
 
 U64 get_bishop_moves(Square sq, U64 blockers){
-    Magic magic = BISHOP_MAGICS[sq];
-    return BISHOP_MOVES[magic_index(magic, blockers)];
+    //Magic magic = BISHOP_MAGICS[sq];
+    //return BISHOP_MOVES[magic_index(magic, blockers)];
 }

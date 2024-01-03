@@ -54,8 +54,8 @@ U64 rook_attacks(const U64 bb);
 
 struct Slider {
     std::tuple<int,int> deltas[4];
-    U64 moves(const Square square, Bitboard blockers);
-    U64 get_relevant_blockers(const Square sq);
+    Bitboard moves(const Square square, Bitboard blockers);
+    Bitboard get_relevant_blockers(const Square sq);
 };
 
 namespace slider {
@@ -70,11 +70,11 @@ struct Magic {
     U64 offset;
 };
 
-Magic ROOK_MAGICS[64];
-Magic BISHOP_MAGICS[64];
+//Magic ROOK_MAGICS[64];
+//Magic BISHOP_MAGICS[64];
 
-U64 ROOK_MOVES[64];
- U64 BISHOP_MOVES[64];
+//U64 ROOK_MOVES[64];
+ //U64 BISHOP_MOVES[64];
 
 U64 magic_index(const Magic& entry, const U64 blockers);
 void find_magic(Slider& slider, Square square, u_int8_t index_bits);
