@@ -33,17 +33,17 @@ class Bitboard {
     template <typename T>
     bool operator!=(T bb);
 
-    bool is_empty();
-    bool has(Square sq);
-    int population_count();
-    Square msb();
-    Square lsb();
+    bool is_empty() const;
+    bool has(Square sq) const;
+    int population_count() const;
+    Square msb() const;
+    Square lsb() const;
     Square pop_lsb();
-    void print_bitboard();
+    void print_bitboard() const;
 
 };
 
-U64 set_bit(Square sq);
+
 
 
 U64 king_attacks(const U64 bb);

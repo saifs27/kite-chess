@@ -1,5 +1,8 @@
 #pragma once
 #include "bitboards.hpp"
+#include "types.hpp"
+
+
 struct Slider {
     std::tuple<int,int> deltas[4];
     Bitboard moves(const Square square, Bitboard blockers);
@@ -14,8 +17,7 @@ inline constexpr Slider BISHOP {std::make_tuple(1,1), std::make_tuple(1,-1), std
 struct Magic {
     U64 mask;
     U64 magic;
-    U64 shift;
-    U64 offset;
+    int shift;
 };
 
 //Magic ROOK_MAGICS[64];
@@ -28,3 +30,8 @@ U64 magic_index(const Magic& entry, const U64 blockers);
 void find_magic(Slider& slider, Square square, u_int8_t index_bits);
 U64 get_rook_moves(Square sq, U64 blockers);
 U64 get_bishop_moves(Square sq, U64 blockers);
+
+
+struct TableFillError {};
+
+std::optional<std::vector<Bitboard>> try_make_table(Slider& slider, Square sq, Magic& magic);

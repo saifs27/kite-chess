@@ -59,30 +59,29 @@ bool Bitboard::operator!=(T bb){
 
 
 
-bool Bitboard::is_empty(){
+bool Bitboard::is_empty() const {
     return bitboard == 0x0ULL;
 }
 
-bool Bitboard::has(Square square) {
+bool Bitboard::has(Square square) const {
     Bitboard check_sq {(bitboard & set_bit(square))};
     return !(check_sq.is_empty());
 }
 
 
-U64 set_bit(Square sq) {
-    return 0x1ULL << sq;
-}
 
-int Bitboard::population_count(){
+
+int Bitboard::population_count() const {
     int count = 0;
-    while (bitboard) {
-        count += bitboard & 0x1ULL;
-        bitboard >>= 1;
+    U64 bb = bitboard;
+    while (bb) {
+        count += bb & 0x1ULL;
+        bb >>= 1;
     }
     return count;
 }
 
-Square Bitboard::lsb() {
+Square Bitboard::lsb() const {
     U64 bit = 0x1ULL;
     for (int i = 0; i < 64; i++) {
         Square sq = static_cast<Square>(i);
@@ -99,7 +98,7 @@ Square Bitboard::pop_lsb() {
     return sq;
 }
 
-void Bitboard::print_bitboard() {
+void Bitboard::print_bitboard() const {
     U64 last_sq = 0x8000000000000000ULL;
     U64 bb = bitboard;
     std::string printed_board[64];

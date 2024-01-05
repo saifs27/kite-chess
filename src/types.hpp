@@ -1,4 +1,5 @@
 #pragma once
+#include <optional>
 
 typedef unsigned long long U64;
 
@@ -50,3 +51,29 @@ struct Move {
     Color color;
     Piece promoted;
 };
+
+
+U64 set_bit(Square sq) {
+    return 0x1ULL << sq;
+}
+
+File get_file(Square square){
+    int file = square / 8;
+    return static_cast<File>(file);
+}
+Rank get_rank(Square square){
+    int rank = square % 8;
+    return static_cast<Rank>(rank);
+}
+
+std::optional<Square> try_offset(Square sq, int file_offset, int rank_offset){
+    File file = get_file(sq);
+    Rank rank = get_rank(sq);
+    int new_file = file + file_offset;
+    int new_rank = rank + rank_offset;
+    if (new_file >= 8 || new_rank >= 8) {
+        return {};
+    }
+
+    return static_cast<Square>(new_rank * 8 + new_file);
+}

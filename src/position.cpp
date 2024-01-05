@@ -21,11 +21,11 @@ void Position::start_position() {
     pieceBB[KING] = 0x1000000000000010ULL;
 }
 
-U64 Position::get_bitboard(const Color color, const Piece piece) {
+U64 Position::get_bitboard(const Color color, const Piece piece) const {
     return pieceBB[color] & pieceBB[piece];
 }
 
-U64 Position::get_attacks(const Color color) {
+U64 Position::get_attacks(const Color color) const {
     const U64 pawn = pawn_attacks(get_bitboard(color, PAWN));
     const U64 king = king_attacks(get_bitboard(color, KING));
     const U64 knight = knight_attacks(get_bitboard(color, KNIGHT));
@@ -80,7 +80,7 @@ std::optional<Move> Position::uci_to_move(std::string uci) {
 }
 
 
-bool Position::can_castle(const Move move) {
+bool Position::can_castle(const Move move) const {
     Color color;
     U64 castling_squares;
     const int colorMask = color == WHITE ? 0b0011 : 0b1100;
@@ -192,7 +192,7 @@ void Position::undo_move() {
     pieceBB[move.piece] |= prevBB;
 }
 
-void Position::print_board() {
+void Position::print_board() const {
     std::string printed_board[64];
     U64 check_sq = 0x1ULL;
     Color color;
