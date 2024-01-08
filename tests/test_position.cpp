@@ -3,6 +3,7 @@
 
 #include "../src/position.cpp"
 
+using namespace Smyslov;
 Position board;
 
 TEST_CASE("uci", "[uci]") {
