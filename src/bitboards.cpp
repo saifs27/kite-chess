@@ -1,63 +1,5 @@
 #include "bitboards.hpp"
-template <typename T>
-Bitboard Bitboard::operator|(T bb){
-    return Bitboard {bitboard | bb.bitboard};
-}
-
-void Bitboard::operator|=(Bitboard bb){
-     bitboard |= bb.bitboard;
-}
-
-Bitboard Bitboard::operator&(Bitboard bb){
-    return Bitboard {bitboard & bb.bitboard};
-}
-
-void Bitboard::operator&=(Bitboard bb){
-     bitboard &= bb.bitboard;
-}
-
-Bitboard Bitboard::operator^(Bitboard bb){
-    return Bitboard {bitboard ^ bb.bitboard};
-}
-
-void Bitboard::operator^=(Bitboard bb){
-     bitboard ^= bb.bitboard;
-}
-
-Bitboard Bitboard::operator~(){
-    return Bitboard {~bitboard};
-}
-
-Bitboard Bitboard::operator<<(int n){
-    return Bitboard {bitboard << n};
-}
-
-void Bitboard::operator<<=(int n){
-     bitboard <<= n;
-}
-
-Bitboard Bitboard::operator>>(int n){
-    return Bitboard {bitboard >> n};
-}
-
-void Bitboard::operator>>=(int n){
-     bitboard >>= n;
-}
-template <typename T>
-void Bitboard::operator=(T bitboard){
-     this->bitboard = bitboard;
-}
-template <typename T>
-bool Bitboard::operator==(T bb){
-    return bitboard == bb.bitboard;
-}
-template <typename T>
-bool Bitboard::operator!=(T bb){
-     return bitboard != bb.bitboard;
-}
-
-
-
+namespace Smyslov {
 
 bool Bitboard::is_empty() const {
     return bitboard == 0x0ULL;
@@ -69,7 +11,19 @@ bool Bitboard::has(Square square) const {
 }
 
 
+std::vector<Bitboard> Bitboard::get_subsets(){
+    auto subset = 0;
+    std::vector<Bitboard> result;
+    while (true) {
+        subset = ((subset * bitboard) % 0xffffffffffffffffULL) & bitboard;
+        result.push_back(Bitboard(subset));
 
+        if (subset == 0) {
+            break;
+        }
+    }
+    return result;
+}
 
 int Bitboard::population_count() const {
     int count = 0;
@@ -179,4 +133,4 @@ U64 bishop_attacks(const U64 bb) {
 
 
 
-
+}

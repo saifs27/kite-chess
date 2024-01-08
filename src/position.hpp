@@ -5,7 +5,7 @@
 #include <string>
 
 #include <iostream>
-
+namespace Smyslov {
 class Position { 
     private:
     std::vector<Move> moveHistory; 
@@ -19,6 +19,8 @@ class Position {
 
 
     Position();
+    U64 colors(Color color) const {return pieceBB[color];};
+    U64 pieces(Piece piece) const {return pieceBB[piece];};
     std::optional<Move> uci_to_move(std::string uci);
     void start_position();
     U64 get_bitboard(const Color color, const Piece piece) const;
@@ -33,3 +35,4 @@ class Position {
     void print_board() const;
 };
 
+}

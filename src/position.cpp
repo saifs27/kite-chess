@@ -1,5 +1,5 @@
 #include "position.hpp"
-
+namespace Smyslov {
 Position::Position() {
     pieceBB[WHITE] = 0x0ULL;
     pieceBB[BLACK] = 0x0ULL;
@@ -244,4 +244,5 @@ void Position::print_board() const {
     std::cout << '\n';
 
 
+}
 }

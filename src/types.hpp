@@ -1,6 +1,7 @@
 #pragma once
 #include <optional>
 
+namespace Smyslov {
 typedef unsigned long long U64;
 
 enum Square {
@@ -53,27 +54,30 @@ struct Move {
 };
 
 
-U64 set_bit(Square sq) {
+
+inline U64 set_bit(Square sq) {
     return 0x1ULL << sq;
 }
 
-File get_file(Square square){
-    int file = square / 8;
+inline File get_file(Square square){
+    int file = square % 8;
     return static_cast<File>(file);
 }
-Rank get_rank(Square square){
-    int rank = square % 8;
+inline Rank get_rank(Square square){
+    int rank = square / 8;
     return static_cast<Rank>(rank);
 }
 
-std::optional<Square> try_offset(Square sq, int file_offset, int rank_offset){
-    File file = get_file(sq);
-    Rank rank = get_rank(sq);
-    int new_file = file + file_offset;
-    int new_rank = rank + rank_offset;
-    if (new_file >= 8 || new_rank >= 8) {
+
+
+inline std::optional<Square> try_offset(Square sq, int file_offset, int rank_offset){
+    int file = get_file(sq) + file_offset;
+    int rank = get_rank(sq) + rank_offset;
+    int new_square = rank * 8 + file;
+    if (file >= 8 || file < 0 || rank >= 8 || rank < 0) {
         return {};
     }
 
-    return static_cast<Square>(new_rank * 8 + new_file);
+    return static_cast<Square>(new_square);
+}
 }
