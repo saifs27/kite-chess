@@ -3,10 +3,10 @@
 #include "position.hpp"
 
 namespace Smyslov {
-class GenerateMove {
+class MoveGen {
     Position& m_position;
     public:
-    GenerateMove(Position& position) : m_position(position) {};
+    MoveGen(Position& position) : m_position(position) {};
     void quiet(const Move move);
     void capture(const Move move);
     void en_passant(const Move move);

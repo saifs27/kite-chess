@@ -1,6 +1,5 @@
 #pragma once
 #include "types.hpp"
-#include "position.hpp"
 #include <cstdint>
 #include <memory>
 #include <vector>
@@ -36,13 +35,13 @@ class Bitboard {
     std::vector<Bitboard> get_subsets();
     
 
-    int population_count() const;
-    Square msb() const;
-    Square lsb() const;
-    Square pop_lsb();
-    void print_bitboard() const;
-
 };
+
+int population_count(const U64 bitboard);
+Square msb(const U64 bitboard);
+Square lsb(const U64 bitboard);
+Square pop_lsb(U64 bitboard);
+void print_bitboard(const U64 bitboard);
 
 
 
@@ -52,6 +51,38 @@ U64 knight_attacks(const U64 bb);
 U64 pawn_attacks(const U64 bb);
 U64 bishop_attacks(const U64 bb);
 U64 rook_attacks(const U64 bb);
+
+
+inline U64 king_attacks(const Move move) 
+{
+    U64 bb = set_bit(move.from);
+    return king_attacks(bb);
+}
+
+inline U64 knight_attacks(const Move move)
+{
+    U64 bb = set_bit(move.from);
+    return knight_attacks(bb);
+}
+
+inline U64 pawn_attacks(const Move move)
+{
+    U64 bb = set_bit(move.from);
+    return pawn_attacks(bb);
+}
+
+inline U64 bishop_attacks(const Move move)
+{
+    U64 bb = set_bit(move.from);
+    return bishop_attacks(bb);
+
+}
+
+inline U64 rook_attacks(const Move move)
+{
+    U64 bb = set_bit(move.from);
+    return rook_attacks(bb);
+}
 
 
 

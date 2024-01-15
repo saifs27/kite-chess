@@ -58,7 +58,7 @@ U64 magic_index(const Magic& entry, const Bitboard blockers) {
 std::optional<std::vector<Bitboard>> try_make_table(const Slider& slider, const Square sq, const Magic& magic){
     int index_bits = 64 - magic.shift;
     std::vector<Bitboard> table(1<< index_bits, Bitboard(0x0ULL));
-
+    
     for (auto blockers: Bitboard(magic.mask).get_subsets()) {
         auto moves = slider.moves(sq, blockers); 
         auto table_entry = table[magic_index(magic, blockers)];
@@ -89,8 +89,6 @@ std::tuple<Magic, std::vector<Bitboard>> find_magic(const Slider slider, const S
 
     
 }
-
-    throw "can't find magic";
 }
 
 /*

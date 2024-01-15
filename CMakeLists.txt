@@ -25,7 +25,10 @@ add_executable(smyslov
                 src/position.hpp
                 src/magic.cpp
                 src/magic.hpp
-                src/types.hpp)
+                src/types.hpp
+                src/search.cpp
+                src/search.hpp 
+                )
 
 target_include_directories(smyslov PRIVATE src)
 

@@ -25,9 +25,9 @@ std::vector<Bitboard> Bitboard::get_subsets(){
     return result;
 }
 
-int Bitboard::population_count() const {
+int population_count(const U64 bitboard) {
     int count = 0;
-    U64 bb = bitboard;
+    auto bb = bitboard;
     while (bb) {
         count += bb & 0x1ULL;
         bb >>= 1;
@@ -35,7 +35,7 @@ int Bitboard::population_count() const {
     return count;
 }
 
-Square Bitboard::lsb() const {
+Square lsb(const U64 bitboard) {
     U64 bit = 0x1ULL;
     for (int i = 0; i < 64; i++) {
         Square sq = static_cast<Square>(i);
@@ -46,15 +46,14 @@ Square Bitboard::lsb() const {
     return EMPTY_SQUARE;
 }
 
-Square Bitboard::pop_lsb() {
-    Square sq = lsb();
+Square pop_lsb(U64 bitboard) {
+    Square sq = lsb(bitboard);
     bitboard = bitboard - (bitboard & -bitboard);
     return sq;
 }
 
-void Bitboard::print_bitboard() const {
+void print_bitboard(const U64 bitboard) {
     U64 last_sq = 0x8000000000000000ULL;
-    U64 bb = bitboard;
     std::string printed_board[64];
     for (int i = 0; i < 64; i++) {
         if ((bitboard & last_sq) != 0) {
@@ -120,7 +119,6 @@ U64 pawn_attacks(const U64 bb) {
 }
 
 U64 rook_attacks(const U64 bb) {
-    //TODO
     return bb;
     
 
@@ -130,6 +128,7 @@ U64 bishop_attacks(const U64 bb) {
     //TODO
     return bb;
 }
+
 
 
 

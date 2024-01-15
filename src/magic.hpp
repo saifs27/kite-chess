@@ -27,7 +27,7 @@ struct Magic {
 
 
 U64 magic_index(const Magic& entry, const Bitboard blockers);
-std::tuple<Magic, std::vector<Bitboard>> find_magic(const Slider slider, Square square, u_int8_t index_bits);
+std::tuple<Magic, std::vector<Bitboard>> find_magic(const Slider slider, const Square square, const u_int8_t index_bits);
 U64 get_rook_moves(Square sq, U64 blockers);
 U64 get_bishop_moves(Square sq, U64 blockers);
 
