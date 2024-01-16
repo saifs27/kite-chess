@@ -41,13 +41,7 @@ U64 Position::get_attacks(const Color color) const
 
 std::optional<Move> Position::uci_to_move(std::string uci) 
 {
-    Move move;
-    move.moveType = NORMAL;
-    move.color = side;
-    move.piece = Piece::EMPTY;
-    move.promoted = Piece::EMPTY;
-    move.from = EMPTY_SQUARE;
-    move.to = EMPTY_SQUARE;
+    Move move(EMPTY_SQUARE, EMPTY_SQUARE, Piece::EMPTY, side, Piece::EMPTY);
 
     if (uci.compare("0000") == 0) {return move;}
 

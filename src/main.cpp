@@ -9,6 +9,9 @@
 int main() {
     Smyslov::Position board;
     board.start_position(); 
+    std::cout<<sizeof(Smyslov::Bitboard)<<'\n';
+    std::cout<<sizeof(Smyslov::U64)<<'\n';
+    std::cout<<sizeof(Smyslov::Slider);
 
     while (true) 
     {

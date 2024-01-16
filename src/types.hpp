@@ -42,7 +42,9 @@ White kingside castling: 0001
 
 enum Color {WHITE, BLACK, NONE}; 
 enum Piece {PAWN = 2, KNIGHT, BISHOP, ROOK, QUEEN, KING, EMPTY}; // to access position bitboard array
-enum MoveType {NORMAL, CASTLING, ENPASSANT, PROMOTION};
+enum MoveType {NORMAL, CASTLING, ENPASSANT, PROMOTION, CAPTURE, QUIET_CHECK, EVASION, NON_EVASION, LEGAL};
+
+
 
 struct Move {
     MoveType moveType;
@@ -51,6 +53,9 @@ struct Move {
     Piece piece;
     Color color;
     Piece promoted;
+
+    Move(Square from, Square to, Piece p, Color c, Piece promoted) : 
+    from(from), to(to), piece(p), color(c), promoted(promoted) {}
 };
 
 
