@@ -3,18 +3,29 @@
 #include "position.hpp"
 
 namespace Smyslov {
-class MoveGen {
-    Position& m_position;
-    public:
-    MoveGen(Position& position) : m_position(position) {};
-    void quiet(const Move move);
-    void capture(const Move move);
-    void en_passant(const Move move);
-    void quiet_move(const Move move);
-    void white_pawn_capture(const Move move);
-    void white_pawn(const Move move);
-    void all_moves(const Move move);
+
+struct MoveGen
+{
+    std::vector<Move> moveList;
+    Smyslov::Position& pos;
+    void generate_king_moves();
+    void generate_moves(Piece piece);
+    void add_quiet(const Move move);
+    void add_capture(const Move move);
+    void add_en_passant(const Move move);
+    void add_quiet_move(const Move move);
+    void add_white_pawn_capture(const Move move);
+    void add_white_pawn(const Move move);
+    void add_all_moves(const Move move);
+
+
 };
+
+
+
+
+
+
 
 enum NormalMoveType {CAPTURE, QUIET, QUIET_CHECK, EVASION, NON_EVASION, LEGAL};
 }
