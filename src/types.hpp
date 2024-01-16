@@ -47,15 +47,15 @@ enum MoveType {NORMAL, CASTLING, ENPASSANT, PROMOTION, CAPTURE, QUIET_CHECK, EVA
 
 
 struct Move {
-    MoveType moveType;
+    MoveType moveType=NORMAL;
     Square from;
     Square to;
     Piece piece;
     Color color;
-    Piece promoted;
+    Piece promoted=EMPTY;
 
-    Move(Square from, Square to, Piece p, Color c, Piece promoted) : 
-    from(from), to(to), piece(p), color(c), promoted(promoted) {}
+    Move(Square from, Square to, Piece p, Color c) : 
+    from(from), to(to), piece(p), color(c) {}
 };
 
 

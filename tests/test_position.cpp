@@ -20,7 +20,7 @@ TEST_CASE("uci", "[uci]") {
 
 TEST_CASE("legal" "[legal]") {
     board.start_position();
-    Move m = {MoveType::NORMAL, Square::G1, Square::G3, Piece::KNIGHT, Color::WHITE, Piece::EMPTY};
+    Move m(Square::G1, Square::G3, Piece::KNIGHT, Color::WHITE);
     REQUIRE(board.is_pseudo_legal(m) == false);
 }
 
