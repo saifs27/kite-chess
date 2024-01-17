@@ -49,6 +49,10 @@ U64 pawn_attacks(const U64 bb);
 U64 bishop_attacks(const U64 bb);
 U64 rook_attacks(const U64 bb);
 
+U64 pawn_push(Color color, const U64 bb);
+U64 double_pawn_push(Color color, const U64 bb);
+
+
 
 inline U64 king_attacks(const Move move) 
 {
@@ -79,6 +83,18 @@ inline U64 rook_attacks(const Move move)
 {
     U64 bb = set_bit(move.from);
     return rook_attacks(bb);
+}
+
+inline U64 pawn_push(const Move move)
+{
+    U64 bb = set_bit(move.from);
+    return pawn_push(move.color, bb);
+}
+
+inline U64 double_pawn_push(const Move move)
+{
+    U64 bb = set_bit(move.from);
+    return double_pawn_push(move.color, bb);
 }
 
 

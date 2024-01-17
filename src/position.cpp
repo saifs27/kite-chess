@@ -177,7 +177,7 @@ bool Position::is_pseudo_legal(const Move move) const
             attacks = king_attacks(move.from);
             break;
         case PAWN:
-            attacks = pawn_attacks(move.from);
+            attacks = pawn_attacks(move.from) | pawn_push(move) | double_pawn_push(move);
             break;
         case ROOK:
             attacks = rook_attacks(move.from);

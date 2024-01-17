@@ -15,11 +15,10 @@ void MoveGen::generate_king_moves()
     U64 blockers = pos.pieceBB[side];
     U64 attackers = pos.get_attacks(op_side);
     U64 moves = bb & (bb ^ (blockers | attackers));
-
     while (moves != 0x0ULL)
     {
         Square to = pop_lsb(moves);
-        Move new_move(from, to, KING, side, EMPTY);
+        Move new_move(from, to, KING, side);
         moveList.push_back(new_move);
     }
     
@@ -40,7 +39,8 @@ void MoveGen::generate_moves(Piece piece)
         bb = knight_attacks(piece_pos);
         break;
         case PAWN:
-        bb = pawn_attacks(piece_pos);
+        bb = pawn_push(side, piece_pos) | double_pawn_push(side, piece_pos);
+        bb |= (pawn_attacks(piece_pos) & pos.get_attacks(op_side));
         break;
         case BISHOP:
         bb = bishop_attacks(piece_pos);
@@ -58,15 +58,18 @@ void MoveGen::generate_moves(Piece piece)
 
     U64 blockers = pos.pieceBB[side];
     U64 moves = bb & (bb ^ (blockers));
-
+    Move new_move(from, from, piece, side);
     while (moves != 0x0ULL)
     {
         Square to = pop_lsb(moves);
-        Move new_move(from, to, piece, side, EMPTY);
+        new_move.to = to;
+        new_move.moveType = (set_bit(to) & pos.get_attacks(op_side) != 0x0ULL) ? MoveType::CAPTURE : MoveType::NORMAL;
         moveList.push_back(new_move);
     }
     
 }
+
+
 
 
 

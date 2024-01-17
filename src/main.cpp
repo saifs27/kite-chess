@@ -12,7 +12,6 @@ int main() {
     std::cout<<sizeof(Smyslov::Bitboard)<<'\n';
     std::cout<<sizeof(Smyslov::U64)<<'\n';
     std::cout<<sizeof(Smyslov::Slider);
-
     while (true) 
     {
         board.print_board();

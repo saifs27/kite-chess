@@ -118,6 +118,28 @@ U64 pawn_attacks(const U64 bb) {
     return left | right;
 }
 
+
+U64 pawn_push(Color color, const U64 bb)
+{
+    U64 push = (color == WHITE) ? (bb << 8) : (bb >> 8);
+    return push;
+}
+U64 double_pawn_push(Color color, const U64 bb)
+{
+    U64 mask = (color == WHITE) ? 0xff00ULL : 0xff000000000000ULL;
+    U64 push = (color == WHITE) ? ((mask & bb) << 16) : ((mask & bb) >> 16);
+    return push;
+}
+
+
+
+
+
+
+
+
+
+
 U64 rook_attacks(const U64 bb) {
     return bb;
     
