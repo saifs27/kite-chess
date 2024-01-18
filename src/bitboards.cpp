@@ -1,107 +1,61 @@
 #include "bitboards.hpp"
-template <typename T>
-Bitboard Bitboard::operator|(T bb){
-    return Bitboard {bitboard | bb.bitboard};
-}
+namespace Smyslov {
 
-void Bitboard::operator|=(Bitboard bb){
-     bitboard |= bb.bitboard;
-}
-
-Bitboard Bitboard::operator&(Bitboard bb){
-    return Bitboard {bitboard & bb.bitboard};
-}
-
-void Bitboard::operator&=(Bitboard bb){
-     bitboard &= bb.bitboard;
-}
-
-Bitboard Bitboard::operator^(Bitboard bb){
-    return Bitboard {bitboard ^ bb.bitboard};
-}
-
-void Bitboard::operator^=(Bitboard bb){
-     bitboard ^= bb.bitboard;
-}
-
-Bitboard Bitboard::operator~(){
-    return Bitboard {~bitboard};
-}
-
-Bitboard Bitboard::operator<<(int n){
-    return Bitboard {bitboard << n};
-}
-
-void Bitboard::operator<<=(int n){
-     bitboard <<= n;
-}
-
-Bitboard Bitboard::operator>>(int n){
-    return Bitboard {bitboard >> n};
-}
-
-void Bitboard::operator>>=(int n){
-     bitboard >>= n;
-}
-template <typename T>
-void Bitboard::operator=(T bitboard){
-     this->bitboard = bitboard;
-}
-template <typename T>
-bool Bitboard::operator==(T bb){
-    return bitboard == bb.bitboard;
-}
-template <typename T>
-bool Bitboard::operator!=(T bb){
-     return bitboard != bb.bitboard;
-}
-
-
-
-
-bool Bitboard::is_empty(){
+bool Bitboard::is_empty() const {
     return bitboard == 0x0ULL;
 }
 
-bool Bitboard::has(Square square) {
+bool Bitboard::has(Square square) const {
     Bitboard check_sq {(bitboard & set_bit(square))};
     return !(check_sq.is_empty());
 }
 
 
-U64 set_bit(Square sq) {
-    return 0x1ULL << sq;
+std::vector<Bitboard> Bitboard::get_subsets(){
+    auto subset = 0;
+    std::vector<Bitboard> result;
+    while (true) {
+        subset = ((subset * bitboard) % 0xffffffffffffffffULL) & bitboard;
+        result.push_back(Bitboard(subset));
+
+        if (subset == 0) {
+            break;
+        }
+    }
+    return result;
 }
 
-int Bitboard::population_count(){
+int population_count(const U64 bitboard) {
     int count = 0;
-    while (bitboard) {
-        count += bitboard & 0x1ULL;
-        bitboard >>= 1;
+    auto bb = bitboard;
+    while (bb) {
+        count += bb & 0x1ULL;
+        bb >>= 1;
     }
     return count;
 }
 
-Square Bitboard::lsb() {
-    U64 bit = 0x1ULL;
+Square lsb(const U64 bitboard) {
+    Square sq;
+    U64 sqbb;
     for (int i = 0; i < 64; i++) {
-        Square sq = static_cast<Square>(i);
-        if (bitboard & (set_bit(sq)) != 0) {
+        sq = static_cast<Square>(i);
+        sqbb = set_bit(sq);
+        if ((bitboard & sqbb) == sqbb) {
             return sq;
         }
     }
     return EMPTY_SQUARE;
 }
 
-Square Bitboard::pop_lsb() {
-    Square sq = lsb();
+Square pop_lsb(U64& bitboard) {
+    Square sq = lsb(bitboard);
     bitboard = bitboard - (bitboard & -bitboard);
     return sq;
 }
 
-void Bitboard::print_bitboard() {
+void print_bitboard(const U64 bitboard) {
     U64 last_sq = 0x8000000000000000ULL;
-    U64 bb = bitboard;
     std::string printed_board[64];
     for (int i = 0; i < 64; i++) {
         if ((bitboard & last_sq) != 0) {
@@ -166,8 +120,29 @@ U64 pawn_attacks(const U64 bb) {
     return left | right;
 }
 
+
+U64 pawn_push(Color color, const U64 bb)
+{
+    U64 push = (color == WHITE) ? (bb << 8) : (bb >> 8);
+    return push;
+}
+U64 double_pawn_push(Color color, const U64 bb)
+{
+    U64 mask = (color == WHITE) ? 0xff00ULL : 0xff000000000000ULL;
+    U64 push = (color == WHITE) ? ((mask & bb) << 16) : ((mask & bb) >> 16);
+    return push;
+}
+
+
+
+
+
+
+
+
+
+
 U64 rook_attacks(const U64 bb) {
-    //TODO
     return bb;
     
 
@@ -181,3 +156,4 @@ U64 bishop_attacks(const U64 bb) {
 
 
 
+}

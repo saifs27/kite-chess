@@ -1,5 +1,7 @@
 #pragma once
+#include <optional>
 
+namespace Smyslov {
 typedef unsigned long long U64;
 
 enum Square {
@@ -40,13 +42,47 @@ White kingside castling: 0001
 
 enum Color {WHITE, BLACK, NONE}; 
 enum Piece {PAWN = 2, KNIGHT, BISHOP, ROOK, QUEEN, KING, EMPTY}; // to access position bitboard array
-enum MoveType {NORMAL, CASTLING, ENPASSANT, PROMOTION};
+enum MoveType {NORMAL, CASTLING, ENPASSANT, PROMOTION, CAPTURE, QUIET_CHECK, EVASION, NON_EVASION, LEGAL};
+
+
 
 struct Move {
-    MoveType moveType;
+    MoveType moveType=NORMAL;
     Square from;
     Square to;
     Piece piece;
     Color color;
-    Piece promoted;
+    Piece promoted=EMPTY;
+
+    Move(Square from, Square to, Piece p, Color c) : 
+    from(from), to(to), piece(p), color(c) {}
 };
+
+
+
+inline U64 set_bit(Square sq) {
+    return 0x1ULL << sq;
+}
+
+inline File get_file(Square square){
+    int file = square % 8;
+    return static_cast<File>(file);
+}
+inline Rank get_rank(Square square){
+    int rank = square / 8;
+    return static_cast<Rank>(rank);
+}
+
+
+
+inline std::optional<Square> try_offset(Square sq, int file_offset, int rank_offset){
+    int file = get_file(sq) + file_offset;
+    int rank = get_rank(sq) + rank_offset;
+    int new_square = rank * 8 + file;
+    if (file >= 8 || file < 0 || rank >= 8 || rank < 0) {
+        return {};
+    }
+
+    return static_cast<Square>(new_square);
+}
+}

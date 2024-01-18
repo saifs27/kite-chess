@@ -19,8 +19,18 @@ include(FetchContent)
 
 add_executable(smyslov
                 src/main.cpp
-                src/bitboards.cpp 
-                src/position.cpp)
+                src/bitboards.cpp
+                src/bitboards.hpp 
+                src/position.cpp
+                src/position.hpp
+                src/magic.cpp
+                src/magic.hpp
+                src/types.hpp
+                src/search.cpp
+                src/search.hpp 
+                src/movegen.cpp
+                src/movegen.hpp 
+                )
 
 target_include_directories(smyslov PRIVATE src)
 

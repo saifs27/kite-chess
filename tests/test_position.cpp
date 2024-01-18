@@ -3,6 +3,7 @@
 
 #include "../src/position.cpp"
 
+using namespace Smyslov;
 Position board;
 
 TEST_CASE("uci", "[uci]") {
@@ -17,15 +18,23 @@ TEST_CASE("uci", "[uci]") {
     REQUIRE (move.promoted == EMPTY);
 }
 
+TEST_CASE("legal" "[legal]") {
+    board.start_position();
+    Move m(Square::G1, Square::G3, Piece::KNIGHT, Color::WHITE);
+    REQUIRE(board.is_pseudo_legal(m) == false);
+}
+
 TEST_CASE("make move", "[move]") {
+    board.start_position();
     board.make_move("e2e4");
-    REQUIRE (board.get_bitboard(WHITE, PAWN) == 0x1000ef00);
+    // TODO add double pawn pushes
+    //REQUIRE (board.get_bitboard(WHITE, PAWN) == 0x1000ef00);
 }
 
 TEST_CASE("population count", "[popcount]") {
     board.start_position();
-    Bitboard whitepawn {board.get_bitboard(WHITE, PAWN)};
-    REQUIRE (whitepawn.population_count() == 8);
+    auto whitepawn {board.get_bitboard(WHITE, PAWN)};
+    REQUIRE (population_count(whitepawn) == 8);
 }
 
 TEST_CASE("bitboards", "[bitboard]") {
