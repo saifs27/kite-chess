@@ -20,6 +20,4 @@ struct MoveGen
 
 
 
-
-enum NormalMoveType {CAPTURE, QUIET, QUIET_CHECK, EVASION, NON_EVASION, LEGAL};
 }

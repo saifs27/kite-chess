@@ -40,7 +40,7 @@ class Bitboard {
 int population_count(const U64 bitboard);
 Square msb(const U64 bitboard);
 Square lsb(const U64 bitboard);
-Square pop_lsb(U64 bitboard);
+Square pop_lsb(U64& bitboard);
 void print_bitboard(const U64 bitboard);
 
 U64 king_attacks(const U64 bb);

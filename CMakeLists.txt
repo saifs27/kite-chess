@@ -28,6 +28,8 @@ add_executable(smyslov
                 src/types.hpp
                 src/search.cpp
                 src/search.hpp 
+                src/movegen.cpp
+                src/movegen.hpp 
                 )
 
 target_include_directories(smyslov PRIVATE src)

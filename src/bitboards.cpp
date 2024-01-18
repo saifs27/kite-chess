@@ -36,17 +36,19 @@ int population_count(const U64 bitboard) {
 }
 
 Square lsb(const U64 bitboard) {
-    U64 bit = 0x1ULL;
+    Square sq;
+    U64 sqbb;
     for (int i = 0; i < 64; i++) {
-        Square sq = static_cast<Square>(i);
-        if (bitboard & (set_bit(sq)) != 0) {
+        sq = static_cast<Square>(i);
+        sqbb = set_bit(sq);
+        if ((bitboard & sqbb) == sqbb) {
             return sq;
         }
     }
     return EMPTY_SQUARE;
 }
 
-Square pop_lsb(U64 bitboard) {
+Square pop_lsb(U64& bitboard) {
     Square sq = lsb(bitboard);
     bitboard = bitboard - (bitboard & -bitboard);
     return sq;

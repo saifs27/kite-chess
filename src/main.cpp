@@ -5,13 +5,22 @@
 #include <string>
 #include "magic.hpp"
 #include "types.hpp"
+#include <vector>
+#include "movegen.hpp"
 
 int main() {
     Smyslov::Position board;
     board.start_position(); 
-    std::cout<<sizeof(Smyslov::Bitboard)<<'\n';
-    std::cout<<sizeof(Smyslov::U64)<<'\n';
-    std::cout<<sizeof(Smyslov::Slider);
+    std::vector<Smyslov::Move> moveList;
+    Smyslov::MoveGen mList {moveList, board};
+
+    mList.generate_moves(Smyslov::PAWN);
+
+    for (auto i: mList.moveList)
+    {
+        std::cout << i.to << '\n';
+    }
+    /*
     while (true) 
     {
         board.print_board();
@@ -20,5 +29,7 @@ int main() {
         std::cin >> my_move;
         board.make_move(my_move);
     }
+
+    */
 
 }

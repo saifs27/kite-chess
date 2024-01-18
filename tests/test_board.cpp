@@ -23,6 +23,7 @@ TEST_CASE ("knight attacks", "[knight]") {
     REQUIRE (knight_attacks(set_bit(D4)) == 0x142200221400);
     REQUIRE (knight_attacks(set_bit(A1)) == 0x20400);
     REQUIRE (knight_attacks(set_bit(A8)) == 0x4020000000000);
+    REQUIRE (knight_attacks(B1) == 0x50800ULL);
     
 }
 
