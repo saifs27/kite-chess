@@ -50,3 +50,16 @@ TEST_CASE("pawn pushes", "[pawnpush]") {
     REQUIRE (double_pawn_push(m3) == 0x800000000);
 }
 
+TEST_CASE ("bishop attacks", "[bishop]") {
+    //REQUIRE (bishop_attacks(D4, 0x0ULL) == 0x8041221400142241);
+}
+
+TEST_CASE ("msb", "[msb]") {
+    REQUIRE (msb(set_bit(D4)) == D4);
+}
+
+
+
+
+
+

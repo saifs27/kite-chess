@@ -30,13 +30,14 @@ U64 Position::get_bitboard(const Color color, const Piece piece) const
 
 U64 Position::get_attacks(const Color color) const 
 {
+    const U64 blockers = pieceBB[color];
     const U64 pawn = pawn_attacks(get_bitboard(color, PAWN));
     const U64 king = king_attacks(get_bitboard(color, KING));
     const U64 knight = knight_attacks(get_bitboard(color, KNIGHT));
-    const U64 rook = rook_attacks(get_bitboard(color, ROOK));
+    //const U64 rook = rook_attacks(get_bitboard(color, ROOK), blockers);
     const U64 bishop = king_attacks(get_bitboard(color, BISHOP));
     const U64 queen = knight_attacks(get_bitboard(color, QUEEN));
-    return pawn | king | knight | rook | bishop | queen;
+    return pawn | king | knight | bishop | queen;
 }
 
 std::optional<Move> Position::uci_to_move(std::string uci) 
@@ -167,6 +168,7 @@ bool Position::is_pseudo_legal(const Move move) const
     }
 
     U64 attacks;
+    U64 blockers = pieceBB[move.color];
 
     switch (move.piece)
     {
@@ -180,13 +182,13 @@ bool Position::is_pseudo_legal(const Move move) const
             attacks = pawn_attacks(move.from) | pawn_push(move) | double_pawn_push(move);
             break;
         case ROOK:
-            attacks = rook_attacks(move.from);
+            attacks = rook_attacks(move.from, blockers);
             break;
         case BISHOP:
-            attacks = bishop_attacks(move.from);
+            attacks = bishop_attacks(move.from, blockers);
             break;
         case QUEEN:
-            attacks = rook_attacks(move.from) | bishop_attacks(move.from);
+            attacks = rook_attacks(move.from, blockers) | bishop_attacks(move.from, blockers);
             break;
         case EMPTY:
             return false;
@@ -314,3 +316,5 @@ void Position::print_board() const
 
 }
 }
+
+

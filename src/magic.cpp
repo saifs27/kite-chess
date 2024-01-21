@@ -1,6 +1,6 @@
 #include "magic.hpp"
 namespace Smyslov {
-
+    
 Bitboard Slider::moves(const Square square, Bitboard blockers) const {
     Bitboard moves {0x0ULL};
 

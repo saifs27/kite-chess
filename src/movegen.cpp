@@ -32,7 +32,7 @@ void MoveGen::generate_moves(Piece piece)
     U64 piece_pos = pos.get_bitboard(side, piece);
     Square from;
     U64 bb;
-    U64 blockers;
+    U64 blockers= pos.pieceBB[side];;
     U64 moves;
     U64 frombb;
     do
@@ -51,19 +51,19 @@ void MoveGen::generate_moves(Piece piece)
             bb |= (pawn_attacks(frombb) & pos.get_attacks(op_side));
             break;
             case BISHOP:
-            bb = bishop_attacks(frombb);
+            bb = bishop_attacks(from, blockers);
             break;
             case ROOK:
-            bb = rook_attacks(frombb);
+            bb = rook_attacks(from, blockers);
             break;
             case QUEEN:
-            bb = rook_attacks(frombb) | bishop_attacks(frombb);
+            bb = rook_attacks(from, blockers) | bishop_attacks(from, blockers);
             break;
             default:
             bb = 0x0ULL;
             break;
         }
-        blockers = pos.pieceBB[side];
+        
         moves = bb & (bb ^ (blockers));
         Move new_move(from, from, piece, side);
 

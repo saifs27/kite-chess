@@ -1,5 +1,6 @@
 #pragma once
 #include "types.hpp"
+#include "rays.hpp"
 #include <cstdint>
 #include <memory>
 #include <vector>
@@ -43,11 +44,15 @@ Square lsb(const U64 bitboard);
 Square pop_lsb(U64& bitboard);
 void print_bitboard(const U64 bitboard);
 
+
+
+
+
 U64 king_attacks(const U64 bb);
 U64 knight_attacks(const U64 bb);
 U64 pawn_attacks(const U64 bb);
-U64 bishop_attacks(const U64 bb);
-U64 rook_attacks(const U64 bb);
+U64 bishop_attacks(const Square sq, const U64 blockers);
+U64 rook_attacks(const Square sq, const U64 blockers);
 
 U64 pawn_push(Color color, const U64 bb);
 U64 double_pawn_push(Color color, const U64 bb);
@@ -66,24 +71,13 @@ inline U64 knight_attacks(const Move move)
     return knight_attacks(bb);
 }
 
-inline U64 pawn_attacks(const Move move)
+inline U64 pawn_attacks(const Square sq)
 {
-    U64 bb = set_bit(move.from);
+    U64 bb = set_bit(sq);
     return pawn_attacks(bb);
 }
 
-inline U64 bishop_attacks(const Move move)
-{
-    U64 bb = set_bit(move.from);
-    return bishop_attacks(bb);
 
-}
-
-inline U64 rook_attacks(const Move move)
-{
-    U64 bb = set_bit(move.from);
-    return rook_attacks(bb);
-}
 
 inline U64 pawn_push(const Move move)
 {
@@ -96,6 +90,7 @@ inline U64 double_pawn_push(const Move move)
     U64 bb = set_bit(move.from);
     return double_pawn_push(move.color, bb);
 }
+
 
 
 

@@ -35,6 +35,20 @@ int population_count(const U64 bitboard) {
     return count;
 }
 
+Square msb(const U64 bitboard) {
+    U64 mask = set_bit(H8);
+
+    for (int sq = 63; sq >= 0; sq--, mask >>=1)
+    {
+
+        if ((bitboard & mask) == mask) {
+            return static_cast<Square>(sq);
+        }
+    }
+
+    return EMPTY_SQUARE;
+}
+
 Square lsb(const U64 bitboard) {
     Square sq;
     U64 sqbb;
@@ -57,7 +71,7 @@ Square pop_lsb(U64& bitboard) {
 void print_bitboard(const U64 bitboard) {
     U64 last_sq = 0x8000000000000000ULL;
     std::string printed_board[64];
-    for (int i = 0; i < 64; i++) {
+    for (int i = 63; i >= 0; i--) {
         if ((bitboard & last_sq) != 0) {
             printed_board[i] = " 1";
         }
@@ -67,9 +81,15 @@ void print_bitboard(const U64 bitboard) {
         last_sq >>= 1;
     }
 
-    for (int sq = 0; sq < 64; sq++) {
-        if (sq % 8 == 0) { std::cout << '\n';}
-        std::cout << printed_board[sq];
+        for (int rank = 7; rank >= 0; rank--) 
+    {
+        for (int file = 0; file < 8; file++) 
+        {
+            int sq = rank * 8 + file;
+            if (sq % 8 == 0) { std::cout << '\n';}
+            std::cout << printed_board[sq];
+        }
+
     }
     std::cout << '\n';
 }
@@ -140,17 +160,50 @@ U64 double_pawn_push(Color color, const U64 bb)
 
 
 
+/*
+    Using classical approach instead of magic bitboards for sliding pieces
+*/
 
+U64 rook_attacks(Square sq, const U64 blockers) {
+    U64 attacks = 0x0ULL;
+    attacks |= Rays::rayAttacks[sq][Rays::NORTH];
 
-U64 rook_attacks(const U64 bb) {
-    return bb;
+    if (Rays::rayAttacks[sq][Rays::NORTH]) {
+        int blockerIndex = lsb(Rays::rayAttacks[sq][Rays::NORTH] & blockers);
+        attacks &= ~Rays::rayAttacks[blockerIndex][Rays::NORTH];
+    }
+    attacks |= Rays::rayAttacks[sq][Rays::SOUTH];
+
+    if (Rays::rayAttacks[sq][Rays::SOUTH]) {
+        int blockerIndex = msb(Rays::rayAttacks[sq][Rays::SOUTH] & blockers);
+        attacks &= ~Rays::rayAttacks[blockerIndex][Rays::SOUTH];
+    }
+    attacks |= Rays::rayAttacks[sq][Rays::EAST];
+    if (Rays::rayAttacks[sq][Rays::EAST]) {
+        int blockerIndex = lsb(Rays::rayAttacks[sq][Rays::EAST] & blockers);
+        attacks &= ~Rays::rayAttacks[blockerIndex][Rays::EAST];
+    }
+    attacks |= Rays::rayAttacks[sq][Rays::WEST];
+    if (Rays::rayAttacks[sq][Rays::WEST]) {
+        int blockerIndex = msb(Rays::rayAttacks[sq][Rays::WEST] & blockers);
+        attacks &= ~Rays::rayAttacks[blockerIndex][Rays::WEST];
+    }
+    return attacks;
     
 
 }
+/**/
+U64 bishop_attacks(Square sq, const U64 blockers) {
+    U64 attacks = 0x0ULL;
+    
+    attacks |= Rays::rayAttacks[sq][Rays::NW];
+    attacks |= Rays::rayAttacks[sq][Rays::NE];
+    attacks |= Rays::rayAttacks[sq][Rays::SW];
+    attacks |= Rays::rayAttacks[sq][Rays::SE];
 
-U64 bishop_attacks(const U64 bb) {
-    //TODO
-    return bb;
+    
+
+    return attacks;
 }
 
 
