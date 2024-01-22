@@ -3,7 +3,7 @@
 #include "bitboards.hpp"
 #include "types.hpp"
 #include <string>
-#include "magic.hpp"
+
 
 #include <iostream>
 namespace Smyslov {

@@ -192,17 +192,31 @@ U64 rook_attacks(Square sq, const U64 blockers) {
     
 
 }
-/**/
+
 U64 bishop_attacks(Square sq, const U64 blockers) {
     U64 attacks = 0x0ULL;
-    
-    attacks |= Rays::rayAttacks[sq][Rays::NW];
     attacks |= Rays::rayAttacks[sq][Rays::NE];
-    attacks |= Rays::rayAttacks[sq][Rays::SW];
+
+    if (Rays::rayAttacks[sq][Rays::NE]) {
+        int blockerIndex = lsb(Rays::rayAttacks[sq][Rays::NE] & blockers);
+        attacks &= ~Rays::rayAttacks[blockerIndex][Rays::NE];
+    }
     attacks |= Rays::rayAttacks[sq][Rays::SE];
 
-    
-
+    if (Rays::rayAttacks[sq][Rays::SE]) {
+        int blockerIndex = msb(Rays::rayAttacks[sq][Rays::SE] & blockers);
+        attacks &= ~Rays::rayAttacks[blockerIndex][Rays::SE];
+    }
+    attacks |= Rays::rayAttacks[sq][Rays::NW];
+    if (Rays::rayAttacks[sq][Rays::NW]) {
+        int blockerIndex = lsb(Rays::rayAttacks[sq][Rays::NW] & blockers);
+        attacks &= ~Rays::rayAttacks[blockerIndex][Rays::NW];
+    }
+    attacks |= Rays::rayAttacks[sq][Rays::SW];
+    if (Rays::rayAttacks[sq][Rays::SW]) {
+        int blockerIndex = msb(Rays::rayAttacks[sq][Rays::SW] & blockers);
+        attacks &= ~Rays::rayAttacks[blockerIndex][Rays::SW];
+    }
     return attacks;
 }
 

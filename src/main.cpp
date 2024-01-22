@@ -11,21 +11,24 @@
 
 int main() {
     Smyslov::Rays::init();
-    Smyslov::U64 bb = Smyslov::rook_attacks(Smyslov::D4, 0x8000846000800);
+    Smyslov::U64 bb = Smyslov::bishop_attacks(Smyslov::D4, 0x0ULL);
     Smyslov::print_bitboard(bb);
 
     Smyslov::Position board;
     board.start_position(); 
     std::vector<Smyslov::Move> moveList;
+    board.make_move("e2e4");
+    board.make_move("e7e5");
     Smyslov::MoveGen mList {std::move(moveList), board};
 
-    mList.generate_moves(Smyslov::PAWN);
-/*
+    mList.generate_moves(Smyslov::BISHOP);
+
     for (auto i: mList.moveList)
     {
         std::cout << i.to << '\n';
     }
 
+/*
     while (true) 
     {
         board.print_board();

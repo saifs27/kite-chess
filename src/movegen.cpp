@@ -79,6 +79,16 @@ void MoveGen::generate_moves(Piece piece)
     while (from != EMPTY_SQUARE);
 }
 
+void MoveGen::generate_all_moves()
+{
+    generate_moves(PAWN);
+    generate_moves(ROOK);
+    generate_moves(BISHOP);
+    generate_moves(QUEEN);
+    generate_moves(KNIGHT);
+    generate_king_moves();
+}
+
 
 
 

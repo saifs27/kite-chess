@@ -1,5 +1,6 @@
 #pragma once
 #include <optional>
+#include <iostream>
 
 namespace Smyslov {
 typedef unsigned long long U64;
@@ -84,7 +85,8 @@ inline Rank get_rank(Square square){
     return static_cast<Rank>(rank);
 }
 
-inline U64 get_file_mask(Square square){
+template <typename T>
+inline U64 get_file_mask(T square){
     int file = square % 8;
     switch (file) {
         case 0:
@@ -109,8 +111,8 @@ inline U64 get_file_mask(Square square){
 }
 
 template <typename T>
-inline U64 get_rank_mask(T square){
-    int rank = square / 8;
+inline U64 get_rank_mask(const T square){
+    const int rank = square / 8;
     switch (rank) {
         case 0:
         return rank::first;
@@ -131,6 +133,37 @@ inline U64 get_rank_mask(T square){
         default:
         return 0x0ULL;
     }
+}
+
+template <typename T>
+inline U64 mask_west(const T sq)
+{
+    U64 mask = 0x0ULL;
+
+    const U64 stop = get_file_mask(sq);
+
+    for (U64 file = file::A; file < stop; file <<= 1)
+    {
+
+        mask |= file;
+    }
+
+    return mask;
+
+}
+
+template <typename T>
+inline U64 mask_east(const T sq)
+{
+    U64 mask = 0x0ULL;
+    const U64 stop = get_file_mask(sq);
+
+    for (U64 file = file::H; file > stop; file >>=1)
+    {
+        mask |= file;
+    }
+
+    return mask;
 }
 
 
