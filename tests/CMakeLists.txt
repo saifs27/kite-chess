@@ -6,7 +6,7 @@ FetchContent_MakeAvailable(Catch2)
 # Adds Catch2::Catch2
 
 # Tests need to be added as executables first
-add_executable(testing test_board.cpp test_position.cpp test_magic.cpp)
+add_executable(testing test_board.cpp test_position.cpp)
 
 target_compile_features(testing PRIVATE cxx_std_17)
 

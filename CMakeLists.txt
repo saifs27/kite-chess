@@ -23,8 +23,6 @@ add_executable(smyslov
                 src/bitboards.hpp 
                 src/position.cpp
                 src/position.hpp
-                src/magic.cpp
-                src/magic.hpp
                 src/types.hpp
                 src/search.cpp
                 src/search.hpp 
