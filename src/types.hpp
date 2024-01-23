@@ -53,8 +53,7 @@ White kingside castling: 0001
 
 
 enum Color {WHITE, BLACK, NONE}; 
-enum Piece {PAWN = 2, KNIGHT, BISHOP, ROOK, QUEEN, KING, EMPTY}; // to access position bitboard array
-//enum MoveType {NORMAL, CASTLING, ENPASSANT, PROMOTION, CAPTURE, QUIET_CHECK, EVASION, NON_EVASION, LEGAL};
+enum Piece {PAWN = 2, KNIGHT, BISHOP, ROOK, QUEEN, KING, EMPTY}; // starts at 2 to access position bitboard array
 
 enum Flag {
     NOFLAG,
@@ -67,25 +66,6 @@ enum Flag {
     PROMOTE_ROOK,
     PROMOTE_BISHOP
 };
-/*
-struct Move2 {
-    MoveType moveType=NORMAL;
-    Square from;
-    Square to;
-
-    Move(Square from, Square to) : 
-    from(from), to(to) {}
-
-    Square get_from() const {
-        return from;
-    }
-    Square get_to() const {
-        return to;
-    }
-};
-*/
-
-
 
 struct Move
 {
@@ -230,9 +210,6 @@ inline U64 mask_east(const T sq)
 
     return mask;
 }
-
-
-
 
 inline std::optional<Square> try_offset(Square sq, int file_offset, int rank_offset){
     int file = get_file(sq) + file_offset;
