@@ -18,7 +18,7 @@ void MoveGen::generate_king_moves()
     while (moves != 0x0ULL)
     {
         Square to = pop_lsb(moves);
-        Move new_move(from, to, KING, side);
+        Move new_move(from, to, NOFLAG);
         moveList.push_back(new_move);
     }
     
@@ -65,13 +65,13 @@ void MoveGen::generate_moves(Piece piece)
         }
         
         moves = bb & (bb ^ (blockers));
-        Move new_move(from, from, piece, side);
+        Move new_move(from, from, NOFLAG);
 
         while (moves != 0x0ULL)
         {
             Square to = pop_lsb(moves);
-            new_move.to = to;
-            new_move.moveType = (set_bit(to) & pos.get_attacks(op_side) != 0x0ULL) ? MoveType::CAPTURE : MoveType::NORMAL;
+            new_move.set_to(to);
+            new_move.set_flags((set_bit(to) & pos.get_attacks(op_side) != 0x0ULL) ? Flag::CAPTURE : Flag::NOFLAG);
             moveList.push_back(new_move);
         }
     

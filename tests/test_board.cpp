@@ -40,14 +40,14 @@ TEST_CASE ("pawn attacks", "[pawn]") {
 }
 
 TEST_CASE("pawn pushes", "[pawnpush]") {
-    Move m1(A2, A3, PAWN, WHITE);
-    Move m2(A2, A4, PAWN, WHITE);
+    Move m1(A2, A3, NOFLAG);
+    Move m2(A2, A4, NOFLAG);
 
-    Move m3(D7, D5, PAWN, BLACK);
-    REQUIRE (pawn_push(m1) == 0x10000);
-    REQUIRE (double_pawn_push(m2) == 0x1000000);
-    REQUIRE (pawn_push(m3) == 0x80000000000);
-    REQUIRE (double_pawn_push(m3) == 0x800000000);
+    Move m3(D7, D5, NOFLAG);
+    REQUIRE (pawn_push(m1.from(), WHITE) == 0x10000);
+    REQUIRE (double_pawn_push(m2.from(), WHITE) == 0x1000000);
+    REQUIRE (pawn_push(m3.from(), BLACK) == 0x80000000000);
+    REQUIRE (double_pawn_push(m3.from(), BLACK) == 0x800000000);
 }
 
 TEST_CASE ("bishop attacks", "[bishop]") {

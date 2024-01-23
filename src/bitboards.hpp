@@ -61,13 +61,13 @@ U64 double_pawn_push(Color color, const U64 bb);
 
 inline U64 king_attacks(const Move move) 
 {
-    U64 bb = set_bit(move.from);
+    U64 bb = set_bit(move.from());
     return king_attacks(bb);
 }
 
 inline U64 knight_attacks(const Move move)
 {
-    U64 bb = set_bit(move.from);
+    U64 bb = set_bit(move.from());
     return knight_attacks(bb);
 }
 
@@ -79,16 +79,16 @@ inline U64 pawn_attacks(const Square sq)
 
 
 
-inline U64 pawn_push(const Move move)
+inline U64 pawn_push(const Square sq, const Color color)
 {
-    U64 bb = set_bit(move.from);
-    return pawn_push(move.color, bb);
+    U64 bb = set_bit(sq);
+    return pawn_push(color, bb);
 }
 
-inline U64 double_pawn_push(const Move move)
+inline U64 double_pawn_push(const Square sq, const Color color)
 {
-    U64 bb = set_bit(move.from);
-    return double_pawn_push(move.color, bb);
+    U64 bb = set_bit(sq);
+    return double_pawn_push(color, bb);
 }
 
 

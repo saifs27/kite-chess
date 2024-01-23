@@ -54,20 +54,85 @@ White kingside castling: 0001
 
 enum Color {WHITE, BLACK, NONE}; 
 enum Piece {PAWN = 2, KNIGHT, BISHOP, ROOK, QUEEN, KING, EMPTY}; // to access position bitboard array
-enum MoveType {NORMAL, CASTLING, ENPASSANT, PROMOTION, CAPTURE, QUIET_CHECK, EVASION, NON_EVASION, LEGAL};
+//enum MoveType {NORMAL, CASTLING, ENPASSANT, PROMOTION, CAPTURE, QUIET_CHECK, EVASION, NON_EVASION, LEGAL};
 
-
-
-struct Move {
+enum Flag {
+    NOFLAG,
+    EN_PASSANT,
+    CASTLE,
+    CAPTURE,
+    DOUBLE_PAWN,
+    PROMOTE_QUEEN,
+    PROMOTE_KNIGHT,
+    PROMOTE_ROOK,
+    PROMOTE_BISHOP
+};
+/*
+struct Move2 {
     MoveType moveType=NORMAL;
     Square from;
     Square to;
-    Piece piece;
-    Color color;
-    Piece promoted=EMPTY;
 
-    Move(Square from, Square to, Piece p, Color c) : 
-    from(from), to(to), piece(p), color(c) {}
+    Move(Square from, Square to) : 
+    from(from), to(to) {}
+
+    Square get_from() const {
+        return from;
+    }
+    Square get_to() const {
+        return to;
+    }
+};
+*/
+
+
+
+struct Move
+{
+    private:
+    short moveValue;
+
+    public:
+    Move(Square from, Square to, Flag flag)
+    {
+        moveValue =  from | (to << 6) | (flag << 12);
+    }
+
+    Square from() const {
+        short mask = 0b0000000000111111;
+        int sq = mask & moveValue;
+        return static_cast<Square>(sq);
+    }
+    Square to() const {
+        short mask = 0b0000111111000000;
+        int sq = (mask & moveValue) >> 6;
+        return static_cast<Square>(sq);
+    }
+
+    Flag flags() const {
+        short mask  = 0b1111000000000000;
+        return static_cast<Flag>((moveValue & mask) >> 12);
+    }
+
+    void set_from(Square from) {
+        short mask  = 0b0000000000111111;
+        moveValue &= ~mask;
+        moveValue |= from;
+    }
+
+    void set_to(Square to) {
+        short mask  = 0b0000111111000000;
+        moveValue &= ~mask;
+        moveValue |= (to << 6);
+    }
+
+    void set_flags(Flag flags) {
+        short mask  = 0b1111000000000000;
+        moveValue &= ~mask;
+        moveValue |= (flags << 12);
+    }
+
+
 };
 
 

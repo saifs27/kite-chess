@@ -3,7 +3,6 @@
 #include "position.hpp"
 #include "types.hpp"
 #include <string>
-#include "magic.hpp"
 #include "types.hpp"
 #include "bitboards.hpp"
 #include <vector>
@@ -25,7 +24,7 @@ int main() {
 
     for (auto i: mList.moveList)
     {
-        std::cout << i.to << '\n';
+        std::cout << i.to() << '\n';
     }
 
 /*

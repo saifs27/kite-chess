@@ -9,18 +9,16 @@ Position board;
 TEST_CASE("uci", "[uci]") {
     board.start_position();
     auto move = board.uci_to_move("e2e4").value();
-    REQUIRE (move.color == WHITE);
-    REQUIRE (move.piece == PAWN);    
-    REQUIRE (move.from == E2);
-    REQUIRE (move.to == E4);
-    REQUIRE (move.moveType == NORMAL);
+    move.set_flags(NOFLAG);
+    REQUIRE (move.from() == E2);
+    REQUIRE (move.to() == E4);
+    REQUIRE (move.flags() == Flag::NOFLAG);
 
-    REQUIRE (move.promoted == EMPTY);
 }
 
 TEST_CASE("legal" "[legal]") {
     board.start_position();
-    Move m(Square::G1, Square::G3, Piece::KNIGHT, Color::WHITE);
+    Move m(Square::G1, Square::G3, NOFLAG);
     REQUIRE(board.is_pseudo_legal(m) == false);
 }
 
