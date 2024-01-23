@@ -1,29 +1,15 @@
 #include "bitboards.hpp"
 namespace Smyslov {
 
-bool Bitboard::is_empty() const {
-    return bitboard == 0x0ULL;
+bool is_empty(U64 bb)  {
+    return bb == 0x0ULL;
 }
 
-bool Bitboard::has(Square square) const {
-    Bitboard check_sq {(bitboard & set_bit(square))};
-    return !(check_sq.is_empty());
+bool has(U64 bb, Square square) {
+    U64 check_sq = bb & set_bit(square);
+    return !(is_empty(check_sq));
 }
 
-
-std::vector<Bitboard> Bitboard::get_subsets(){
-    auto subset = 0;
-    std::vector<Bitboard> result;
-    while (true) {
-        subset = ((subset * bitboard) % 0xffffffffffffffffULL) & bitboard;
-        result.push_back(Bitboard(subset));
-
-        if (subset == 0) {
-            break;
-        }
-    }
-    return result;
-}
 
 int population_count(const U64 bitboard) {
     int count = 0;

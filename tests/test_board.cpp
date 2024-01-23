@@ -7,11 +7,11 @@
 
 using namespace Smyslov;
 TEST_CASE("misc", "[misc]") {
-    Bitboard bb{set_bit(Square::E4)};
+    U64 bb = set_bit(Square::E4);
     REQUIRE (try_offset(Square::D4, 1, 1).value() == Square::E5);
-    REQUIRE (bb.is_empty() == false);
-    REQUIRE (bb.has(Square::E4) == true);
-    REQUIRE (bb.has(Square::C4) == false);
+    REQUIRE (is_empty(bb) == false);
+    REQUIRE (has(bb, Square::E4) == true);
+    REQUIRE (has(bb, Square::C4) == false);
 }
 TEST_CASE("king attacks", "[king]") {
     REQUIRE (king_attacks(set_bit(D4)) == 0x1c141c0000);

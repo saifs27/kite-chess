@@ -10,33 +10,10 @@
 #include <random>
 #include <optional>
 namespace Smyslov {
-class Bitboard {
-    public:
-    U64 bitboard;
 
-    Bitboard(U64 bb) : bitboard(bb) {};
-    // operator overloading
-    Bitboard operator|(Bitboard bb) const {return Bitboard {bitboard | bb.bitboard};}
-    void operator|=(Bitboard bb){bitboard |= bb.bitboard;}
-    Bitboard operator&(Bitboard bb) const {return Bitboard {bitboard & bb.bitboard};}
-    void operator&=(Bitboard bb){bitboard &= bb.bitboard;}
-    Bitboard operator^(Bitboard bb) const {return Bitboard {bitboard ^ bb.bitboard};}
-    void operator^=(Bitboard bb){bitboard ^= bb.bitboard;}
-    Bitboard operator~() const {return Bitboard {~bitboard};}
-    Bitboard operator<<(int n) const {return Bitboard {bitboard << n};}
-    void operator<<=(int n){bitboard <<= n;}
-    Bitboard operator>>(int n) const {return Bitboard {bitboard >> n};}
-    void operator>>=(int n){bitboard >>= n;}
-    void operator=(Bitboard bb){this->bitboard = bb.bitboard;}
-    bool operator==(Bitboard bb){return bitboard == bb.bitboard;}
-    bool operator!=(Bitboard bb){return bitboard != bb.bitboard;}
+bool is_empty(U64 bb);
+bool has(U64 bb, Square sq);
 
-    bool is_empty() const;
-    bool has(Square sq) const;
-    std::vector<Bitboard> get_subsets();
-    
-
-};
 
 int population_count(const U64 bitboard);
 Square msb(const U64 bitboard);

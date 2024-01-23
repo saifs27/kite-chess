@@ -30,7 +30,7 @@ U64 Position::get_bitboard(const Color color, const Piece piece) const
 
 Piece Position::get_piece(const Square sq) const {
     U64 sqbb = set_bit(sq);
-    bool empty = ((colors(WHITE) | colors(BLACK)) & sqbb) == 0x0ULL;
+    bool empty = is_empty((colors(WHITE) | colors(BLACK)) & sqbb);
 
     if (!empty) {
         for (int i = PAWN; i <= KING; i++)
@@ -173,7 +173,7 @@ void Position::update_castlingPerm(const Move move) {
 bool Position::is_pseudo_legal(const Move move) const 
 {
     Piece piece = get_piece(move.from());
-    if ((pieceBB[side] & pieceBB[piece] & set_bit(move.from())) == 0x0ULL) 
+    if (is_empty(pieceBB[side] & pieceBB[piece] & set_bit(move.from()))) 
     {
         return false;
     }
@@ -206,7 +206,7 @@ bool Position::is_pseudo_legal(const Move move) const
             return false;
     }
 
-    if ((attacks & set_bit(move.to())) == 0x0ULL) 
+    if (is_empty(attacks & set_bit(move.to()))) 
     {
         return false;
     }
