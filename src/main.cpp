@@ -10,14 +10,15 @@
 
 int main() {
     Smyslov::Rays::init();
-    Smyslov::U64 bb = Smyslov::bishop_attacks(Smyslov::D4, 0x0ULL);
-    Smyslov::print_bitboard(bb);
+    //Smyslov::U64 bb = Smyslov::bishop_attacks(Smyslov::D4, 0x0ULL);
+    //Smyslov::print_bitboard(bb);
 
     Smyslov::Position board;
     board.start_position(); 
     std::vector<Smyslov::Move> moveList;
     board.make_move("e2e4");
     board.make_move("e7e5");
+    Smyslov::print_bitboard(board.get_bitboard(Smyslov::WHITE, Smyslov::PAWN));
     Smyslov::MoveGen mList {std::move(moveList), board};
 
     mList.generate_moves(Smyslov::BISHOP);

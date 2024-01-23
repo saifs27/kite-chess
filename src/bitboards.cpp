@@ -141,11 +141,6 @@ U64 double_pawn_push(Color color, const U64 bb)
 
 
 
-
-
-
-
-
 /*
     Using classical approach instead of magic bitboards for sliding pieces
 */

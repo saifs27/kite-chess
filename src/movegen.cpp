@@ -15,7 +15,7 @@ void MoveGen::generate_king_moves()
     U64 blockers = pos.pieceBB[side];
     U64 attackers = pos.get_attacks(op_side);
     U64 moves = bb & (bb ^ (blockers | attackers));
-    while (moves != 0x0ULL)
+    while (!(is_empty(moves)))
     {
         Square to = pop_lsb(moves);
         Move new_move(from, to, NOFLAG);
@@ -67,7 +67,7 @@ void MoveGen::generate_moves(Piece piece)
         moves = bb & (bb ^ (blockers));
         Move new_move(from, from, NOFLAG);
 
-        while (moves != 0x0ULL)
+        while (!is_empty(moves))
         {
             Square to = pop_lsb(moves);
             new_move.set_to(to);

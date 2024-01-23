@@ -33,9 +33,9 @@ Piece Position::get_piece(const Square sq) const {
     bool empty = is_empty((colors(WHITE) | colors(BLACK)) & sqbb);
 
     if (!empty) {
-        for (int i = PAWN; i <= KING; i++)
+        for (int i = 2; i <= 8; i++)
         {
-            if (pieceBB[i] & sqbb != 0) {
+            if (!is_empty(pieceBB[i] & sqbb)) {
                 return static_cast<Piece>(i);
             }
         }
