@@ -21,8 +21,11 @@ class Position {
     Position();    
     void start_position(); 
 
-    U64 colors(Color color) const {return pieceBB[color];};
-    U64 pieces(Piece piece) const {return pieceBB[piece];};
+    U64 colorsBB(Color color) const {return pieceBB[static_cast<int>(color)];};
+    U64 piecesBB(Piece piece) const {return pieceBB[static_cast<int>(piece)];};
+    void set_colorBB(Color color, U64 bb) {pieceBB[static_cast<int>(color)] = bb;};
+    void set_pieceBB(Piece piece, U64 bb) {pieceBB[static_cast<int>(piece)] = bb;};
+
     U64 get_bitboard(const Color color, const Piece piece) const;
     Piece get_piece(const Square sq) const ;
     U64 get_attacks(const Color color) const;    

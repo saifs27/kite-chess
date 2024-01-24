@@ -12,22 +12,22 @@ void Rays::init() {
     U64 sw = 0x40201008040201;
     U64 se = 0x2040810204080;
     for (int sq = 0; sq < 64; sq++, north <<=1, south >>=1) {
-        rayAttacks[sq][NORTH] = north;
-        rayAttacks[63-sq][SOUTH] = south;  
+        rayAttacks[sq][static_cast<int>(NORTH)] = north;
+        rayAttacks[63-sq][static_cast<int>(SOUTH)] = south;  
     }
 
 
     for (int sq = 0; sq < 64; sq++, east <<=1, west >>=1) {
-        rayAttacks[sq][EAST] = east & get_rank_mask<int>(sq);
-        rayAttacks[63-sq][WEST] = west & get_rank_mask<int>(63-sq);
+        rayAttacks[sq][static_cast<int>(EAST)] = east & get_rank_mask<int>(sq);
+        rayAttacks[63-sq][static_cast<int>(WEST)] = west & get_rank_mask<int>(63-sq);
     }
 
     for (int f = 0; f < 8; f++, ne <<= 1, nw >>=1) {
         U64 northeast = ne;
         U64 northwest = nw;
         for (int r = 0; r < 64; r += 8, northeast <<= 8, northwest <<= 8) {
-            rayAttacks[r+f][NE] = northeast & mask_east(r+f);
-            rayAttacks[r+(7-f)][NW] = northwest & mask_west(r+(7-f));
+            rayAttacks[r+f][static_cast<int>(NE)] = northeast & mask_east(r+f);
+            rayAttacks[r+(7-f)][static_cast<int>(NW)] = northwest & mask_west(r+(7-f));
         } 
     }
 
@@ -35,8 +35,8 @@ void Rays::init() {
         U64 southeast = se;
         U64 southwest = sw;
         for (int r = 56; r >= 0; r -= 8, southeast >>=8, southwest >>=8) {
-            rayAttacks[r+f][SE] = southeast & mask_east(r+f);
-            rayAttacks[r+(7-f)][SW] = southwest & mask_west(r+(7-f));
+            rayAttacks[r+f][static_cast<int>(SE)] = southeast & mask_east(r+f);
+            rayAttacks[r+(7-f)][static_cast<int>(SW)] = southwest & mask_west(r+(7-f));
         } 
     }
 

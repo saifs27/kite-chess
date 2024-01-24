@@ -12,13 +12,13 @@ void MoveGen::generate_king_moves()
     U64 king_pos = pos.get_bitboard(side,Piece::KING);
     Square from = lsb(king_pos);
     U64 bb = king_attacks(king_pos);
-    U64 blockers = pos.pieceBB[side];
+    U64 blockers = pos.colorsBB(side);
     U64 attackers = pos.get_attacks(op_side);
     U64 moves = bb & (bb ^ (blockers | attackers));
     while (!(is_empty(moves)))
     {
         Square to = pop_lsb(moves);
-        Move new_move(from, to, NOFLAG);
+        Move new_move(from, to, Flag::NOFLAG);
         moveList.push_back(new_move);
     }
     
@@ -32,7 +32,7 @@ void MoveGen::generate_moves(Piece piece)
     U64 piece_pos = pos.get_bitboard(side, piece);
     Square from;
     U64 bb;
-    U64 blockers= pos.pieceBB[side];;
+    U64 blockers= pos.colorsBB(side);;
     U64 moves;
     U64 frombb;
     do
@@ -40,23 +40,23 @@ void MoveGen::generate_moves(Piece piece)
         from = pop_lsb(piece_pos);
         frombb = set_bit(from);
 
-        if (from == EMPTY_SQUARE) {break;}
+        if (from == Square::EMPTY_SQUARE) {break;}
         switch (piece)
         {
-            case KNIGHT:
+            case Piece::KNIGHT:
             bb = knight_attacks(frombb);
             break;
-            case PAWN:
+            case Piece::PAWN:
             bb = pawn_push(side, frombb) | double_pawn_push(side, frombb);
             bb |= (pawn_attacks(frombb) & pos.get_attacks(op_side));
             break;
-            case BISHOP:
+            case Piece::BISHOP:
             bb = bishop_attacks(from, blockers);
             break;
-            case ROOK:
+            case Piece::ROOK:
             bb = rook_attacks(from, blockers);
             break;
-            case QUEEN:
+            case Piece::QUEEN:
             bb = rook_attacks(from, blockers) | bishop_attacks(from, blockers);
             break;
             default:
@@ -65,7 +65,7 @@ void MoveGen::generate_moves(Piece piece)
         }
         
         moves = bb & (bb ^ (blockers));
-        Move new_move(from, from, NOFLAG);
+        Move new_move(from, from, Flag::NOFLAG);
 
         while (!is_empty(moves))
         {
@@ -76,16 +76,16 @@ void MoveGen::generate_moves(Piece piece)
         }
     
     }
-    while (from != EMPTY_SQUARE);
+    while (from != Square::EMPTY_SQUARE);
 }
 
 void MoveGen::generate_all_moves()
 {
-    generate_moves(PAWN);
-    generate_moves(ROOK);
-    generate_moves(BISHOP);
-    generate_moves(QUEEN);
-    generate_moves(KNIGHT);
+    generate_moves(Piece::PAWN);
+    generate_moves(Piece::ROOK);
+    generate_moves(Piece::BISHOP);
+    generate_moves(Piece::QUEEN);
+    generate_moves(Piece::KNIGHT);
     generate_king_moves();
 }
 

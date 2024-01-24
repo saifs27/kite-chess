@@ -9,6 +9,8 @@
 #include <cmath>
 #include <random>
 #include <optional>
+#include <variant>
+
 namespace Smyslov {
 
 bool is_empty(U64 bb);
@@ -36,15 +38,15 @@ U64 double_pawn_push(Color color, const U64 bb);
 
 
 
-inline U64 king_attacks(const Move move) 
+inline U64 king_attacks(const Square sq) 
 {
-    U64 bb = set_bit(move.from());
+    U64 bb = set_bit(sq);
     return king_attacks(bb);
 }
 
-inline U64 knight_attacks(const Move move)
+inline U64 knight_attacks(const Square sq)
 {
-    U64 bb = set_bit(move.from());
+    U64 bb = set_bit(sq);
     return knight_attacks(bb);
 }
 

@@ -18,14 +18,14 @@ int main() {
     std::vector<Smyslov::Move> moveList;
     board.make_move("e2e4");
     board.make_move("e7e5");
-    Smyslov::print_bitboard(board.get_bitboard(Smyslov::WHITE, Smyslov::PAWN));
+    Smyslov::print_bitboard(board.get_bitboard(Smyslov::Color::WHITE, Smyslov::Piece::PAWN));
     Smyslov::MoveGen mList {std::move(moveList), board};
 
-    mList.generate_moves(Smyslov::BISHOP);
+    mList.generate_moves(Smyslov::Piece::BISHOP);
 
     for (auto i: mList.moveList)
     {
-        std::cout << i.to() << '\n';
+        std::cout << static_cast<int>(i.to()) << '\n';
     }
 
 /*

@@ -5,7 +5,7 @@
 namespace Smyslov {
 typedef unsigned long long U64;
 
-enum Square {
+enum class Square {
     A1, B1, C1, D1, E1, F1, G1, H1,
     A2, B2, C2, D2, E2, F2, G2, H2,
     A3, B3, C3, D3, E3, F3, G3, H3,
@@ -42,7 +42,7 @@ inline constexpr U64 seventh = 0xff000000000000;
 inline constexpr U64 eighth  = 0xff00000000000000;
 }
 
-enum Castling {WhiteKingside = 1, WhiteQueenside = 2, BlackKingside = 4, BlackQueenside = 8};
+enum class Castling {WhiteKingside = 1, WhiteQueenside = 2, BlackKingside = 4, BlackQueenside = 8};
 
 /*
 White kingside castling: 0001
@@ -52,10 +52,10 @@ White kingside castling: 0001
 */
 
 
-enum Color {WHITE, BLACK, NONE}; 
-enum Piece {PAWN = 2, KNIGHT, BISHOP, ROOK, QUEEN, KING, EMPTY}; // starts at 2 to access position bitboard array
+enum class Color {WHITE, BLACK, NONE}; 
+enum class Piece {PAWN = 2, KNIGHT, BISHOP, ROOK, QUEEN, KING, EMPTY}; // starts at 2 to access position bitboard array
 
-enum Flag {
+enum class Flag {
     NOFLAG,
     EN_PASSANT,
     CASTLE,
@@ -75,7 +75,11 @@ struct Move
     public:
     Move(Square from, Square to, Flag flag)
     {
-        moveValue =  from | (to << 6) | (flag << 12);
+        int start = static_cast<int>(from);
+        int end = static_cast<int>(to);
+        int flags = static_cast<int>(flag);
+
+        moveValue =  start | (end << 6) | (flags << 12);
     }
 
     Square from() const {
@@ -97,19 +101,19 @@ struct Move
     void set_from(Square from) {
         short mask  = 0b0000000000111111;
         moveValue &= ~mask;
-        moveValue |= from;
+        moveValue |= static_cast<int>(from);
     }
 
     void set_to(Square to) {
         short mask  = 0b0000111111000000;
         moveValue &= ~mask;
-        moveValue |= (to << 6);
+        moveValue |= (static_cast<int>(to) << 6);
     }
 
     void set_flags(Flag flags) {
         short mask  = 0b1111000000000000;
         moveValue &= ~mask;
-        moveValue |= (flags << 12);
+        moveValue |= (static_cast<int>(flags) << 12);
     }
 
 
@@ -118,15 +122,15 @@ struct Move
 
 
 inline U64 set_bit(Square sq) {
-    return 0x1ULL << sq;
+    return 0x1ULL << static_cast<int>(sq);
 }
 
 inline File get_file(Square square){
-    int file = square % 8;
+    int file = static_cast<int>(square) % 8;
     return static_cast<File>(file);
 }
 inline Rank get_rank(Square square){
-    int rank = square / 8;
+    int rank = static_cast<int>(square) / 8;
     return static_cast<Rank>(rank);
 }
 
