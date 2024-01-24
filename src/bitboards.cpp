@@ -147,21 +147,21 @@ U64 double_pawn_push(Color color, const U64 bb)
 
 U64 rook_attacks(Square sq, const U64 blockers) {
     U64 attacks = 0x0ULL;
-    attacks |= Rays::rayAttacks[static_cast<int>(sq)][Rays::NORTH];
+    attacks |= Rays::getRayAttacks(sq, Rays::Direction::NORTH);
 
-    if (Rays::getRayAttacks(sq, Rays::NORTH)) {
-        int blockerIndex = static_cast<int>(lsb(Rays::getRayAttacks(sq, Rays::NORTH) & blockers));
-        attacks &= ~Rays::rayAttacks[blockerIndex][Rays::NORTH];
+    if (Rays::getRayAttacks(sq, Rays::Direction::NORTH)) {
+        int blockerIndex = static_cast<int>(lsb(Rays::getRayAttacks(sq, Rays::Direction::NORTH) & blockers));
+        attacks &= ~Rays::rayAttacks[blockerIndex][Rays::Direction::NORTH];
     }
-    attacks |= Rays::rayAttacks[static_cast<int>(sq)][Rays::SOUTH];
+    attacks |= Rays::getRayAttacks(sq, Rays::Direction::SOUTH);
 
-    if (Rays::rayAttacks[static_cast<int>(sq)][Rays::SOUTH]) {
-        int blockerIndex = static_cast<int>(msb(Rays::rayAttacks[static_cast<int>(sq)][Rays::SOUTH] & blockers));
-        attacks &= ~Rays::rayAttacks[blockerIndex][Rays::SOUTH];
+    if (Rays::getRayAttacks(sq, Rays::Direction::SOUTH)) {
+        int blockerIndex = static_cast<int>(msb(Rays::getRayAttacks(sq, Rays::Direction::SOUTH) & blockers));
+        attacks &= ~Rays::rayAttacks[blockerIndex][Rays::Direction::SOUTH];
     }
-    attacks |= Rays::rayAttacks[static_cast<int>(sq)][Rays::EAST];
-    if (Rays::rayAttacks[static_cast<int>(sq)][Rays::EAST]) {
-        int blockerIndex = static_cast<int>(lsb(Rays::rayAttacks[static_cast<int>(sq)][Rays::EAST] & blockers));
+    attacks |= Rays::getRayAttacks(sq, Rays::EAST);
+    if (Rays::getRayAttacks(sq, Rays::EAST)) {
+        int blockerIndex = static_cast<int>(lsb(Rays::getRayAttacks(sq, Rays::EAST) & blockers));
         attacks &= ~Rays::rayAttacks[blockerIndex][Rays::EAST];
     }
     attacks |= Rays::getRayAttacks(sq, Rays::WEST);
@@ -176,7 +176,7 @@ U64 rook_attacks(Square sq, const U64 blockers) {
 
 U64 bishop_attacks(Square sq, const U64 blockers) {
     U64 attacks = 0x0ULL;
-    attacks |= Rays::rayAttacks[static_cast<int>(sq)][Rays::NE];
+    attacks |= Rays::getRayAttacks(sq, Rays::NE);
 
     if (Rays::getRayAttacks(sq, Rays::NE)) {
         int blockerIndex = static_cast<int>(lsb(Rays::getRayAttacks(sq, Rays::NE) & blockers));
