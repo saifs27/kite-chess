@@ -248,10 +248,9 @@ bool Position::make_move(std::string uci)
 
     if (move.flags() == Flag::DOUBLE_PAWN)
     {
-        U64 shift = (side == Color::WHITE) ? 8 : -8;
-
-        int sq = static_cast<int>(move.to()) >> shift;
-        enPassant = static_cast<Square>(sq);
+        int sq = static_cast<int>(move.to());
+        int backSq = (side == Color::WHITE) ? (sq >> 8) : (sq << 8);
+        enPassant = static_cast<Square>(backSq);
     }
 
     moveHistory.push_back(move);

@@ -25,7 +25,7 @@ int main() {
 
     mList.generate_all_moves();
     std::cout << mList.moveList.size() << '\n';
-
+    std::cout << "enPas: " << static_cast<int>(board.enPassant) << '\n';
     for (auto i: mList.moveList)
     {
         std::cout << "move: " << static_cast<int>(i.from())<< " --> " <<static_cast<int>(i.to()) << '\n';

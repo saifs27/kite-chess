@@ -27,7 +27,6 @@ void MoveGen::generate_king_moves()
 void MoveGen::generate_double_pawn_push()
 {
     Color side = pos.side;
-    int shift = (side == Color::WHITE) ? 16 : -16;
     U64 pawn_rank = (side==Color::WHITE) ? rank::second : rank::seventh;
     U64 pawn_pos = pos.get_bitboard(side, Piece::PAWN) & pawn_rank;
     
@@ -43,7 +42,7 @@ void MoveGen::generate_double_pawn_push()
     while (!is_empty(moves))
     {
     to = pop_lsb(moves);
-    frombb = set_bit(to) >> shift;
+    frombb = (side == Color::WHITE) ? (set_bit(to) >> 16) : (set_bit(to) << 16);
     from = pop_lsb(frombb);
     new_move.set_from(from);
     new_move.set_to(to);
@@ -56,7 +55,6 @@ void MoveGen::generate_double_pawn_push()
 void MoveGen::generate_pawn_push()
 {
     Color side = pos.side;
-    int shift = (side == Color::WHITE) ? 8 : -8;
     U64 pawn_pos = pos.get_bitboard(side, Piece::PAWN);
     U64 relevant_blockers = pos.colorsBB(Color::WHITE) | pos.colorsBB(Color::BLACK);
 
@@ -70,7 +68,7 @@ void MoveGen::generate_pawn_push()
     while (!is_empty(moves))
     {
         to = pop_lsb(moves);
-        frombb = (set_bit(to) >> shift);     
+        frombb = (side == Color::WHITE) ? (set_bit(to) >> 8) : (set_bit(to) << 8);     
         from = pop_lsb(frombb);  
         new_move.set_from(from);
         new_move.set_to(to);
