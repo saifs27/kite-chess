@@ -54,6 +54,20 @@ Square pop_lsb(U64& bitboard) {
     return sq;
 }
 
+std::vector<Square> get_squares(const U64 bb)
+{
+    U64 bbCopy = bb;
+    std::vector<Square> result;
+    
+    while (!is_empty(bbCopy))
+    {
+        Square sq = pop_lsb(bbCopy);
+        result.push_back(sq);
+    }
+    return result;
+}
+
+
 void print_bitboard(const U64 bitboard) {
     U64 last_sq = 0x8000000000000000ULL;
     std::string printed_board[64];
@@ -80,7 +94,7 @@ void print_bitboard(const U64 bitboard) {
     std::cout << '\n';
 }
 
-U64 king_attacks(const U64 bb) {
+U64 king_attacksBB(const U64 bb) {
     U64 kingPosition = bb;
     const U64 left = kingPosition >> 1;
     const U64 right = kingPosition << 1;
@@ -96,7 +110,7 @@ U64 king_attacks(const U64 bb) {
     return attacks;
 }
 
-U64 knight_attacks(const U64 bb) {
+U64 knight_attacksBB(const U64 bb) {
     const U64 notAB = ~file::A & ~file::B;
     const U64 notGH = ~file::G & ~file::H;
     const U64 notA = ~file::A;
@@ -115,24 +129,25 @@ U64 knight_attacks(const U64 bb) {
     return a | b | c | d | e | f | g | h ;
 }
 
-U64 pawn_attacks(const U64 bb) {
+U64 pawn_attacksBB(const U64 bb, const Color color) {
     const U64 notA = ~file::A; 
     const U64 notH = ~file::H;
 
-
-    const U64 left = (bb & notA) << 7;
-    const U64 right = (bb & notH) << 9;
+    const U64 nwShift = (color == Color::WHITE) ? 7 : -7;
+    const U64 neShift = (color == Color::WHITE) ? 9 : -9;
+    const U64 left = (bb & notA) << nwShift;
+    const U64 right = (bb & notH) << neShift;
 
     return left | right;
 }
 
 
-U64 pawn_push(Color color, const U64 bb)
+U64 pawn_pushBB(const U64 bb, const Color color)
 {
     U64 push = (color == Color::WHITE) ? (bb << 8) : (bb >> 8);
     return push;
 }
-U64 double_pawn_push(Color color, const U64 bb)
+U64 double_pawn_pushBB(const U64 bb, Color color)
 {
     U64 mask = (color == Color::WHITE) ? 0xff00ULL : 0xff000000000000ULL;
     U64 push = (color == Color::WHITE) ? ((mask & bb) << 16) : ((mask & bb) >> 16);

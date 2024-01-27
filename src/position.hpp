@@ -14,7 +14,7 @@ class Position {
     public:
     U64 pieceBB[8];
     Color side;
-    int enPassant;
+    Square enPassant = Square::A1;
     int castlingPerm;
     int fiftyMove;
 

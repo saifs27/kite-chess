@@ -11,6 +11,8 @@ struct MoveGen
     void generate_king_moves();
     void generate_quiet();
     void generate_captures();
+    void generate_double_pawn_push();
+    void generate_pawn_push();
     void generate_en_passant();
     void generate_moves(Piece piece);
     void generate_all_moves();

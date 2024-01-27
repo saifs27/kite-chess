@@ -16,16 +16,19 @@ int main() {
     Smyslov::Position board;
     board.start_position(); 
     std::vector<Smyslov::Move> moveList;
-    board.make_move("e2e4");
+    board.make_move("d2d4");
+    board.make_move("c7c5");
+    board.make_move("d4d5");
     board.make_move("e7e5");
     Smyslov::print_bitboard(board.get_bitboard(Smyslov::Color::WHITE, Smyslov::Piece::PAWN));
     Smyslov::MoveGen mList {std::move(moveList), board};
 
-    mList.generate_moves(Smyslov::Piece::BISHOP);
+    mList.generate_all_moves();
+    std::cout << mList.moveList.size() << '\n';
 
     for (auto i: mList.moveList)
     {
-        std::cout << static_cast<int>(i.to()) << '\n';
+        std::cout << "move: " << static_cast<int>(i.from())<< " --> " <<static_cast<int>(i.to()) << '\n';
     }
 
 /*

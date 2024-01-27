@@ -48,12 +48,12 @@ Piece Position::get_piece(const Square sq) const {
 U64 Position::get_attacks(const Color color) const 
 {
     const U64 blockers = colorsBB(color);
-    const U64 pawn = pawn_attacks(get_bitboard(color, Piece::PAWN));
-    const U64 king = king_attacks(get_bitboard(color, Piece::KING));
-    const U64 knight = knight_attacks(get_bitboard(color, Piece::KNIGHT));
+    const U64 pawn = pawn_attacksBB(get_bitboard(color, Piece::PAWN), color);
+    const U64 king = king_attacksBB(get_bitboard(color, Piece::KING));
+    const U64 knight = knight_attacksBB(get_bitboard(color, Piece::KNIGHT));
     //const U64 rook = rook_attacks(get_bitboard(color, ROOK), blockers);
-    const U64 bishop = king_attacks(get_bitboard(color, Piece::BISHOP));
-    const U64 queen = knight_attacks(get_bitboard(color, Piece::QUEEN));
+    const U64 bishop = king_attacksBB(get_bitboard(color, Piece::BISHOP));
+    const U64 queen = knight_attacksBB(get_bitboard(color, Piece::QUEEN));
     return pawn | king | knight | bishop | queen;
 }
 
@@ -185,13 +185,13 @@ bool Position::is_pseudo_legal(const Move move) const
     switch (piece)
     {
         case Piece::KNIGHT:
-            attacks = knight_attacks(move.from());
+            attacks = knight_attacks_sq(move.from());
             break;
         case Piece::KING:
-            attacks = king_attacks(move.from());
+            attacks = king_attacks_sq(move.from());
             break;
         case Piece::PAWN:
-            attacks = pawn_attacks(move.from()) | pawn_push(move.from(), side) | double_pawn_push(move.from(), side);
+            attacks = pawn_attacks_sq(move.from(), side) | pawn_push_sq(move.from(), side) | double_pawn_push_sq(move.from(), side);
             break;
         case Piece::ROOK:
             attacks = rook_attacks(move.from(), blockers);
@@ -220,6 +220,7 @@ bool Position::is_pseudo_legal(const Move move) const
 
 bool Position::make_move(std::string uci) 
 {
+    enPassant = Square::A1;
     auto input = uci_to_move(uci);
 
     if (input.has_value() == false) 
@@ -243,6 +244,14 @@ bool Position::make_move(std::string uci)
     if (fromBB & colorsBB(side) == 0 || fromBB & piecesBB(piece) == 0)
     {
         return false;
+    }
+
+    if (move.flags() == Flag::DOUBLE_PAWN)
+    {
+        U64 shift = (side == Color::WHITE) ? 8 : -8;
+
+        int sq = static_cast<int>(move.to()) >> shift;
+        enPassant = static_cast<Square>(sq);
     }
 
     moveHistory.push_back(move);
