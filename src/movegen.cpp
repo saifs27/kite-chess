@@ -81,7 +81,7 @@ void MoveGen::generate_pawn_push()
 
 void MoveGen::generate_en_passant()
 {
-    U64 mask = (pos.side == Color::WHITE) ? rank::third : rank::sixth;
+    U64 mask = (pos.side == Color::WHITE) ? rank::sixth : rank::third;
     U64 enPas = set_bit(pos.enPassant) & mask;
     Move m(pos.enPassant, pos.enPassant, Flag::EN_PASSANT);
 

@@ -8,23 +8,23 @@ Position board;
 
 TEST_CASE("uci", "[uci]") {
     board.start_position();
-    auto move = board.uci_to_move("e2e4").value();
-    move.set_flags(Flag::NOFLAG);
+    Move move(Square::E2, Square::E4, Flag::DOUBLE_PAWN);
+
     REQUIRE (move.from() == Square::E2);
     REQUIRE (move.to() == Square::E4);
-    REQUIRE (move.flags() == Flag::NOFLAG);
+    REQUIRE (move.flags() == Flag::DOUBLE_PAWN);
 
 }
 
 TEST_CASE("legal" "[legal]") {
     board.start_position();
-    Move m(Square::G1, Square::G3, Flag::NOFLAG);
+    Move m(Square::G1, Square::G3, Flag::DOUBLE_PAWN);
     REQUIRE(board.is_pseudo_legal(m) == false);
 }
 
 TEST_CASE("make move", "[move]") {
     board.start_position();
-    board.make_move("e2e4");
+    board.make_move(Move(Square::E2, Square::E4, Flag::DOUBLE_PAWN));
     // TODO add double pawn pushes
     //REQUIRE (board.get_bitboard(WHITE, PAWN) == 0x1000ef00);
 }

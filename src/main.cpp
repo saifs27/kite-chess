@@ -16,10 +16,10 @@ int main() {
     Smyslov::Position board;
     board.start_position(); 
     std::vector<Smyslov::Move> moveList;
-    board.make_move("d2d4");
-    board.make_move("c7c5");
-    board.make_move("d4d5");
-    board.make_move("e7e5");
+    board.make_move(Smyslov::Move(Smyslov::Square::D2, Smyslov::Square::D4, Smyslov::Flag::DOUBLE_PAWN));
+    board.make_move(Smyslov::Move(Smyslov::Square::C7, Smyslov::Square::C5, Smyslov::Flag::DOUBLE_PAWN));
+    board.make_move(Smyslov::Move(Smyslov::Square::D4, Smyslov::Square::D5, Smyslov::Flag::DOUBLE_PAWN));
+    board.make_move(Smyslov::Move(Smyslov::Square::E7, Smyslov::Square::E5, Smyslov::Flag::DOUBLE_PAWN));
     Smyslov::print_bitboard(board.get_bitboard(Smyslov::Color::WHITE, Smyslov::Piece::PAWN));
     Smyslov::MoveGen mList {std::move(moveList), board};
 

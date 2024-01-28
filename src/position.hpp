@@ -30,7 +30,7 @@ class Position {
     Piece get_piece(const Square sq) const ;
     U64 get_attacks(const Color color) const;    
     std::optional<Move> uci_to_move(std::string uci);
-    bool make_move(std::string);
+    bool make_move(Move move);
     void undo_move();
     void print_board() const;
 

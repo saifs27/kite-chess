@@ -218,17 +218,9 @@ bool Position::is_pseudo_legal(const Move move) const
 
 }
 
-bool Position::make_move(std::string uci) 
+bool Position::make_move(Move move) 
 {
     enPassant = Square::A1;
-    auto input = uci_to_move(uci);
-
-    if (input.has_value() == false) 
-    {
-        return false;
-    }
-
-    Move move = input.value();
 
     Piece piece = get_piece(move.from());
 
@@ -249,9 +241,10 @@ bool Position::make_move(std::string uci)
     if (move.flags() == Flag::DOUBLE_PAWN)
     {
         int sq = static_cast<int>(move.to());
-        int backSq = (side == Color::WHITE) ? (sq >> 8) : (sq << 8);
+        int backSq = (side == Color::WHITE) ? (sq - 8) : (sq + 8);
         enPassant = static_cast<Square>(backSq);
     }
+    
 
     moveHistory.push_back(move);
     pieceBB[static_cast<int>(side)] &= ~fromBB;
