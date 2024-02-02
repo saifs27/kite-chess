@@ -68,15 +68,19 @@ enum class Color {WHITE, BLACK, NONE};
 enum class Piece {PAWN = 2, KNIGHT, BISHOP, ROOK, QUEEN, KING, EMPTY}; // starts at 2 to access position bitboard array
 
 enum class Flag {
-    NOFLAG,
-    EN_PASSANT,
-    CASTLE,
-    CAPTURE,
+    QUIET,
     DOUBLE_PAWN,
+    CASTLE,
+    EN_PASSANT,
+    CAPTURE,
     PROMOTE_QUEEN,
     PROMOTE_KNIGHT,
     PROMOTE_ROOK,
-    PROMOTE_BISHOP
+    PROMOTE_BISHOP,
+    PROMOTE_KNIGHT_CAPTURE,
+    PROMOTE_QUEEN_CAPTURE,
+    PROMOTE_ROOK_CAPTURE,
+    PROMOTE_BISHOP_CAPTURE,
 };
 
 struct Move

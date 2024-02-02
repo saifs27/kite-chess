@@ -18,10 +18,15 @@ void MoveGen::generate_king_moves()
     while (!(is_empty(moves)))
     {
         Square to = pop_lsb(moves);
-        Move new_move(from, to, Flag::NOFLAG);
+        Move new_move(from, to, Flag::QUIET);
         moveList.push_back(new_move);
     }
     
+}
+
+void MoveGen::generate_castles()
+{
+
 }
 
 void MoveGen::generate_double_pawn_push()
@@ -140,13 +145,13 @@ void MoveGen::generate_moves(Piece piece)
         }
         
         moves = (bb & (bb ^ (blockers))) & (bb & (bb ^ (op_blockers)));
-        Move new_move(from, from, Flag::NOFLAG);
+        Move new_move(from, from, Flag::QUIET);
 
         while (!is_empty(moves))
         {
             Square to = pop_lsb(moves);
             new_move.set_to(to);
-            new_move.set_flags((set_bit(to) & pos.get_attacks(op_side) != 0x0ULL) ? Flag::CAPTURE : Flag::NOFLAG);
+            new_move.set_flags((set_bit(to) & pos.get_attacks(op_side) != 0x0ULL) ? Flag::CAPTURE : Flag::QUIET);
             moveList.push_back(new_move);
         }
     

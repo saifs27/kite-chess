@@ -18,7 +18,7 @@ int main() {
     board.start_position(); 
     std::vector<Smyslov::Move> moveList;
 
-    int n = Smyslov::perft(board, 1);
+    int n = Smyslov::perft(board, 4);
     std::cout << "Perft: " << n << '\n';
     /*
     board.make_move(Smyslov::Move(Smyslov::Square::D2, Smyslov::Square::D4, Smyslov::Flag::DOUBLE_PAWN));

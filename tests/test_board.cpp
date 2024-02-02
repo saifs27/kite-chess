@@ -40,10 +40,10 @@ TEST_CASE ("pawn attacks", "[pawn]") {
 }
 
 TEST_CASE("pawn pushes", "[pawnpush]") {
-    Move m1(Square::A2, Square::A3, Flag::NOFLAG);
-    Move m2(Square::A2, Square::A4, Flag::NOFLAG);
+    Move m1(Square::A2, Square::A3, Flag::QUIET);
+    Move m2(Square::A2, Square::A4, Flag::QUIET);
 
-    Move m3(Square::D7, Square::D5, Flag::NOFLAG);
+    Move m3(Square::D7, Square::D5, Flag::QUIET);
     REQUIRE (pawn_push_sq(m1.from(), Color::WHITE) == 0x10000);
     REQUIRE (double_pawn_push_sq(m2.from(), Color::WHITE) == 0x1000000);
     REQUIRE (pawn_push_sq(m3.from(), Color::BLACK) == 0x80000000000);
