@@ -165,6 +165,71 @@ void MoveGen::generate_all_moves()
     generate_king_moves();
 }
 
+bool MoveGen::make_move(Move move) 
+{
+    pos.enPassant = Square::A1;
+    auto incrementMove50 = pos.gameState.back().fiftyMove + 1;
+    auto castlingRights = pos.gameState.back().castlingPerm;
+    
+    GameState board(Square::A1, 0b1111, incrementMove50);
+
+    Piece piece = pos.get_piece(move.from());
+
+    if (!pos.is_pseudo_legal(move))
+    {
+        return false;
+    }
+
+    const int colorMask = pos.side == Color::WHITE ? 0b0011 : 0b1100;
+    const U64 fromBB = set_bit(move.from());
+    const U64 toBB = set_bit(move.to());
+
+    if (fromBB & pos.colorsBB(pos.side) == 0 || fromBB & pos.piecesBB(piece) == 0)
+    {
+        return false;
+    }
+
+    if (move.flags() == Flag::DOUBLE_PAWN)
+    {
+        int sq = static_cast<int>(move.to());
+        int backSq = (pos.side == Color::WHITE) ? (sq - 8) : (sq + 8);
+        pos.enPassant = static_cast<Square>(backSq);
+    }
+    
+
+    pos.moveHistory.push_back(move);
+    pos.pieceBB[static_cast<int>(pos.side)] |= fromBB;
+    pos.pieceBB[static_cast<int>(pos.side)] &= ~toBB;
+
+    pos.pieceBB[static_cast<int>(piece)] |= fromBB;
+    pos.pieceBB[static_cast<int>(piece)] &= ~toBB;
+
+    pos.update_castlingPerm(move);
+
+    pos.switch_sides();
+    return true;
+}
+
+void MoveGen::undo_move() 
+{
+    pos.switch_sides();
+    Move move = pos.moveHistory.back();
+    Piece piece = pos.get_piece(move.from());
+    pos.moveHistory.pop_back();
+
+    //std::cout << static_cast<int>(move.from()) << '\n';
+
+    const U64 prevBB = 0x1ULL << static_cast<int>(move.from());
+    const U64 currentBB = 0x1ULL << static_cast<int>(move.to());
+    pos.pieceBB[static_cast<int>(pos.side)] &= ~currentBB;
+    pos.pieceBB[static_cast<int>(pos.side)] |= prevBB;
+
+    pos.pieceBB[static_cast<int>(piece)] &= ~currentBB;
+    pos.pieceBB[static_cast<int>(piece)] |= prevBB;
+
+    //print_board();
+}
+
 
 
 

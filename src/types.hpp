@@ -21,6 +21,17 @@ enum class Square {
 enum File {A, B, C, D, E, F, G, H};
 enum Rank {First, Second, Third, Fourth, Fifth, Sixth, Seventh, Eighth};
 
+struct GameState
+{
+    Square enPassant;
+    short castlingPerm;
+    int fiftyMove;
+
+    GameState(Square enPas, short castling, int move50)
+    : enPassant(enPas), castlingPerm(castling), fiftyMove(move50)
+    {}
+};
+
 namespace file {
 inline constexpr U64 A = 0x101010101010101ULL;
 inline constexpr U64 B = 0x202020202020202ULL;
@@ -83,18 +94,18 @@ struct Move
         moveValue =  start | (end << 6) | (flags << 12);
     }
 
-    Square from() const {
+    const Square from() const {
         short mask = 0b0000000000111111;
         int sq = mask & moveValue;
         return static_cast<Square>(sq);
     }
-    Square to() const {
+    const Square to() const {
         short mask = 0b0000111111000000;
         int sq = (mask & moveValue) >> 6;
         return static_cast<Square>(sq);
     }
 
-    Flag flags() const {
+    const Flag flags() const {
         short mask  = 0b1111000000000000;
         return static_cast<Flag>((moveValue & mask) >> 12);
     }

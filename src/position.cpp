@@ -10,6 +10,8 @@ Position::Position()
     set_pieceBB(Piece::ROOK, 0x0ULL);
     set_pieceBB(Piece::QUEEN, 0x0ULL);
     set_pieceBB(Piece::KING, 0x0ULL);
+    GameState game(Square::A1, 15, 0);
+    gameState.push_back(game);
 }
 void Position::start_position() 
 {
@@ -216,62 +218,6 @@ bool Position::is_pseudo_legal(const Move move) const
     return true;
 
 
-}
-
-bool Position::make_move(Move move) 
-{
-    enPassant = Square::A1;
-
-    Piece piece = get_piece(move.from());
-
-    if (!is_pseudo_legal(move))
-    {
-        return false;
-    }
-
-    const int colorMask = side == Color::WHITE ? 0b0011 : 0b1100;
-    const U64 fromBB = set_bit(move.from());
-    const U64 toBB = set_bit(move.to());
-
-    if (fromBB & colorsBB(side) == 0 || fromBB & piecesBB(piece) == 0)
-    {
-        return false;
-    }
-
-    if (move.flags() == Flag::DOUBLE_PAWN)
-    {
-        int sq = static_cast<int>(move.to());
-        int backSq = (side == Color::WHITE) ? (sq - 8) : (sq + 8);
-        enPassant = static_cast<Square>(backSq);
-    }
-    
-
-    moveHistory.push_back(move);
-    pieceBB[static_cast<int>(side)] &= ~fromBB;
-    pieceBB[static_cast<int>(side)] |= toBB;
-
-    pieceBB[static_cast<int>(piece)] &= ~fromBB;
-    pieceBB[static_cast<int>(piece)] |= toBB;
-
-    update_castlingPerm(move);
-
-    side = (side == Color::WHITE) ? Color::BLACK : Color::WHITE;
-    return true;
-}
-
-void Position::undo_move() 
-{
-    Move move = moveHistory.back();
-    Piece piece = get_piece(move.from());
-    moveHistory.pop_back();
-
-    const U64 prevBB = 0x1ULL << static_cast<int>(move.to());
-    const U64 currentBB = 0x1ULL << static_cast<int>(move.from());
-    pieceBB[static_cast<int>(side)] &= ~currentBB;
-    pieceBB[static_cast<int>(side)] |= prevBB;
-
-    pieceBB[static_cast<int>(piece)] &= ~currentBB;
-    pieceBB[static_cast<int>(piece)] |= prevBB;
 }
 
 void Position::print_board() const 

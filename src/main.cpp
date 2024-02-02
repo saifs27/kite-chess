@@ -7,6 +7,7 @@
 #include "bitboards.hpp"
 #include <vector>
 #include "movegen.hpp"
+#include "perft.hpp"
 
 int main() {
     Smyslov::Rays::init();
@@ -16,6 +17,10 @@ int main() {
     Smyslov::Position board;
     board.start_position(); 
     std::vector<Smyslov::Move> moveList;
+
+    int n = Smyslov::perft(board, 1);
+    std::cout << "Perft: " << n << '\n';
+    /*
     board.make_move(Smyslov::Move(Smyslov::Square::D2, Smyslov::Square::D4, Smyslov::Flag::DOUBLE_PAWN));
     board.make_move(Smyslov::Move(Smyslov::Square::C7, Smyslov::Square::C5, Smyslov::Flag::DOUBLE_PAWN));
     board.make_move(Smyslov::Move(Smyslov::Square::D4, Smyslov::Square::D5, Smyslov::Flag::DOUBLE_PAWN));
@@ -31,7 +36,7 @@ int main() {
         std::cout << "move: " << static_cast<int>(i.from())<< " --> " <<static_cast<int>(i.to()) << '\n';
     }
 
-/*
+
     while (true) 
     {
         board.print_board();

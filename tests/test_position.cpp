@@ -24,7 +24,7 @@ TEST_CASE("legal" "[legal]") {
 
 TEST_CASE("make move", "[move]") {
     board.start_position();
-    board.make_move(Move(Square::E2, Square::E4, Flag::DOUBLE_PAWN));
+    //board.make_move(Move(Square::E2, Square::E4, Flag::DOUBLE_PAWN));
     // TODO add double pawn pushes
     //REQUIRE (board.get_bitboard(WHITE, PAWN) == 0x1000ef00);
 }
