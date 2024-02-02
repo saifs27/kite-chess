@@ -30,6 +30,7 @@ add_executable(smyslov
                 src/movegen.hpp 
                 src/rays.cpp
                 src/rays.hpp
+                src/perft.hpp
                 )
 
 target_include_directories(smyslov PRIVATE src)

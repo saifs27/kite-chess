@@ -8,19 +8,23 @@ namespace Smyslov {
 inline U64 perft(Position& pos, int depth)
 {
     std::vector<Move> moveList;
-    MoveGen generate{moveList, pos};
+    MoveGen n_moves{moveList, pos};
     U64 nodes = 0;
     if (depth == 0)
     {
         return 1ULL;
     }
 
-    generate.generate_all_moves();
-    for (auto i : generate.moveList)
+    n_moves.generate_all_moves();
+    
+    for (auto i : n_moves.moveList)
     {
-        pos.make_move(i);
+        bool isValidMove = n_moves.make_move(i);
+
+        if (!isValidMove) return 0x0ULL;
+
         nodes += perft(pos, depth - 1);
-        pos.undo_move();
+        n_moves.undo_move();
     }
 
     return nodes;
