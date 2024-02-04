@@ -8,7 +8,7 @@ namespace Smyslov {
 inline U64 perft(Position& pos, int depth)
 {
     std::vector<Move> moveList;
-    MoveGen n_moves{moveList, pos};
+    MoveGen n_moves(pos);
     U64 nodes = 0;
     if (depth == 0)
     {

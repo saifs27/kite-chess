@@ -30,6 +30,12 @@ struct GameState
     GameState(Square enPas, short castling, int move50)
     : enPassant(enPas), castlingPerm(castling), fiftyMove(move50)
     {}
+
+    void set_enPassant(Square sq){ enPassant = sq;}
+
+    void incrementFiftyMove() {fiftyMove++;}
+    void decrementFiftyMove() {fiftyMove--;}
+
 };
 
 namespace file {
@@ -70,7 +76,8 @@ enum class Piece {PAWN = 2, KNIGHT, BISHOP, ROOK, QUEEN, KING, EMPTY}; // starts
 enum class Flag {
     QUIET,
     DOUBLE_PAWN,
-    CASTLE,
+    KING_CASTLE,
+    QUEEN_CASTLE,
     EN_PASSANT,
     CAPTURE,
     PROMOTE_QUEEN,
@@ -82,6 +89,8 @@ enum class Flag {
     PROMOTE_ROOK_CAPTURE,
     PROMOTE_BISHOP_CAPTURE,
 };
+
+
 
 struct Move
 {
@@ -132,6 +141,40 @@ struct Move
         moveValue |= (static_cast<int>(flags) << 12);
     }
 
+    bool is_capture()
+    {
+        Flag flag = flags();
+        switch (flag)
+        {
+            case Flag::CAPTURE:
+            return true;
+            case Flag::EN_PASSANT:
+            return true;
+            case Flag::PROMOTE_ROOK_CAPTURE: case Flag::PROMOTE_QUEEN_CAPTURE:
+            return true; 
+            case Flag::PROMOTE_BISHOP_CAPTURE: case Flag::PROMOTE_KNIGHT_CAPTURE:
+            return true; 
+            default:
+            return false;
+        }
+    }
+    Piece get_promotion_piece()
+    {
+        Flag flag = flags();
+        switch (flag)
+        {
+            case Flag::PROMOTE_BISHOP: case Flag::PROMOTE_BISHOP_CAPTURE:
+            return Piece::BISHOP; 
+            case Flag::PROMOTE_KNIGHT: case Flag::PROMOTE_KNIGHT_CAPTURE:
+            return Piece::KNIGHT; 
+            case Flag::PROMOTE_QUEEN: case Flag::PROMOTE_QUEEN_CAPTURE:
+            return Piece::QUEEN; 
+            case Flag::PROMOTE_ROOK: case Flag::PROMOTE_ROOK_CAPTURE:
+            return Piece::ROOK;
+            default:
+            return Piece::EMPTY;
+        }
+    }
 
 };
 

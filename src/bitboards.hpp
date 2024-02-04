@@ -6,10 +6,6 @@
 #include <vector>
 #include <string>
 #include <iostream>
-#include <cmath>
-#include <random>
-#include <optional>
-#include <variant>
 
 namespace Smyslov {
 

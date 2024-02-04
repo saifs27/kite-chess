@@ -1,13 +1,13 @@
 #include <iostream>
+#include <string>
+#include <vector>
+
 #include "bitboards.hpp"
 #include "position.hpp"
 #include "types.hpp"
-#include <string>
-#include "types.hpp"
-#include "bitboards.hpp"
-#include <vector>
 #include "movegen.hpp"
 #include "perft.hpp"
+#include "uci.hpp"
 
 int main() {
     Smyslov::Rays::init();
@@ -16,26 +16,18 @@ int main() {
 
     Smyslov::Position board;
     board.start_position(); 
-    std::vector<Smyslov::Move> moveList;
+    Smyslov::MoveGen moves(board);
+    moves.generate_all_moves();
+    board.print_board();
 
-    int n = Smyslov::perft(board, 4);
-    std::cout << "Perft: " << n << '\n';
-    /*
-    board.make_move(Smyslov::Move(Smyslov::Square::D2, Smyslov::Square::D4, Smyslov::Flag::DOUBLE_PAWN));
-    board.make_move(Smyslov::Move(Smyslov::Square::C7, Smyslov::Square::C5, Smyslov::Flag::DOUBLE_PAWN));
-    board.make_move(Smyslov::Move(Smyslov::Square::D4, Smyslov::Square::D5, Smyslov::Flag::DOUBLE_PAWN));
-    board.make_move(Smyslov::Move(Smyslov::Square::E7, Smyslov::Square::E5, Smyslov::Flag::DOUBLE_PAWN));
-    Smyslov::print_bitboard(board.get_bitboard(Smyslov::Color::WHITE, Smyslov::Piece::PAWN));
-    Smyslov::MoveGen mList {std::move(moveList), board};
-
-    mList.generate_all_moves();
-    std::cout << mList.moveList.size() << '\n';
-    std::cout << "enPas: " << static_cast<int>(board.enPassant) << '\n';
-    for (auto i: mList.moveList)
-    {
-        std::cout << "move: " << static_cast<int>(i.from())<< " --> " <<static_cast<int>(i.to()) << '\n';
+    for (auto i : moves.moveList) {
+        std::string res = Smyslov::UCI::move_to_uci(i);
+        std::cout<< res << '\n';
     }
 
+    //int n = Smyslov::perft(board, 3);
+    //std::cout << "Perft: " << n << '\n';
+    /*
 
     while (true) 
     {

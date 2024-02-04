@@ -25,6 +25,16 @@ void Position::start_position()
     set_pieceBB(Piece::KING, 0x1000000000000010ULL);
 }
 
+void Position::push_move(Move move) 
+{
+    moveHistory.push_back(move);
+    if (move.is_capture())
+    {
+        Piece capturedPiece = get_piece(move.to());
+        captured.push_back(capturedPiece);
+    }
+}
+
 U64 Position::get_bitboard(const Color color, const Piece piece) const 
 {
     return pieceBB[static_cast<int>(color)] & pieceBB[static_cast<int>(piece)];
@@ -45,6 +55,12 @@ Piece Position::get_piece(const Square sq) const {
 
     return Piece::EMPTY;
 }
+
+Square Position::captured_enPassant(Square enPasSq) const
+{
+
+}
+
 
 
 U64 Position::get_attacks(const Color color) const 
@@ -89,7 +105,7 @@ std::optional<Move> Position::uci_to_move(std::string uci)
 
     if (pce == Piece::KING && move.from() == Square::E1 && move.to() == Square::G1) 
     {
-        move.set_flags(Flag::CASTLE);
+        move.set_flags(Flag::KING_CASTLE);
     }
 
     return move;
