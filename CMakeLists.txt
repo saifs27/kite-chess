@@ -23,13 +23,16 @@ add_executable(smyslov
                 src/bitboards.hpp 
                 src/position.cpp
                 src/position.hpp
-                src/magic.cpp
-                src/magic.hpp
                 src/types.hpp
                 src/search.cpp
                 src/search.hpp 
                 src/movegen.cpp
                 src/movegen.hpp 
+                src/rays.cpp
+                src/rays.hpp
+                src/perft.hpp
+                src/uci.cpp
+                src/uci.hpp
                 )
 
 target_include_directories(smyslov PRIVATE src)

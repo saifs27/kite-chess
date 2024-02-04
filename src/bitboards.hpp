@@ -1,101 +1,70 @@
 #pragma once
 #include "types.hpp"
+#include "rays.hpp"
 #include <cstdint>
 #include <memory>
 #include <vector>
 #include <string>
 #include <iostream>
-#include <cmath>
-#include <random>
-#include <optional>
+
 namespace Smyslov {
-class Bitboard {
-    public:
-    U64 bitboard;
 
-    Bitboard(U64 bb) : bitboard(bb) {};
-    // operator overloading
-    Bitboard operator|(Bitboard bb) const {return Bitboard {bitboard | bb.bitboard};}
-    void operator|=(Bitboard bb){bitboard |= bb.bitboard;}
-    Bitboard operator&(Bitboard bb) const {return Bitboard {bitboard & bb.bitboard};}
-    void operator&=(Bitboard bb){bitboard &= bb.bitboard;}
-    Bitboard operator^(Bitboard bb) const {return Bitboard {bitboard ^ bb.bitboard};}
-    void operator^=(Bitboard bb){bitboard ^= bb.bitboard;}
-    Bitboard operator~() const {return Bitboard {~bitboard};}
-    Bitboard operator<<(int n) const {return Bitboard {bitboard << n};}
-    void operator<<=(int n){bitboard <<= n;}
-    Bitboard operator>>(int n) const {return Bitboard {bitboard >> n};}
-    void operator>>=(int n){bitboard >>= n;}
-    void operator=(Bitboard bb){this->bitboard = bb.bitboard;}
-    bool operator==(Bitboard bb){return bitboard == bb.bitboard;}
-    bool operator!=(Bitboard bb){return bitboard != bb.bitboard;}
+bool is_empty(U64 bb);
+bool has(U64 bb, Square sq);
 
-    bool is_empty() const;
-    bool has(Square sq) const;
-    std::vector<Bitboard> get_subsets();
-    
-
-};
 
 int population_count(const U64 bitboard);
 Square msb(const U64 bitboard);
 Square lsb(const U64 bitboard);
 Square pop_lsb(U64& bitboard);
 void print_bitboard(const U64 bitboard);
-
-U64 king_attacks(const U64 bb);
-U64 knight_attacks(const U64 bb);
-U64 pawn_attacks(const U64 bb);
-U64 bishop_attacks(const U64 bb);
-U64 rook_attacks(const U64 bb);
-
-U64 pawn_push(Color color, const U64 bb);
-U64 double_pawn_push(Color color, const U64 bb);
+std::vector<Square> get_squares(const U64 bb);
 
 
 
-inline U64 king_attacks(const Move move) 
+
+U64 king_attacksBB(const U64 bb);
+U64 knight_attacksBB(const U64 bb);
+U64 pawn_attacksBB(const U64 bb, const Color color);
+U64 bishop_attacks(const Square sq, const U64 blockers);
+U64 rook_attacks(const Square sq, const U64 blockers);
+
+U64 pawn_pushBB(const U64 bb, const Color color );
+U64 double_pawn_pushBB(const U64 bb, const Color color);
+
+
+inline U64 king_attacks_sq(const Square sq) 
 {
-    U64 bb = set_bit(move.from);
-    return king_attacks(bb);
+    U64 bb = set_bit(sq);
+    return king_attacksBB(bb);
 }
 
-inline U64 knight_attacks(const Move move)
+inline U64 knight_attacks_sq(const Square sq)
 {
-    U64 bb = set_bit(move.from);
-    return knight_attacks(bb);
+    U64 bb = set_bit(sq);
+    return knight_attacksBB(bb);
 }
 
-inline U64 pawn_attacks(const Move move)
+inline U64 pawn_attacks_sq(const Square sq, const Color color)
 {
-    U64 bb = set_bit(move.from);
-    return pawn_attacks(bb);
+    U64 bb = set_bit(sq);
+    return pawn_attacksBB(bb, color);
 }
 
-inline U64 bishop_attacks(const Move move)
-{
-    U64 bb = set_bit(move.from);
-    return bishop_attacks(bb);
 
+
+inline U64 pawn_push_sq(const Square sq, const Color color)
+{
+    U64 bb = set_bit(sq);
+    return pawn_pushBB(bb, color);
 }
 
-inline U64 rook_attacks(const Move move)
+inline U64 double_pawn_push_sq(const Square sq, const Color color)
 {
-    U64 bb = set_bit(move.from);
-    return rook_attacks(bb);
+    U64 bb = set_bit(sq);
+    return double_pawn_pushBB(bb, color);
 }
 
-inline U64 pawn_push(const Move move)
-{
-    U64 bb = set_bit(move.from);
-    return pawn_push(move.color, bb);
-}
-
-inline U64 double_pawn_push(const Move move)
-{
-    U64 bb = set_bit(move.from);
-    return double_pawn_push(move.color, bb);
-}
 
 
 

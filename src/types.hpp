@@ -1,10 +1,12 @@
 #pragma once
+#include <string>
 #include <optional>
+#include <iostream>
 
 namespace Smyslov {
 typedef unsigned long long U64;
 
-enum Square {
+enum class Square {
     A1, B1, C1, D1, E1, F1, G1, H1,
     A2, B2, C2, D2, E2, F2, G2, H2,
     A3, B3, C3, D3, E3, F3, G3, H3,
@@ -17,7 +19,24 @@ enum Square {
 };
 
 enum File {A, B, C, D, E, F, G, H};
-enum Rank {First, Second, Third, Fourth, Fifth};
+enum Rank {First, Second, Third, Fourth, Fifth, Sixth, Seventh, Eighth};
+
+struct GameState
+{
+    Square enPassant;
+    short castlingPerm;
+    int fiftyMove;
+
+    GameState(Square enPas, short castling, int move50)
+    : enPassant(enPas), castlingPerm(castling), fiftyMove(move50)
+    {}
+
+    void set_enPassant(Square sq){ enPassant = sq;}
+
+    void incrementFiftyMove() {fiftyMove++;}
+    void decrementFiftyMove() {fiftyMove--;}
+
+};
 
 namespace file {
 inline constexpr U64 A = 0x101010101010101ULL;
@@ -30,7 +49,18 @@ inline constexpr U64 G = 0x4040404040404040ULL;
 inline constexpr U64 H = 0x8080808080808080ULL;
 }
 
-enum Castling {WhiteKingside = 1, WhiteQueenside = 2, BlackKingside = 4, BlackQueenside = 8};
+namespace rank {
+inline constexpr U64 first   = 0xff;
+inline constexpr U64 second  = 0xff00;
+inline constexpr U64 third   = 0xff0000;
+inline constexpr U64 fourth  = 0xff000000;
+inline constexpr U64 fifth   = 0xff00000000;
+inline constexpr U64 sixth   = 0xff0000000000;
+inline constexpr U64 seventh = 0xff000000000000;
+inline constexpr U64 eighth  = 0xff00000000000000;
+}
+
+enum class Castling {WhiteKingside = 1, WhiteQueenside = 2, BlackKingside = 4, BlackQueenside = 8};
 
 /*
 White kingside castling: 0001
@@ -40,49 +70,221 @@ White kingside castling: 0001
 */
 
 
-enum Color {WHITE, BLACK, NONE}; 
-enum Piece {PAWN = 2, KNIGHT, BISHOP, ROOK, QUEEN, KING, EMPTY}; // to access position bitboard array
-enum MoveType {NORMAL, CASTLING, ENPASSANT, PROMOTION, CAPTURE, QUIET_CHECK, EVASION, NON_EVASION, LEGAL};
+enum class Color {WHITE, BLACK, NONE}; 
+enum class Piece {PAWN = 2, KNIGHT, BISHOP, ROOK, QUEEN, KING, EMPTY}; // starts at 2 to access position bitboard array
+
+enum class Flag {
+    QUIET,
+    DOUBLE_PAWN,
+    KING_CASTLE,
+    QUEEN_CASTLE,
+    EN_PASSANT,
+    CAPTURE,
+    PROMOTE_QUEEN,
+    PROMOTE_KNIGHT,
+    PROMOTE_ROOK,
+    PROMOTE_BISHOP,
+    PROMOTE_KNIGHT_CAPTURE,
+    PROMOTE_QUEEN_CAPTURE,
+    PROMOTE_ROOK_CAPTURE,
+    PROMOTE_BISHOP_CAPTURE,
+};
 
 
 
-struct Move {
-    MoveType moveType=NORMAL;
-    Square from;
-    Square to;
-    Piece piece;
-    Color color;
-    Piece promoted=EMPTY;
+struct Move
+{
+    private:
+    short moveValue;
 
-    Move(Square from, Square to, Piece p, Color c) : 
-    from(from), to(to), piece(p), color(c) {}
+    public:
+    Move(Square from, Square to, Flag flag)
+    {
+        int start = static_cast<int>(from);
+        int end = static_cast<int>(to);
+        int flags = static_cast<int>(flag);
+
+        moveValue =  start | (end << 6) | (flags << 12);
+    }
+
+    const Square from() const {
+        short mask = 0b0000000000111111;
+        int sq = mask & moveValue;
+        return static_cast<Square>(sq);
+    }
+    const Square to() const {
+        short mask = 0b0000111111000000;
+        int sq = (mask & moveValue) >> 6;
+        return static_cast<Square>(sq);
+    }
+
+    const Flag flags() const {
+        short mask  = 0b1111000000000000;
+        return static_cast<Flag>((moveValue & mask) >> 12);
+    }
+
+    void set_from(Square from) {
+        short mask  = 0b0000000000111111;
+        moveValue &= ~mask;
+        moveValue |= static_cast<int>(from);
+    }
+
+    void set_to(Square to) {
+        short mask  = 0b0000111111000000;
+        moveValue &= ~mask;
+        moveValue |= (static_cast<int>(to) << 6);
+    }
+
+    void set_flags(Flag flags) {
+        short mask  = 0b1111000000000000;
+        moveValue &= ~mask;
+        moveValue |= (static_cast<int>(flags) << 12);
+    }
+
+    bool is_capture()
+    {
+        Flag flag = flags();
+        switch (flag)
+        {
+            case Flag::CAPTURE:
+            return true;
+            case Flag::EN_PASSANT:
+            return true;
+            case Flag::PROMOTE_ROOK_CAPTURE: case Flag::PROMOTE_QUEEN_CAPTURE:
+            return true; 
+            case Flag::PROMOTE_BISHOP_CAPTURE: case Flag::PROMOTE_KNIGHT_CAPTURE:
+            return true; 
+            default:
+            return false;
+        }
+    }
+    Piece get_promotion_piece()
+    {
+        Flag flag = flags();
+        switch (flag)
+        {
+            case Flag::PROMOTE_BISHOP: case Flag::PROMOTE_BISHOP_CAPTURE:
+            return Piece::BISHOP; 
+            case Flag::PROMOTE_KNIGHT: case Flag::PROMOTE_KNIGHT_CAPTURE:
+            return Piece::KNIGHT; 
+            case Flag::PROMOTE_QUEEN: case Flag::PROMOTE_QUEEN_CAPTURE:
+            return Piece::QUEEN; 
+            case Flag::PROMOTE_ROOK: case Flag::PROMOTE_ROOK_CAPTURE:
+            return Piece::ROOK;
+            default:
+            return Piece::EMPTY;
+        }
+    }
+
 };
 
 
 
 inline U64 set_bit(Square sq) {
-    return 0x1ULL << sq;
+    return 0x1ULL << static_cast<int>(sq);
 }
 
 inline File get_file(Square square){
-    int file = square % 8;
+    int file = static_cast<int>(square) % 8;
     return static_cast<File>(file);
 }
 inline Rank get_rank(Square square){
-    int rank = square / 8;
+    int rank = static_cast<int>(square) / 8;
     return static_cast<Rank>(rank);
 }
 
+template <typename T>
+inline U64 get_file_mask(T square){
+    int file = square % 8;
+    switch (file) {
+        case 0:
+        return file::A;
+        case 1:
+        return file::B;
+        case 2:
+        return file::C;
+        case 3:
+        return file::D;
+        case 4:
+        return file::E;
+        case 5:
+        return file::F;
+        case 6:
+        return file::G;
+        case 7:
+        return file::H;
+        default:
+        return 0x0ULL;
+    }
+}
 
+template <typename T>
+inline U64 get_rank_mask(const T square){
+    const int rank = square / 8;
+    switch (rank) {
+        case 0:
+        return rank::first;
+        case 1:
+        return rank::second;
+        case 2:
+        return rank::third;
+        case 3:
+        return rank::fourth;
+        case 4:
+        return rank::fifth;
+        case 5:
+        return rank::sixth;
+        case 6:
+        return rank::seventh;
+        case 7:
+        return rank::eighth;
+        default:
+        return 0x0ULL;
+    }
+}
+
+template <typename T>
+inline U64 mask_west(const T sq)
+{
+    U64 mask = 0x0ULL;
+
+    const U64 stop = get_file_mask(sq);
+
+    for (U64 file = file::A; file < stop; file <<= 1)
+    {
+
+        mask |= file;
+    }
+
+    return mask;
+
+}
+
+template <typename T>
+inline U64 mask_east(const T sq)
+{
+    U64 mask = 0x0ULL;
+    const U64 stop = get_file_mask(sq);
+
+    for (U64 file = file::H; file > stop; file >>=1)
+    {
+        mask |= file;
+    }
+
+    return mask;
+}
 
 inline std::optional<Square> try_offset(Square sq, int file_offset, int rank_offset){
     int file = get_file(sq) + file_offset;
     int rank = get_rank(sq) + rank_offset;
     int new_square = rank * 8 + file;
-    if (file >= 8 || file < 0 || rank >= 8 || rank < 0) {
+    if (file >= 8 || file < 0 || rank >= 8 || rank < 0) 
+    {
         return {};
     }
 
     return static_cast<Square>(new_square);
 }
 }
+
+
