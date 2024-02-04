@@ -89,7 +89,7 @@ void MoveGen::generate_en_passant()
     U64 mask = (pos.side == Color::WHITE) ? rank::sixth : rank::third;
     U64 enPas = set_bit(pos.enPassant) & mask;
     Move m(pos.enPassant, pos.enPassant, Flag::EN_PASSANT);
-
+    
     if (!is_empty(enPas))
     {
         U64 pawnsBB = pos.get_bitboard(pos.side, Piece::PAWN);
@@ -160,6 +160,8 @@ void MoveGen::generate_moves(Piece piece)
 
 void MoveGen::generate_all_moves()
 {
+    if (!(moveList.empty())) moveList.clear();
+    
     generate_double_pawn_push();
     generate_pawn_push();
     generate_en_passant();
@@ -185,7 +187,6 @@ bool MoveGen::make_move(Move move)
         return false;
     }
 
-    const int colorMask = pos.side == Color::WHITE ? 0b0011 : 0b1100;
     const U64 fromBB = set_bit(move.from());
     const U64 toBB = set_bit(move.to());
 
@@ -193,16 +194,16 @@ bool MoveGen::make_move(Move move)
     {
         return false;
     }
-
+    
     if (move.flags() == Flag::DOUBLE_PAWN)
     {
         int sq = static_cast<int>(move.to());
         int backSq = (pos.side == Color::WHITE) ? (sq - 8) : (sq + 8);
         pos.enPassant = static_cast<Square>(backSq);
+        pos.gameState.back().enPassant = static_cast<Square>(backSq);
     }
     
-
-    pos.moveHistory.push_back(move);
+    pos.push_move(move);
     pos.pieceBB[static_cast<int>(pos.side)] |= fromBB;
     pos.pieceBB[static_cast<int>(pos.side)] &= ~toBB;
 
@@ -210,7 +211,7 @@ bool MoveGen::make_move(Move move)
     pos.pieceBB[static_cast<int>(piece)] &= ~toBB;
 
     pos.update_castlingPerm(move);
-
+    
     pos.switch_sides();
     return true;
 }
@@ -231,7 +232,24 @@ void MoveGen::undo_move()
 
     pos.pieceBB[static_cast<int>(piece)] &= ~currentBB;
     pos.pieceBB[static_cast<int>(piece)] |= prevBB;
+    if (move.is_capture())
+    {
+        Piece capturedPiece = pos.get_piece(move.to());
+        if (capturedPiece != Piece::EMPTY)
+        {
+            pos.pieceBB[static_cast<int>(capturedPiece)] |= currentBB;
+            pos.pieceBB[static_cast<int>(pos.get_opposite_side())] |= currentBB;
+        }
 
+        else if (move.flags() == Flag::EN_PASSANT)
+        {
+            Square enPasSq = pos.gameState.back().enPassant;
+            U64 enPasBB = set_bit(enPasSq);
+            U64 capturedEnPas = (pos.side == Color::WHITE) ? (enPasBB >> 8) : (enPasBB << 8);
+            pos.pieceBB[static_cast<int>(Piece::PAWN)] |= capturedEnPas;
+            pos.pieceBB[static_cast<int>(pos.get_opposite_side())] |= capturedEnPas;
+        }
+    }
     //print_board();
 }
 
