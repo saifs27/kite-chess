@@ -31,6 +31,8 @@ add_executable(smyslov
                 src/rays.cpp
                 src/rays.hpp
                 src/perft.hpp
+                src/uci.cpp
+                src/uci.hpp
                 )
 
 target_include_directories(smyslov PRIVATE src)
