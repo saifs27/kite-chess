@@ -16,11 +16,6 @@ TEST_CASE("uci", "[uci]") {
 
 }
 
-TEST_CASE("legal" "[legal]") {
-    board.start_position();
-    Move m(Square::G1, Square::G3, Flag::DOUBLE_PAWN);
-    REQUIRE(board.is_pseudo_legal(m) == false);
-}
 
 TEST_CASE("make move", "[move]") {
     board.start_position();
@@ -38,4 +33,12 @@ TEST_CASE("population count", "[popcount]") {
 TEST_CASE("bitboards", "[bitboard]") {
     board.start_position();
     REQUIRE (board.get_bitboard(Color::WHITE, Piece::KING) == 0x10ULL);
+}
+
+TEST_CASE("misc board", "[misc board]") {
+    board.start_position();
+    REQUIRE (board.check_square_color(Square::A1) == Color::WHITE);
+    REQUIRE (board.check_square_color(Square::D7) == Color::BLACK);
+    REQUIRE (board.get_piece(Square::D1) == Piece::QUEEN);
+
 }

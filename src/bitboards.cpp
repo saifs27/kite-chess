@@ -1,15 +1,6 @@
 #include "bitboards.hpp"
 namespace Smyslov {
 
-bool is_empty(U64 bb)  {
-    return bb == 0x0ULL;
-}
-
-bool has(U64 bb, Square square) {
-    U64 check_sq = bb & set_bit(square);
-    return !(is_empty(check_sq));
-}
-
 
 int population_count(const U64 bitboard) {
     int count = 0;

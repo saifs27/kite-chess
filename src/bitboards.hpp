@@ -6,12 +6,8 @@
 #include <vector>
 #include <string>
 #include <iostream>
-
+#include "moves.hpp"
 namespace Smyslov {
-
-bool is_empty(U64 bb);
-bool has(U64 bb, Square sq);
-
 
 int population_count(const U64 bitboard);
 Square msb(const U64 bitboard);

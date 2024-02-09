@@ -28,7 +28,7 @@ void Position::start_position()
 void Position::push_move(Move move) 
 {
     moveHistory.push_back(move);
-    if (move.is_capture())
+    if (move.has_capture_flag())
     {
         Piece capturedPiece = get_piece(move.to());
         captured.push_back(capturedPiece);
@@ -56,8 +56,20 @@ Piece Position::get_piece(const Square sq) const {
     return Piece::EMPTY;
 }
 
-Square Position::captured_enPassant(Square enPasSq) const
+Color Position::check_square_color(const Square sq) const{
+    U64 sqBB = set_bit(sq);
+    if (!is_empty(pieceBB[static_cast<int>(Color::WHITE)] & sqBB)) return Color::WHITE;
+    else if (!is_empty(pieceBB[static_cast<int>(Color::BLACK) & sqBB])) return Color::BLACK;
+    else return Color::NONE;
+}
+
+Square Position::captured_enPassant(Square enPasSq, Color color) const
 {
+
+    int rank_offset = (color == Color::WHITE) ? 1 : -1;
+    auto pawn = try_offset(enPasSq, 0, rank_offset);
+
+    return pawn.value_or(Square::A1);
 
 }
 
@@ -75,96 +87,26 @@ U64 Position::get_attacks(const Color color) const
     return pawn | king | knight | bishop | queen;
 }
 
-std::optional<Move> Position::uci_to_move(std::string uci) 
-{
-    Move move(Square::EMPTY_SQUARE, Square::EMPTY_SQUARE, Flag::QUIET);
-
-    if (uci.compare("0000") == 0) {return move;}
-
-    int from_file = static_cast<int>(uci[0])-97;
-    int from_rank = static_cast<int>(uci[1])-49;
-    int to_file = static_cast<int>(uci[2])-97;
-    int to_rank = static_cast<int>(uci[3])-49;
-
-    int input[4] = {from_file, from_rank, to_file, to_rank};
-
-    for (auto i: input) 
-    {
-        if (i < 0 || i >= 8) 
-        {
-            return {};
-        }
-    }
-    move.set_from(static_cast<Square>(from_rank * 8 + from_file));
-    move.set_to(static_cast<Square>(to_rank * 8 + to_file));
-    Piece pce = get_piece(move.from());
-    if (pce == Piece::EMPTY) 
-    {
-        return {};
-    }
-
-    if (pce == Piece::KING && move.from() == Square::E1 && move.to() == Square::G1) 
-    {
-        move.set_flags(Flag::KING_CASTLE);
-    }
-
-    return move;
-}
 
 
-bool Position::can_castle(const Move move) const 
-{
-    Color color;
-    U64 castling_squares;
-    const int colorMask = color == Color::WHITE ? 0b0011 : 0b1100;
-
-    switch(move.to()) 
-    {
-        case Square::G1:
-            color = Color::WHITE;
-            castling_squares = 0x60ULL;
-        case Square::C1:
-            color = Color::WHITE;
-            castling_squares = 0xeULL;
-        case Square::G8:
-            color = Color::BLACK;
-            castling_squares = 0x6000000000000000ULL;
-
-        case Square::C8:
-            color = Color::BLACK;
-            castling_squares = 0xe00000000000000ULL;
-        default:
-            return false;
-    }
-
-    Square expected_king_sq = (move.to() == Square::G1 || move.to() == Square::C1) ? Square::E1 : Square::E8;
-
-    U64 king_sq = get_bitboard(color, Piece::KING);
-
-    if (king_sq != set_bit(expected_king_sq)) {return false;}
-
-    if (castlingPerm & colorMask == 0) {return false;}
-
-    const U64 my_pieces = colorsBB(color);
-    U64 opponent_attacks = get_attacks(static_cast<Color>((static_cast<int>(color) + 1) % 2));
-    U64 blockers = my_pieces | opponent_attacks;
-
-    if ((castling_squares & blockers != 0) || (king_sq & opponent_attacks) != 0) 
-    {
-        return false;
-    }
-
-    return true;
+bool Position::can_castle(const Castling castlingSide) const 
+{ 
+    return !is_empty(static_cast<int>(castlingSide) & get_castlingPerms());
 }
 
 
 
-void Position::update_castlingPerm(const Move move) {
-    const int colorMask = side == Color::WHITE ? 0b0011 : 0b1100;
+short Position::update_castlingPerm(const Move move) const {
+    const short colorMask = (side == Color::WHITE) ? 0b0011 : 0b1100;
+
+    
     Piece piece = get_piece(move.from());
+    short currentCastlingPerms = get_castlingPerms();
+    if (colorMask & currentCastlingPerms == 0) {return currentCastlingPerms;}
+
     if (piece == Piece::KING) 
     {
-        castlingPerm &= ~colorMask;
+        return currentCastlingPerms & ~colorMask;
     }
 
     else if (piece == Piece::ROOK) 
@@ -175,66 +117,25 @@ void Position::update_castlingPerm(const Move move) {
         {
             case Square::A1:
                 castling_side = static_cast<int>(Castling::WhiteQueenside) & colorMask;
+                break;
             case Square::H1:
                 castling_side = static_cast<int>(Castling::WhiteKingside) & colorMask;
+                break;
             case Square::A8:
                 castling_side = static_cast<int>(Castling::BlackQueenside) & colorMask;
+                break;
             case Square::H8:
                 castling_side = static_cast<int>(Castling::BlackKingside) & colorMask;
+                break;
             default:
                 castling_side = 0;
         }
-        castlingPerm &= ~castling_side;
-    }   
+        return currentCastlingPerms & ~castling_side;
+    }
+
+    return currentCastlingPerms;   
 }
 
-bool Position::is_pseudo_legal(const Move move) const 
-{
-    Piece piece = get_piece(move.from());
-    if (is_empty(colorsBB(side) & piecesBB(piece) & set_bit(move.from()))) 
-    {
-        return false;
-    }
-
-    U64 attacks;
-    U64 blockers = colorsBB(side);
-
-
-    switch (piece)
-    {
-        case Piece::KNIGHT:
-            attacks = knight_attacks_sq(move.from());
-            break;
-        case Piece::KING:
-            attacks = king_attacks_sq(move.from());
-            break;
-        case Piece::PAWN:
-            attacks = pawn_attacks_sq(move.from(), side) | pawn_push_sq(move.from(), side) | double_pawn_push_sq(move.from(), side);
-            break;
-        case Piece::ROOK:
-            attacks = rook_attacks(move.from(), blockers);
-            break;
-        case Piece::BISHOP:
-            attacks = bishop_attacks(move.from(), blockers);
-            break;
-        case Piece::QUEEN:
-            attacks = rook_attacks(move.from(), blockers) | bishop_attacks(move.from(), blockers);
-            break;
-        case Piece::EMPTY:
-            return false;
-        default:
-            return false;
-    }
-
-    if (is_empty(attacks & set_bit(move.to()))) 
-    {
-        return false;
-    }
-
-    return true;
-
-
-}
 
 void Position::print_board() const 
 {

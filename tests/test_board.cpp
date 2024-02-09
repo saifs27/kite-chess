@@ -3,6 +3,7 @@
 
 
 #include "../src/bitboards.cpp"
+#include "../src/moves.cpp"
 
 
 using namespace Smyslov;

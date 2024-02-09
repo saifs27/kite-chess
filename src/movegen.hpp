@@ -17,7 +17,9 @@ struct MoveGen
     void generate_en_passant();
     void generate_moves(Piece piece);
     void generate_all_moves();
-    bool make_move(Move move);
+    std::optional<Move> select_move(const Move move); // choose from moveList
+    void make_castle(Move move);
+    bool make_move(const Move input);
     void undo_move();
 };
 
