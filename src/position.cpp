@@ -25,13 +25,24 @@ void Position::start_position()
     set_pieceBB(Piece::KING, 0x1000000000000010ULL);
 }
 
+void Position::update_gameState(Move move)
+{
+    Piece piece = get_piece(move.from());
+    auto move50 = (piece == Piece::PAWN || move.has_capture_flag()) ? 0 : get_fiftyMove() + 1;
+    auto castlingRights = update_castlingPerm(move);
+    auto enPas = move.get_enPassant_square();
+    GameState board(enPas, castlingRights, move50);
+    gameState.push_back(board);
+}
+
+
 void Position::push_move(Move move) 
 {
     moveHistory.push_back(move);
     if (move.has_capture_flag())
     {
         Piece capturedPiece = get_piece(move.to());
-        captured.push_back(capturedPiece);
+        //captured.push_back(capturedPiece);
     }
 }
 

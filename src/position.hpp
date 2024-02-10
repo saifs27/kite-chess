@@ -10,16 +10,16 @@
 namespace Smyslov {
 class Position { 
     public:
+    U64 pieceBB[8];
+    Color side = Color::WHITE;
     std::vector<Move> moveHistory = {}; 
     std::vector<GameState> gameState = {};
     std::vector<Piece> captured = {};
-    short update_castlingPerm(const Move move) const;
-    
-    U64 pieceBB[8];
-    Color side;
+
 
     Position();    
     void start_position(); 
+    void read_fen(std::string fen);
     void switch_sides() {side = (side == Color::WHITE) ? Color::BLACK : Color::WHITE;};
     Color get_opposite_side() const { Color result = (side == Color::WHITE) ? Color::BLACK : Color::WHITE; return result;}
     Square captured_enPassant(Square enPasSq, Color color) const;
@@ -28,7 +28,8 @@ class Position {
     const U64& piecesBB(Piece piece) const {return pieceBB[static_cast<int>(piece)];};
     void set_colorBB(Color color, U64 bb) {pieceBB[static_cast<int>(color)] = bb;};
     void set_pieceBB(Piece piece, U64 bb) {pieceBB[static_cast<int>(piece)] = bb;};
-
+    short update_castlingPerm(const Move move) const;
+    void update_gameState(Move move);
     Square get_enPassant() const {
         if (!gameState.empty()) {return gameState.back().enPassant;}
         return Square::A1;

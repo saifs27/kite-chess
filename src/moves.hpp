@@ -29,6 +29,7 @@ struct Move
     bool is_capture(const U64 opponentBB) const;
     Piece get_promotion_piece() const;
     bool switch_flag_to_capture();
+    Square get_enPassant_square() const;
 
     
 
