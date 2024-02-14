@@ -2,7 +2,7 @@
 
 
 namespace Smyslov {
-
+/*
 const Square Move::from() const {
         short mask = 0b0000000000111111;
         int sq = mask & moveValue;
@@ -40,6 +40,7 @@ void Move::set_flags(Flag flags)
     moveValue &= ~mask;
     moveValue |= (static_cast<int>(flags) << 12);
 }
+*/
 
 bool Move::has_capture_flag() const
 {
@@ -104,9 +105,6 @@ bool Move::switch_flag_to_capture()
     }
 }
 
-
-
-
 bool Move::is_capture(const U64 opponentBB) const
 {
     return is_empty(set_bit(to()) & opponentBB); 
@@ -123,10 +121,6 @@ Square Move::get_enPassant_square() const
 
     return enPasSq;
 }
-
-
-
-
 
 
 
