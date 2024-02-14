@@ -14,7 +14,6 @@ class Position {
     Color side = Color::WHITE;
     std::vector<Move> moveHistory = {}; 
     std::vector<GameState> gameState = {};
-    std::vector<Piece> captured = {};
 
 
     Position();    
@@ -23,6 +22,7 @@ class Position {
     void switch_sides() {side = (side == Color::WHITE) ? Color::BLACK : Color::WHITE;};
     Color get_opposite_side() const { Color result = (side == Color::WHITE) ? Color::BLACK : Color::WHITE; return result;}
     Square captured_enPassant(Square enPasSq, Color color) const;
+    bool check_collisions() const;
     void push_move(Move move);
     const U64& colorsBB(Color color) const {return pieceBB[static_cast<int>(color)];};
     const U64& piecesBB(Piece piece) const {return pieceBB[static_cast<int>(piece)];};
@@ -44,6 +44,8 @@ class Position {
         if (!gameState.empty()) {return gameState.back().castlingPerm;}
         return 0b0000;
     }
+
+
 
 
     U64 get_bitboard(const Color color, const Piece piece) const;

@@ -23,22 +23,7 @@ enum Rank {First, Second, Third, Fourth, Fifth, Sixth, Seventh, Eighth};
 
 
 
-struct GameState
-{
-    Square enPassant;
-    short castlingPerm;
-    int fiftyMove;
 
-    GameState(Square enPas, short castling, int move50)
-    : enPassant(enPas), castlingPerm(castling), fiftyMove(move50)
-    {}
-
-    void set_enPassant(Square sq){ enPassant = sq;}
-
-    void incrementFiftyMove() {fiftyMove++;}
-    void decrementFiftyMove() {fiftyMove--;}
-
-};
 
 namespace file {
 inline constexpr U64 A = 0x101010101010101ULL;
@@ -106,7 +91,23 @@ inline bool has(U64 bb, Square square) {
 }
 
 
+struct GameState
+{
+    int fiftyMove;
+    short castlingPerm;
+    Piece captured;
+    Square enPassant;
 
+    GameState(int move50, short castling, Piece capture, Square enPas)
+    : enPassant(enPas), captured(capture), castlingPerm(castling), fiftyMove(move50)
+    {}
+
+    void set_enPassant(Square sq){ enPassant = sq;}
+
+    void incrementFiftyMove() {fiftyMove++;}
+    void decrementFiftyMove() {fiftyMove--;}
+
+};
 
 inline File get_file(Square square){
     int file = static_cast<int>(square) % 8;

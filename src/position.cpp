@@ -10,7 +10,7 @@ Position::Position()
     set_pieceBB(Piece::ROOK, 0x0ULL);
     set_pieceBB(Piece::QUEEN, 0x0ULL);
     set_pieceBB(Piece::KING, 0x0ULL);
-    GameState game(Square::A1, 15, 0);
+    GameState game(0, 15, Piece::EMPTY, Square::A1);
     gameState.push_back(game);
 }
 void Position::start_position() 
@@ -31,11 +31,17 @@ void Position::update_gameState(Move move)
     auto move50 = (piece == Piece::PAWN || move.has_capture_flag()) ? 0 : get_fiftyMove() + 1;
     auto castlingRights = update_castlingPerm(move);
     auto enPas = move.get_enPassant_square();
-    GameState board(enPas, castlingRights, move50);
+    GameState board(move50, castlingRights, Piece::EMPTY, enPas);
     gameState.push_back(board);
 }
 
+bool Position::check_collisions() const
+{
+    for (auto bb : pieceBB)
+    {
 
+    }
+}
 void Position::push_move(Move move) 
 {
     moveHistory.push_back(move);
@@ -142,6 +148,18 @@ short Position::update_castlingPerm(const Move move) const {
                 castling_side = 0;
         }
         return currentCastlingPerms & ~castling_side;
+    }
+    Square queensideRook = (side == Color::WHITE) ? (Square::A8) : (Square::A1);
+    Castling queensideMask = (side == Color::WHITE) ? Castling::BlackQueenside : Castling::WhiteQueenside;
+    Square kingsideRook = (side == Color::WHITE) ? (Square::H8) : (Square::H1);
+    Castling kingsideMask = (side == Color::WHITE) ? Castling::BlackKingside : Castling::WhiteQueenside;
+    if (move.to() == queensideRook && get_piece(move.to()) == Piece::ROOK);
+    {
+        currentCastlingPerms &= ~static_cast<short>(queensideMask);
+    }
+    if (move.to() == kingsideRook && get_piece(move.to()) == Piece::ROOK)
+    {
+        currentCastlingPerms &= ~static_cast<short>(kingsideMask);
     }
 
     return currentCastlingPerms;   

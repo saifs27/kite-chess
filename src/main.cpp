@@ -29,7 +29,7 @@ int main() {
         std::cout << "fifty move: " << board.get_fiftyMove() << '\n';
         std::cout << "castling permissions: " << board.get_castlingPerms() << '\n';
         std::cout << "moveHistory size: " << board.moveHistory.size() << '\n';
-        if (!board.moveHistory.empty() && board.moveHistory.back().flags() == Smyslov::Flag::KING_CASTLE)
+        if (!board.moveHistory.empty() && board.moveHistory.back().has_capture_flag())
         {std::cout << "castle flag: kingside " << '\n';}
         std::cout << side << '\n';
         std::cout<<"Move: ";
