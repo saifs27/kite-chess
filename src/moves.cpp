@@ -115,11 +115,11 @@ Square Move::get_enPassant_square() const
     if (flags() != Flag::DOUBLE_PAWN) {return Square::A1;}
 
     Color side = (!is_empty(set_bit(from()) & rank::second)) ? Color::WHITE : Color::BLACK;
-    Square enPasSqWhite = static_cast<Square>(static_cast<int>(from()) + 8);
-    Square enPasSqBlack = static_cast<Square>(static_cast<int>(from()) - 8);
-    Square enPasSq = (side == Color::WHITE) ? enPasSqWhite : enPasSqBlack;
-
-    return enPasSq;
+    auto enPasSqWhite = try_offset(from(), 0, 1);
+    auto enPasSqBlack = try_offset(from(), 0, -1);
+    auto enPasSq = (side == Color::WHITE) ? enPasSqWhite : enPasSqBlack;
+    if (enPasSq.has_value()) {return enPasSq.value();}
+    return Square::A1;
 }
 
 
