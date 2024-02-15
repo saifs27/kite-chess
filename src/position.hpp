@@ -22,7 +22,9 @@ class Position {
     void switch_sides() {side = (side == Color::WHITE) ? Color::BLACK : Color::WHITE;};
     Color get_opposite_side() const { Color result = (side == Color::WHITE) ? Color::BLACK : Color::WHITE; return result;}
     Square captured_enPassant(Square enPasSq, Color color) const;
-    bool check_collisions() const;
+    void add(Piece piece, Color color, Square addSq);    
+    void remove(Piece piece, Color color, Square removeSq);
+    bool empty_square(Square sq) const;
     void push_move(Move move);
     const U64& colorsBB(Color color) const {return pieceBB[static_cast<int>(color)];};
     const U64& piecesBB(Piece piece) const {return pieceBB[static_cast<int>(piece)];};
@@ -30,17 +32,18 @@ class Position {
     void set_pieceBB(Piece piece, U64 bb) {pieceBB[static_cast<int>(piece)] = bb;};
     short update_castlingPerm(const Move move) const;
     void update_gameState(Move move);
-    Square get_enPassant() const {
+    
+    Square enPassant() const {
         if (!gameState.empty()) {return gameState.back().enPassant;}
         return Square::A1;
     }
 
-    int get_fiftyMove() const {
+    int fiftyMove() const {
         if (!gameState.empty()) {return gameState.back().fiftyMove;}
         return 0;
     }
 
-    short get_castlingPerms() const {
+    short castlingPerms() const {
         if (!gameState.empty()) {return gameState.back().castlingPerm;}
         return 0b0000;
     }

@@ -28,19 +28,39 @@ void Position::start_position()
 void Position::update_gameState(Move move)
 {
     Piece piece = get_piece(move.from());
-    auto move50 = (piece == Piece::PAWN || move.has_capture_flag()) ? 0 : get_fiftyMove() + 1;
+    auto move50 = (piece == Piece::PAWN || move.has_capture_flag()) ? 0 : fiftyMove() + 1;
     auto castlingRights = update_castlingPerm(move);
     auto enPas = move.get_enPassant_square();
-    GameState board(move50, castlingRights, Piece::EMPTY, enPas);
+    auto capture = get_piece(move.to());
+    GameState board(move50, castlingRights, capture, enPas);
     gameState.push_back(board);
 }
 
-bool Position::check_collisions() const
+void Position::add(Piece piece, Color color, Square addSq)
 {
+    if (empty_square(addSq))
+    {
+        pieceBB[static_cast<int>(piece)] |= set_bit(addSq);
+        pieceBB[static_cast<int>(color)] |= set_bit(addSq);        
+    }
+}
+
+void Position::remove(Piece piece, Color color, Square removeSq)
+{
+    pieceBB[static_cast<int>(piece)] &= ~set_bit(removeSq);
+    pieceBB[static_cast<int>(color)] &= ~set_bit(removeSq);
+}
+
+
+
+bool Position::empty_square(Square sq) const
+{
+    U64 sqbb = set_bit(sq);
     for (auto bb : pieceBB)
     {
-
+        if (sqbb & bb != 0) return false;
     }
+    return true;
 }
 void Position::push_move(Move move) 
 {
@@ -108,7 +128,7 @@ U64 Position::get_attacks(const Color color) const
 
 bool Position::can_castle(const Castling castlingSide) const 
 { 
-    return !is_empty(static_cast<int>(castlingSide) & get_castlingPerms());
+    return !is_empty(static_cast<int>(castlingSide) & castlingPerms());
 }
 
 
@@ -118,7 +138,7 @@ short Position::update_castlingPerm(const Move move) const {
 
     
     Piece piece = get_piece(move.from());
-    short currentCastlingPerms = get_castlingPerms();
+    short currentCastlingPerms = castlingPerms();
     if (colorMask & currentCastlingPerms == 0) {return currentCastlingPerms;}
 
     if (piece == Piece::KING) 
@@ -153,7 +173,7 @@ short Position::update_castlingPerm(const Move move) const {
     Castling queensideMask = (side == Color::WHITE) ? Castling::BlackQueenside : Castling::WhiteQueenside;
     Square kingsideRook = (side == Color::WHITE) ? (Square::H8) : (Square::H1);
     Castling kingsideMask = (side == Color::WHITE) ? Castling::BlackKingside : Castling::WhiteQueenside;
-    if (move.to() == queensideRook && get_piece(move.to()) == Piece::ROOK);
+    if (move.to() == queensideRook && get_piece(move.to()) == Piece::ROOK)
     {
         currentCastlingPerms &= ~static_cast<short>(queensideMask);
     }
