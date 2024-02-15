@@ -136,8 +136,8 @@ void MoveGen::generate_pawn_captures()
 void MoveGen::generate_en_passant()
 {
     U64 mask = (pos.side == Color::WHITE) ? rank::sixth : rank::third;
-    U64 enPas = set_bit(pos.get_enPassant()) & mask;
-    Move m(pos.get_enPassant(), pos.get_enPassant(), Flag::EN_PASSANT);
+    U64 enPas = set_bit(pos.enPassant()) & mask;
+    Move m(pos.enPassant(), pos.enPassant(), Flag::EN_PASSANT);
     
     if (!is_empty(enPas))
     {
@@ -246,18 +246,17 @@ bool MoveGen::make_castle(Move move)
     Flag castleFlag = move.flags();
     if (castleFlag == Flag::KING_CASTLE || castleFlag == Flag::QUEEN_CASTLE)
     {
-        auto incrementmove = pos.get_fiftyMove() + 1;
+        auto incrementmove = pos.fiftyMove() + 1;
 
         short castlingMask = (pos.side == Color::WHITE) ? 0b0011 : 0b1100;
-        auto castling = (pos.get_castlingPerms()) ^ castlingMask;
+        auto castling = (pos.castlingPerms()) ^ castlingMask;
         GameState state(incrementmove, castling, Piece::EMPTY, Square::A1);
         U64 fromKBB = set_bit(move.from());
         U64 toKBB = set_bit(move.to());
 
-        pos.pieceBB[static_cast<int>(Piece::KING)] &= ~fromKBB;
-        pos.pieceBB[static_cast<int>(Piece::KING)] |= toKBB;
-        pos.pieceBB[static_cast<int>(pos.side)] &= ~fromKBB;
-        pos.pieceBB[static_cast<int>(pos.side)] |= toKBB;
+        pos.remove(Piece::KING, pos.side, move.from());
+        pos.add(Piece::KING, pos.side, move.to());
+        
 
         Square RookSq;
         Square RookSqTo;
@@ -278,14 +277,12 @@ bool MoveGen::make_castle(Move move)
         U64 fromRBB = set_bit(RookSq);
         U64 toRBB = set_bit(RookSqTo);
 
-        pos.pieceBB[static_cast<int>(Piece::ROOK)] &= ~fromRBB;
-        pos.pieceBB[static_cast<int>(Piece::ROOK)] |= toRBB;
-        pos.pieceBB[static_cast<int>(pos.side)] &= ~fromRBB;
-        pos.pieceBB[static_cast<int>(pos.side)] |= toRBB;
+        pos.remove(Piece::ROOK, pos.side, RookSq);
+        pos.add(Piece::ROOK, pos.side, RookSqTo);
+        
 
         pos.push_move(move);
-        pos.gameState.push_back(state);
-        pos.switch_sides();  
+
         return true;
 
     }
@@ -302,14 +299,13 @@ bool MoveGen::make_capture(const Move move)
         const U64 toBB = set_bit(move.to());
         Piece captured = pos.get_piece(move.to());
         Piece piece = pos.get_piece(move.from());
-        pos.pieceBB[static_cast<int>(pos.get_opposite_side())] &= ~toBB;
-        pos.pieceBB[static_cast<int>(captured)] &= ~toBB;
-        pos.pieceBB[static_cast<int>(pos.side)] |= toBB;
-        pos.pieceBB[static_cast<int>(pos.side)] &= ~fromBB;
 
-        pos.pieceBB[static_cast<int>(piece)] |= toBB;
-        pos.pieceBB[static_cast<int>(piece)] &= ~fromBB;
+        pos.remove(piece, pos.side, move.from());
+        pos.remove(captured, pos.get_opposite_side(), move.to());
+        pos.add(piece, pos.side, move.to());
+
         GameState board(0, 15, captured, Square::A1);
+
         return true;
     }
     return false;
@@ -324,72 +320,68 @@ bool MoveGen::make_quiet(const Move move)
     {
         return false;
     }
-    pos.pieceBB[static_cast<int>(pos.side)] |= toBB;
-    pos.pieceBB[static_cast<int>(pos.side)] &= ~fromBB;
 
-    pos.pieceBB[static_cast<int>(piece)] |= toBB;
-    pos.pieceBB[static_cast<int>(piece)] &= ~fromBB;
-    return true;
-}
-
-bool MoveGen::make_move(const Move input) 
-{
-    auto n_move = select_move(input);
-    if (!n_move.has_value()) {return false;}
-    Move move = n_move.value();
-    Piece piece = pos.get_piece(move.from());
-
-    bool castle = make_castle(move);
-    if (castle)
-    {
-        return true;
-    }
-
-   const U64 fromBB = set_bit(move.from());
-   const U64 toBB = set_bit(move.to());
-    
-    if (fromBB & pos.colorsBB(pos.side) == 0 || fromBB & pos.piecesBB(piece) == 0)
-    {
-        return false;
-    }
+    pos.remove(piece, pos.side, move.from());
+    pos.add(piece, pos.side, move.to());
     
     if (move.flags() == Flag::DOUBLE_PAWN)
     {
         int sq = static_cast<int>(move.to());
         int backSq = (pos.side == Color::WHITE) ? (sq - 8) : (sq + 8);
-        pos.gameState.back().enPassant = static_cast<Square>(backSq);
+
     }
 
-    //if (pos.check_square_color(move.to()) == pos.get_opposite_side())
-    if (move.has_capture_flag())
-    {
-        Piece captured = pos.get_piece(move.to());
-        pos.pieceBB[static_cast<int>(pos.get_opposite_side())] &= ~toBB;
-        pos.pieceBB[static_cast<int>(captured)] &= ~toBB;
-        short castling = pos.get_castlingPerms();
-        GameState g(0, castling, captured, Square::A1);
-        pos.gameState.push_back(g);
-    }
-
-    pos.pieceBB[static_cast<int>(pos.side)] |= toBB;
-    pos.pieceBB[static_cast<int>(pos.side)] &= ~fromBB;
-
-    pos.pieceBB[static_cast<int>(piece)] |= toBB;
-    pos.pieceBB[static_cast<int>(piece)] &= ~fromBB;
-
-    pos.push_move(move);
-
-
-    // set new game state
-    
-    auto move50 = (piece == Piece::PAWN || move.has_capture_flag()) ? 0 : pos.get_fiftyMove() + 1;
-    auto castlingRights = pos.update_castlingPerm(move);
-    auto enPas = move.get_enPassant_square();
-    GameState board(move50, castlingRights, Piece::EMPTY, enPas);
-    pos.gameState.push_back(board);
-
-    pos.switch_sides();
     return true;
+}
+
+bool MoveGen::make_enPassant(Move move)
+{
+    Square enPassantSq = (pos.enPassant());
+    auto capturedPawn = (pos.side == Color::WHITE) ? try_offset(enPassantSq, 0, -1) : try_offset(enPassantSq, 0, 1);
+
+    if ((move.flags() == Flag::EN_PASSANT) && (enPassantSq != Square::A1) && (capturedPawn.has_value()))
+    {
+        
+        pos.remove(Piece::PAWN, pos.get_opposite_side(), capturedPawn.value());
+        pos.remove(Piece::PAWN, pos.side, move.from());
+        pos.add(Piece::PAWN, pos.side, enPassantSq);
+        return true;
+    }
+    return false;
+}
+
+bool MoveGen::make_move(const Move input) 
+{
+    
+    auto n_move = select_move(input);
+    if (!n_move.has_value()) {return false;}
+    Move move = n_move.value();
+   
+    Piece piece = pos.get_piece(move.from());
+    bool isValid = false;
+    switch(move.flags())
+    {
+        case Flag::QUIET: case Flag::DOUBLE_PAWN:
+        isValid = make_quiet(move); break;
+        case Flag::KING_CASTLE: case Flag::QUEEN_CASTLE:
+        isValid = make_castle(move); break;
+        case Flag::CAPTURE:
+        isValid =  make_capture(move); break;
+        case Flag::EN_PASSANT:
+        isValid = make_enPassant(move); break;
+        default:
+        isValid = false; break;
+    }
+    
+    if (isValid)
+    {
+        pos.moveHistory.push_back(move);
+        pos.update_gameState(move);
+        pos.switch_sides();        
+    }
+
+    return isValid;
+
 }
 bool MoveGen::undo_quiet(Move move)
 {
@@ -399,11 +391,9 @@ bool MoveGen::undo_quiet(Move move)
         const U64 prevBB = set_bit(move.from());
         const U64 currentBB = set_bit(move.to());
 
-        pos.pieceBB[static_cast<int>(pos.side)] &= ~currentBB;
-        pos.pieceBB[static_cast<int>(pos.side)] |= prevBB;
-
-        pos.pieceBB[static_cast<int>(piece)] &= ~currentBB;
-        pos.pieceBB[static_cast<int>(piece)] |= prevBB;
+        pos.remove(piece, pos.side, move.to());
+        pos.add(piece, pos.side, move.from());
+        
         return true;   
 }
 bool MoveGen::undo_castle(Move move)
@@ -418,10 +408,10 @@ bool MoveGen::undo_castle(Move move)
             {
                 Square originalRookSq = (pos.side == Color::WHITE) ? Square::H1 : Square::H8;
                 Square castledRookSq = (pos.side == Color::WHITE) ? Square::F1 : Square::F8;
-                pos.pieceBB[static_cast<int>(Piece::ROOK)] |= set_bit(originalRookSq);
-                pos.pieceBB[static_cast<int>(Piece::ROOK)] &= ~set_bit(castledRookSq);
-                pos.pieceBB[static_cast<int>(pos.side)] |= set_bit(originalRookSq);
-                pos.pieceBB[static_cast<int>(pos.side)] &= ~set_bit(castledRookSq);
+
+                pos.remove(Piece::ROOK, pos.side, castledRookSq);
+                pos.add(Piece::ROOK, pos.side, originalRookSq);
+
                 return true;
             }
 
@@ -429,10 +419,10 @@ bool MoveGen::undo_castle(Move move)
             {
                 Square originalRookSq = (pos.side == Color::WHITE) ? Square::A1 : Square::A8;
                 Square castledRookSq = (pos.side == Color::WHITE) ? Square::D1 : Square::D8;
-                pos.pieceBB[static_cast<int>(Piece::ROOK)] |= set_bit(originalRookSq);
-                pos.pieceBB[static_cast<int>(Piece::ROOK)] &= ~set_bit(castledRookSq);
-                pos.pieceBB[static_cast<int>(pos.side)] |= set_bit(originalRookSq);
-                pos.pieceBB[static_cast<int>(pos.side)] &= ~set_bit(castledRookSq);
+
+                pos.remove(Piece::ROOK, pos.side, castledRookSq);
+                pos.add(Piece::ROOK, pos.side, originalRookSq);
+
                 return true;        
             }
         }
@@ -453,16 +443,14 @@ bool MoveGen::undo_capture(Move move, Piece capture)
         const U64 currentBB = set_bit(move.to());
         if (move.flags() == Flag::EN_PASSANT && capture !=Piece::EMPTY)
             {
-                Square enPasSq = pos.get_enPassant();
+                Square enPasSq = pos.enPassant();
                 U64 enPasBB = set_bit(enPasSq);
-                U64 capturedEnPas = (pos.side == Color::WHITE) ? (enPasBB >> 8) : (enPasBB << 8);
-                pos.pieceBB[static_cast<int>(Piece::PAWN)] |= capturedEnPas;
-                pos.pieceBB[static_cast<int>(pos.get_opposite_side())] |= capturedEnPas;
+                Square capturedEnPas = (pos.side == Color::WHITE) ? try_offset(enPasSq, 0, -1).value() : try_offset(enPasSq, 0, 1).value();
+                pos.add(Piece::PAWN, pos.side, capturedEnPas);
+                pos.add(Piece::PAWN, pos.get_opposite_side(), capturedEnPas);
                 return true;
             }
-
-        pos.pieceBB[static_cast<int>(capture)] |= currentBB;
-        pos.pieceBB[static_cast<int>(pos.get_opposite_side())] |= currentBB;
+        pos.add(capture, pos.get_opposite_side(), move.to());
         return true;
     }
     return false;  
@@ -470,30 +458,30 @@ bool MoveGen::undo_capture(Move move, Piece capture)
 }
 bool MoveGen::undo_move() 
 {
-    pos.switch_sides();
-    Move move = pos.moveHistory.back();
-    pos.moveHistory.pop_back();
-    pos.gameState.pop_back();
-    GameState& g = pos.gameState.back();
-    pos.gameState.pop_back();
-
-    switch (move.flags())
+    if (!pos.moveHistory.empty())
     {
-        case Flag::QUIET: case Flag::DOUBLE_PAWN:
-            return undo_quiet(move);
-        case Flag::KING_CASTLE: case Flag::QUEEN_CASTLE:
-            return undo_castle(move);
-        case Flag::EN_PASSANT: case Flag::CAPTURE:
+        pos.switch_sides();
+        Move move = pos.moveHistory.back();
+        pos.moveHistory.pop_back();
+        GameState& g = pos.gameState.back();
+        pos.gameState.pop_back();
+        
+
+        switch (move.flags())
         {
-            return undo_capture(move, g.captured);
-        }
-        default:
-            return false;
+            case Flag::QUIET: case Flag::DOUBLE_PAWN:
+                return undo_quiet(move);
+            case Flag::KING_CASTLE: case Flag::QUEEN_CASTLE:
+                return undo_castle(move);
+            case Flag::EN_PASSANT: case Flag::CAPTURE:
+            {
+                return undo_capture(move, g.captured);
+            }
+            default:
+                return false;
+        }        
     }
-
-
-   
-
+    return false;
 }
 
 
