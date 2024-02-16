@@ -30,6 +30,7 @@ void MoveGen::generate_castles()
     U64 rooksPos = pos.get_bitboard(pos.side, Piece::ROOK);
     Square from = (pos.side == Color::WHITE) ? Square::E1 : Square::E8;
     bool correctKingPos = !is_empty(kingPos & set_bit(from));
+    if (!correctKingPos) return;
 
     Square toKingside = (pos.side == Color::WHITE) ? Square::G1 : Square::G8;
     Square toQueenside = (pos.side == Color::WHITE) ? Square::C1 : Square::C8;
@@ -38,17 +39,19 @@ void MoveGen::generate_castles()
     U64 kingsideMask = (pos.side == Color::WHITE) ? 0x60 : 0x6000000000000000;
     U64 queensideMask = (pos.side == Color::WHITE) ? 0xe : 0xe00000000000000;
 
-    U64 blockers = pos.colorsBB(pos.side) & pos.colorsBB(pos.get_opposite_side());
+    U64 blockers = pos.colorsBB(pos.side) | pos.colorsBB(pos.get_opposite_side());
     U64 attackers = pos.get_attacks(pos.get_opposite_side());
     bool canCastleKingside = is_empty((blockers | attackers) & kingsideMask);
     bool canCastleQueenside = is_empty((blockers | attackers) & queensideMask);
-    if (canCastleKingside)
+    Castling kingsideFlag = (pos.side == Color::WHITE) ? Castling::WhiteKingside : Castling::BlackKingside;
+    Castling queensideFlag = (pos.side == Color::WHITE) ? Castling::WhiteQueenside : Castling::BlackQueenside; 
+    if (canCastleKingside && pos.can_castle(kingsideFlag))
     {
         Move castleK(from, toKingside, Flag::KING_CASTLE);
         moveList.push_back(castleK);
     }
 
-    if (canCastleQueenside)
+    if (canCastleQueenside && pos.can_castle(queensideFlag))
     {
         Move castleQ(from, toQueenside, Flag::QUEEN_CASTLE);
         moveList.push_back(castleQ);
@@ -62,11 +65,16 @@ void MoveGen::generate_double_pawn_push()
     Color side = pos.side;
     U64 pawn_rank = (side==Color::WHITE) ? rank::second : rank::seventh;
     U64 pawn_pos = pos.get_bitboard(side, Piece::PAWN) & pawn_rank;
-    
+    U64 oneSqblockerMask = (side == Color::WHITE) ? rank::third : rank::sixth;
+    U64 twoSqblockerMask = (side == Color::WHITE) ? rank::fourth : rank::fifth;
     U64 bb;
-    U64 relevant_blockers = pos.colorsBB(Color::WHITE) | pos.colorsBB(Color::BLACK);
+    U64 relevant_blockers = (pos.colorsBB(Color::WHITE) | pos.colorsBB(Color::BLACK));
+
+    U64 one_sq_blockers = (side == Color::WHITE) ? (relevant_blockers & oneSqblockerMask) << 8 : (relevant_blockers & oneSqblockerMask) >> 8;
+    U64 two_sq_blockers = (relevant_blockers & twoSqblockerMask);
+    U64 blockers = one_sq_blockers | two_sq_blockers;
     U64 moves = double_pawn_pushBB(pawn_pos, side);
-    moves &= relevant_blockers ^ moves;
+    moves &= blockers ^ moves;
     U64 frombb;
     Square from;
     Square to;
@@ -96,7 +104,7 @@ void MoveGen::generate_pawn_push()
     U64 moves = pawn_pushBB(pawn_pos, side);
     moves &= (relevant_blockers ^ moves);
     U64 frombb;
-    Move new_move(Square::A1, Square::A1, Flag::DOUBLE_PAWN);
+    Move new_move(Square::A1, Square::A1, Flag::QUIET);
 
     while (!is_empty(moves))
     {
@@ -254,6 +262,8 @@ bool MoveGen::make_castle(Move move)
         U64 fromKBB = set_bit(move.from());
         U64 toKBB = set_bit(move.to());
 
+
+
         pos.remove(Piece::KING, pos.side, move.from());
         pos.add(Piece::KING, pos.side, move.to());
         
@@ -356,7 +366,7 @@ bool MoveGen::make_move(const Move input)
     auto n_move = select_move(input);
     if (!n_move.has_value()) {return false;}
     Move move = n_move.value();
-   
+    pos.update_gameState(move);
     Piece piece = pos.get_piece(move.from());
     bool isValid = false;
     switch(move.flags())
@@ -376,9 +386,9 @@ bool MoveGen::make_move(const Move input)
     if (isValid)
     {
         pos.moveHistory.push_back(move);
-        pos.update_gameState(move);
         pos.switch_sides();        
     }
+    else { pos.gameState.pop_back();}
 
     return isValid;
 

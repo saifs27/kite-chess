@@ -17,9 +17,7 @@ int main() {
     Smyslov::MoveGen moves(board);
     moves.generate_all_moves();
 
-    //int n = Smyslov::perft(board, 3);
-    //std::cout << "Perft: " << n << '\n';
-
+    //Smyslov::print_perft(board, 3);
     
 
     while (true) 

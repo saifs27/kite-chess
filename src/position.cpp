@@ -58,7 +58,11 @@ bool Position::empty_square(Square sq) const
     U64 sqbb = set_bit(sq);
     for (auto bb : pieceBB)
     {
-        if (sqbb & bb != 0) return false;
+        if (!is_empty(sqbb & bb)) 
+        {
+            return false;
+        }
+        
     }
     return true;
 }
@@ -68,7 +72,6 @@ void Position::push_move(Move move)
     if (move.has_capture_flag())
     {
         Piece capturedPiece = get_piece(move.to());
-        //captured.push_back(capturedPiece);
     }
 }
 
