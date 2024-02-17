@@ -17,6 +17,7 @@ struct MoveGen
         void generate_en_passant();
         void generate_pawn_captures();
         void generate_moves(Piece piece);
+        void generate_captures(Piece piece);
         std::optional<Move> select_move(const Move move); // choose from moveList
         bool make_enPassant(Move move);
         bool make_castle(Move move);

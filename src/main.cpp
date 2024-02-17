@@ -17,7 +17,7 @@ int main() {
     Smyslov::MoveGen moves(board);
     moves.generate_all_moves();
 
-    //Smyslov::print_perft(board, 3);
+    Smyslov::print_perft(board, 3);
     
 
     while (true) 

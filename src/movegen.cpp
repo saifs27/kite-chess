@@ -167,15 +167,17 @@ void MoveGen::generate_en_passant()
 void MoveGen::generate_moves(Piece piece) 
 {
     Color side = pos.side;
-    Color op_side = (side == Color::WHITE) ? Color::WHITE : Color::BLACK;
+    Color op_side = pos.get_opposite_side();
 
     U64 piece_pos = pos.get_bitboard(side, piece);
     Square from;
+    Square to;
     U64 bb;
-    U64 blockers= pos.colorsBB(side);
+    U64 blockers= pos.colorsBB(side) | pos.colorsBB(op_side);
     U64 op_blockers = pos.colorsBB(op_side);
     U64 moves;
     U64 frombb;
+    U64 capture_moves;
     do
     {
         from = pop_lsb(piece_pos);
@@ -200,16 +202,23 @@ void MoveGen::generate_moves(Piece piece)
             bb = 0x0ULL;
             break;
         }
+        moves = bb & (bb ^ blockers);
         
-        moves = (bb & (bb ^ (blockers))) & (bb & (bb ^ (op_blockers)));
+        capture_moves = bb & op_blockers;
         Move new_move(from, from, Flag::QUIET);
 
         while (!is_empty(moves))
         {
-            Square to = pop_lsb(moves);
-            Flag captureFlag = (!is_empty(set_bit(to) & pos.colorsBB(pos.get_opposite_side()))) ? Flag::CAPTURE : Flag::QUIET;
+            to = pop_lsb(moves);
             new_move.set_to(to);
-            new_move.set_flags(captureFlag);
+            moveList.push_back(new_move);
+        }
+
+        while (!is_empty(capture_moves))
+        {
+            to = pop_lsb(capture_moves);
+            new_move.set_to(to);
+            new_move.set_flags(Flag::CAPTURE);
             moveList.push_back(new_move);
         }
     
