@@ -25,20 +25,24 @@ void Position::start_position()
     set_pieceBB(Piece::KING, 0x1000000000000010ULL);
 }
 
-void Position::update_gameState(Move move)
+
+GameState Position::new_gameState(Move move) const
 {
     Piece piece = get_piece(move.from());
     auto move50 = (piece == Piece::PAWN || move.has_capture_flag()) ? 0 : fiftyMove() + 1;
     auto castlingRights = update_castlingPerm(move);
     auto enPas = move.get_enPassant_square();
-    auto capture = get_piece(move.to());
+    auto capture = (move.flags() != Flag::EN_PASSANT) ? get_piece(move.to()) : Piece::PAWN;
     GameState board(move50, castlingRights, capture, enPas);
-    gameState.push_back(board);
+    return board;
 }
+
+
 
 void Position::add(Piece piece, Color color, Square addSq)
 {
-    if (empty_square(addSq))
+    // always remove before adding to avoid two pieces on same square.
+    if (is_empty_square(addSq))
     {
         pieceBB[static_cast<int>(piece)] |= set_bit(addSq);
         pieceBB[static_cast<int>(color)] |= set_bit(addSq);        
@@ -53,7 +57,7 @@ void Position::remove(Piece piece, Color color, Square removeSq)
 
 
 
-bool Position::empty_square(Square sq) const
+bool Position::is_empty_square(Square sq) const
 {
     U64 sqbb = set_bit(sq);
     for (auto bb : pieceBB)

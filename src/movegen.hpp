@@ -18,15 +18,19 @@ struct MoveGen
         void generate_pawn_captures();
         void generate_moves(Piece piece);
         void generate_captures(Piece piece);
+        void generate_promotions();
+        void generate_promotion_captures();
         std::optional<Move> select_move(const Move move); // choose from moveList
         bool make_enPassant(Move move);
         bool make_castle(Move move);
         bool make_capture(Move move);
         bool make_quiet(Move move);
+        bool make_promotion(Move move);
         bool undo_castle(Move move);
         bool undo_capture(Move move, Piece capture);
         bool undo_enPassant();
         bool undo_quiet(Move move);
+        bool undo_promotion(Move move);
 
     public:
         MoveGen(Position& position) : pos(position) {}

@@ -24,15 +24,16 @@ class Position {
     Square captured_enPassant(Square enPasSq, Color color) const;
     void add(Piece piece, Color color, Square addSq);    
     void remove(Piece piece, Color color, Square removeSq);
-    bool empty_square(Square sq) const;
+    bool is_empty_square(Square sq) const;
     void push_move(Move move);
     const U64& colorsBB(Color color) const {return pieceBB[static_cast<int>(color)];};
     const U64& piecesBB(Piece piece) const {return pieceBB[static_cast<int>(piece)];};
     void set_colorBB(Color color, U64 bb) {pieceBB[static_cast<int>(color)] = bb;};
     void set_pieceBB(Piece piece, U64 bb) {pieceBB[static_cast<int>(piece)] = bb;};
     short update_castlingPerm(const Move move) const;
-    void update_gameState(Move move);
-    
+    GameState new_gameState(Move move) const;
+    bool is_check(Move move);
+    U64 opponent_attacks() const;
     Square enPassant() const {
         if (!gameState.empty()) {return gameState.back().enPassant;}
         return Square::A1;

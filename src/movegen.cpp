@@ -225,19 +225,84 @@ void MoveGen::generate_moves(Piece piece)
     } while (from != Square::EMPTY_SQUARE);
 }
 
+void MoveGen::generate_promotions()
+{
+    U64 mask = (pos.side == Color::WHITE) ? rank::seventh : rank::second;
+    U64 blockerMask = (pos.side == Color::WHITE) ? rank::eighth : rank::first;
+    U64 pawns = pos.get_bitboard(pos.side, Piece::PAWN) & mask;
+    U64 blockers = pos.colorsBB(pos.get_opposite_side()) & blockerMask;
+    Move move(Square::A1, Square::A1, Flag::QUIET);
+    while (!is_empty(pawns))
+    {
+
+        Square from = pop_lsb(pawns);
+        U64 toBB = pawn_push_sq(from, pos.side);
+        Square to = lsb(toBB);
+        bool isBlocked = !is_empty(toBB & blockers);
+        
+        if (!isBlocked)
+        {
+            move.set_from(from);
+            move.set_to(to);
+            move.set_flags(Flag::PROMOTE_QUEEN);
+            moveList.push_back(move);
+            move.set_flags(Flag::PROMOTE_ROOK);
+            moveList.push_back(move);
+            move.set_flags(Flag::PROMOTE_KNIGHT);
+            moveList.push_back(move);
+            move.set_flags(Flag::PROMOTE_BISHOP);
+            moveList.push_back(move);
+        }
+        
+    }
+}
+
+void MoveGen::generate_promotion_captures()
+{
+    U64 mask = (pos.side == Color::WHITE) ? rank::seventh : rank::second;
+    U64 captureMask = (pos.side == Color::WHITE) ? rank::eighth : rank::first;
+    U64 pawns = pos.get_bitboard(pos.side, Piece::PAWN) & mask;
+    U64 capturables = pos.colorsBB(pos.get_opposite_side()) & captureMask;
+    Move move(Square::A1, Square::A1, Flag::QUIET);
+    while (!is_empty(pawns))
+    {
+
+        Square from = pop_lsb(pawns);
+        U64 toBB = pawn_attacks_sq(from, pos.side);
+        toBB &= capturables;
+        
+        while (!is_empty(toBB))
+        {
+            Square to = pop_lsb(toBB);
+            move.set_from(from);
+            move.set_to(to);
+            move.set_flags(Flag::PROMOTE_QUEEN_CAPTURE);
+            moveList.push_back(move);
+            move.set_flags(Flag::PROMOTE_ROOK_CAPTURE);
+            moveList.push_back(move);
+            move.set_flags(Flag::PROMOTE_KNIGHT_CAPTURE);
+            moveList.push_back(move);
+            move.set_flags(Flag::PROMOTE_BISHOP_CAPTURE);
+            moveList.push_back(move);
+        }
+        
+    }    
+}
+
 void MoveGen::generate_all_moves()
 {
     if (!(moveList.empty())) moveList.clear();
+    generate_promotion_captures();
+    generate_promotions();
     generate_pawn_captures();
-
-    generate_double_pawn_push();
-    generate_castles();
-    generate_pawn_push();
     generate_en_passant();
-    generate_moves(Piece::ROOK);
-    generate_moves(Piece::BISHOP);
-    generate_moves(Piece::QUEEN);
+    generate_castles();
+    generate_double_pawn_push();
+    generate_pawn_push();
     generate_moves(Piece::KNIGHT);
+    generate_moves(Piece::BISHOP);
+    generate_moves(Piece::ROOK);
+    generate_moves(Piece::QUEEN);
     generate_king_moves();
 }
 
@@ -375,7 +440,7 @@ bool MoveGen::make_move(const Move input)
     auto n_move = select_move(input);
     if (!n_move.has_value()) {return false;}
     Move move = n_move.value();
-    pos.update_gameState(move);
+    GameState game_state = pos.new_gameState(move);
     Piece piece = pos.get_piece(move.from());
     bool isValid = false;
     switch(move.flags())
@@ -395,18 +460,29 @@ bool MoveGen::make_move(const Move input)
     if (isValid)
     {
         pos.moveHistory.push_back(move);
-        pos.switch_sides();        
+        pos.switch_sides();
+        pos.gameState.push_back(game_state); 
     }
-    else { pos.gameState.pop_back();}
 
     return isValid;
 
 }
 bool MoveGen::undo_quiet(Move move)
 {
-
         Piece piece = pos.get_piece(move.to());
+        if ( move.flags() == Flag::EN_PASSANT)
+        {
+            Square enPas = move.to();
+            auto captured = (pos.side == Color::WHITE) ? try_offset(enPas, 0, -1) : try_offset(enPas, 0, 1);
+            if (captured.has_value())
+            {
+                pos.remove(Piece::PAWN, pos.side, move.to());
+                pos.add(Piece::PAWN, pos.side, move.from());
+                pos.add(Piece::PAWN, pos.get_opposite_side(), captured.value());
+                return true;
+            }
 
+        }
         const U64 prevBB = set_bit(move.from());
         const U64 currentBB = set_bit(move.to());
 
@@ -482,9 +558,9 @@ bool MoveGen::undo_move()
         pos.switch_sides();
         Move move = pos.moveHistory.back();
         pos.moveHistory.pop_back();
+        
         GameState& g = pos.gameState.back();
         pos.gameState.pop_back();
-        
 
         switch (move.flags())
         {
