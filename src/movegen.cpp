@@ -13,7 +13,7 @@ void MoveGen::generate_king_moves()
     Square from = lsb(king_pos);
     U64 bb = king_attacksBB(king_pos);
     U64 blockers = pos.colorsBB(side);
-    U64 attackers = pos.get_attacks(op_side);
+    U64 attackers = pos.get_attacks(op_side, 0x0ULL);
     U64 moves = bb & (bb ^ (blockers | attackers));
     while (!(is_empty(moves)))
     {
@@ -40,7 +40,7 @@ void MoveGen::generate_castles()
     U64 queensideMask = (pos.side == Color::WHITE) ? 0xe : 0xe00000000000000;
 
     U64 blockers = pos.colorsBB(pos.side) | pos.colorsBB(pos.get_opposite_side());
-    U64 attackers = pos.get_attacks(pos.get_opposite_side());
+    U64 attackers = pos.get_attacks(pos.get_opposite_side(), 0x0ULL);
     bool canCastleKingside = is_empty((blockers | attackers) & kingsideMask);
     bool canCastleQueenside = is_empty((blockers | attackers) & queensideMask);
     Castling kingsideFlag = (pos.side == Color::WHITE) ? Castling::WhiteKingside : Castling::BlackKingside;

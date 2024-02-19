@@ -18,8 +18,9 @@ int main() {
     moves.generate_all_moves();
 
     //Smyslov::print_perft(board, 4);
-    
-
+    std::string fen = "rnbqk2r/pppp1ppp/4pn2/8/2PP4/P1P5/4PPPP/R1BQKBNR b KQkq - 10 5";
+    Smyslov::Position pos(fen);
+    pos.print_board();
     while (true) 
     {
         board.print_board();
