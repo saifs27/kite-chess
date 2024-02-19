@@ -119,16 +119,35 @@ Square Position::captured_enPassant(Square enPasSq, Color color) const
 
 
 
-U64 Position::get_attacks(const Color color) const 
+U64 Position::get_attacks(const Color color, U64 blockers) const 
 {
-    const U64 blockers = colorsBB(color);
-    const U64 pawn = pawn_attacksBB(get_bitboard(color, Piece::PAWN), color);
-    const U64 king = king_attacksBB(get_bitboard(color, Piece::KING));
-    const U64 knight = knight_attacksBB(get_bitboard(color, Piece::KNIGHT));
-    //const U64 rook = rook_attacks(get_bitboard(color, ROOK), blockers);
-    const U64 bishop = king_attacksBB(get_bitboard(color, Piece::BISHOP));
-    const U64 queen = knight_attacksBB(get_bitboard(color, Piece::QUEEN));
-    return pawn | king | knight | bishop | queen;
+    const U64 pawnAttacks = pawn_attacksBB(get_bitboard(color, Piece::PAWN), color);
+    const U64 kingAttacks = king_attacksBB(get_bitboard(color, Piece::KING));
+    const U64 knightAttacks = knight_attacksBB(get_bitboard(color, Piece::KNIGHT));
+
+    U64 rooks = get_bitboard(color, Piece::ROOK);
+    U64 bishops = get_bitboard(color, Piece::BISHOP);
+    U64 queens = get_bitboard(color, Piece::QUEEN);
+    U64 rookAttacks = 0x0ULL;
+    U64 bishopAttacks = 0x0ULL;
+    U64 queenAttacks = 0x0ULL;
+    while (!is_empty(rooks))
+    {
+        Square rookSq = pop_lsb(rooks);
+        rookAttacks |= rook_attacks(rookSq, blockers);
+    }
+    while (!is_empty(bishops))
+    {
+        Square bishopSq = pop_lsb(bishops);
+        bishopAttacks |= bishop_attacks(bishopSq, blockers);
+    }
+    while (!is_empty(queens))
+    {
+        Square queenSq = pop_lsb(queens);
+        queenAttacks |= (rook_attacks(queenSq, blockers) | bishop_attacks(queenSq, blockers));
+    }
+
+    return pawnAttacks | kingAttacks | knightAttacks | bishopAttacks | queenAttacks;
 }
 
 
@@ -252,6 +271,237 @@ void Position::print_board() const
 
 
 }
+
+
+bool Position::is_check() const
+{
+    U64 kingPos = get_bitboard(side, Piece::KING);
+    U64 attacks = get_attacks(get_opposite_side(), colorsBB(side));
+    return !is_empty(kingPos & attacks);
+}
+
+
+U64 Position::pinned_pieces() const
+{
+    U64 attacks = get_attacks(get_opposite_side(), 0);
+    U64 my_pieces = colorsBB(side);
+    U64 kingPos = get_bitboard(side, Piece::KING);
+    U64 pinned = 0x0ULL;
+
+    if (is_empty(kingPos & attacks)) return 0x0ULL;
+    
+    while (!is_empty(my_pieces))
+    {
+        Square sq = pop_lsb(my_pieces);
+        attacks = get_attacks(side, set_bit(sq));
+        if (is_empty(kingPos & attacks)) pinned |= set_bit(sq);
+    }
+
+    return pinned;
+}
+
+U64 Position::potential_checks() const
+{
+    Color color = get_opposite_side();
+    U64 all_attacks = 0x0ULL;
+    U64 rooks = get_bitboard(color, Piece::ROOK);
+    U64 bishops = get_bitboard(color, Piece::BISHOP);
+    U64 queens = get_bitboard(color, Piece::QUEEN);
+    U64 rookAttacks = 0x0ULL;
+    U64 bishopAttacks = 0x0ULL;
+    U64 queenAttacks = 0x0ULL;
+    U64 kingPos = get_bitboard(side, Piece::KING);
+    while (!is_empty(rooks))
+    {
+        Square rookSq = pop_lsb(rooks);
+        rookAttacks = rook_attacks(rookSq, 0);
+        if (!is_empty(rookAttacks & kingPos)) all_attacks |= rookAttacks;
+    }
+    while (!is_empty(bishops))
+    {
+        Square bishopSq = pop_lsb(bishops);
+        bishopAttacks = bishop_attacks(bishopSq, 0);
+        if (!is_empty(bishopAttacks & kingPos)) all_attacks |= bishopAttacks;
+    }
+    while (!is_empty(queens))
+    {
+        Square queenSq = pop_lsb(queens);
+        queenAttacks |= (rook_attacks(queenSq, 0) | bishop_attacks(queenSq, 0));
+        if (!is_empty(queenAttacks & kingPos)) all_attacks |= queenAttacks;
+    }
+    return all_attacks;
+}
+
+
+Position::Position(std::string fen)
+{
+    set_colorBB(Color::WHITE, 0x0ULL);
+    set_colorBB(Color::BLACK, 0x0ULL);
+    set_pieceBB(Piece::PAWN, 0x0ULL);
+    set_pieceBB(Piece::KNIGHT, 0x0ULL);
+    set_pieceBB(Piece::BISHOP, 0x0ULL);
+    set_pieceBB(Piece::ROOK, 0x0ULL);
+    set_pieceBB(Piece::QUEEN, 0x0ULL);
+    set_pieceBB(Piece::KING, 0x0ULL);
+
+
+    auto f = split_fen(fen, ' ');
+    if (f.size() != 6)
+    {
+        throw std::invalid_argument("Invalid FEN");
+    }
+
+    auto fen_position = f.at(0);
+    auto fen_side = f.at(1);
+    auto fen_castling = f.at(2);
+    auto fen_en_passant = f.at(3);
+    auto fen_halfmoves = f.at(4);
+    auto fen_fullmoves = f.at(5);
+
+    short castling = 0;
+    Square en_passant_sq = Square::A1;
+    int file = File::A;
+    int rank = Rank::Eighth;
+    int sq = rank * 8 + file;
+    Piece piece;
+    Color color;
+    
+    for (auto i : fen_position)
+    {
+        switch (i)
+        {
+            case 'Q': case 'q':
+                piece = Piece::QUEEN;
+                color = (i == 'Q') ? Color::WHITE : Color::BLACK;
+                break;
+            case 'R': case 'r':
+                piece = Piece::ROOK;
+                color = (i == 'R') ? Color::WHITE : Color::BLACK;
+                break;
+            case 'K': case 'k':
+                piece = Piece::KING;
+                color = (i == 'K') ? Color::WHITE : Color::BLACK;
+                break;
+            case 'N': case 'n':
+                piece = Piece::KNIGHT;
+                color = (i == 'N') ? Color::WHITE : Color::BLACK;
+                break;
+            case 'B': case 'b':
+                piece = Piece::BISHOP;
+                color = (i == 'B') ? Color::WHITE : Color::BLACK;
+                break;
+            case 'P': case 'p':
+                piece = Piece::PAWN;
+                color = (i == 'P') ? Color::WHITE : Color::BLACK;
+                break;
+            case '1': case '2': case '3': case '4': case '5': case '6': case '7': case '8':
+                piece = Piece::EMPTY; color = Color::NONE;
+                file += static_cast<int>(i) - '0';
+                sq = rank * 8 + file;
+                break; 
+            case '/':
+                piece = Piece::EMPTY; color = Color::NONE;
+                rank--;
+                file = 0;
+                break;
+            default:
+                throw std::invalid_argument("Invalid FEN, could not parse position");
+
+        }
+
+        if (piece != Piece::EMPTY && color != Color::NONE)
+        {
+     
+            sq = rank * 8 + file;
+            add(piece, color, static_cast<Square>(sq));
+            file++;
+        }
+    }
+
+
+    for (auto i: fen_castling)
+    {
+        switch (i)
+        {
+            case 'K':
+            castling |= static_cast<short>(Castling::WhiteKingside);
+            break;
+            case 'Q':
+            castling |= static_cast<short>(Castling::WhiteQueenside);
+            break;
+            case 'k':
+            castling |= static_cast<short>(Castling::BlackKingside);
+            break;
+            case 'q':
+            castling |= static_cast<short>(Castling::BlackQueenside);
+            break;
+            default:
+            throw std::invalid_argument("Invalid FEN, could not parse castling flags");
+        }
+    }
+
+    
+    int enPasFile = 10;
+    int enPasRank = 10;
+    bool noEnPas = false;
+    for (auto i : fen_en_passant)
+    {
+        if (noEnPas) break;
+        switch (i)
+        {
+            case '-':
+            noEnPas = true;
+            break;
+            case 'a':
+                enPasFile = 0; break;
+            case 'b':
+                enPasFile = 1; break;
+            case 'c':
+                enPasFile = 2; break;
+            case 'd':
+                enPasFile = 3; break;
+            case 'e':
+                enPasFile = 4; break;
+            case 'f':
+                enPasFile = 5; break;
+            case 'g':
+                enPasFile = 6; break;
+            case 'h':
+                enPasFile = 7; break;
+            case '1': case '2': case '3': case '4':
+            case '5': case '6': case '7': case '8':
+                enPasRank = i - '0' - 1; break;
+            default:
+                throw std::invalid_argument("Invalid FEN, could not parse en passant square");
+        }
+
+        
+    }
+
+    if ((enPasFile >= 8 || enPasRank >= 8) && !noEnPas)
+    {
+        throw std::invalid_argument("Invalid FEN, could not parse en passant square");
+    }
+
+    int halfmoves = 0;
+    for (auto i : fen_halfmoves)
+    {
+        int digit = i - '0';
+        if (digit > 9 || digit < 0)
+        {
+            throw std::invalid_argument("Invalid FEN. Could not parse halfmoves.");
+        }
+        halfmoves *= 10;
+        halfmoves += digit;
+    }
+    
+
+    Square enPasSquare = static_cast<Square>(enPasFile + enPasRank * 8);
+    side = (fen_side == "w") ? Color::WHITE : Color::BLACK;
+    GameState game(halfmoves, castling, Piece::EMPTY, enPasSquare);
+    gameState.push_back(game);
+}
+
 }
 
 

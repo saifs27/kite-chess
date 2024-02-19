@@ -2,6 +2,7 @@
 #include <string>
 #include <optional>
 #include <iostream>
+#include <vector>
 
 namespace Smyslov {
 typedef unsigned long long U64;
@@ -118,6 +119,7 @@ inline Rank get_rank(Square square){
     return static_cast<Rank>(rank);
 }
 
+
 template <typename T>
 inline U64 get_file_mask(T square){
     int file = square % 8;
@@ -210,6 +212,30 @@ inline std::optional<Square> try_offset(Square sq, int file_offset, int rank_off
 
     return static_cast<Square>(new_square);
 }
+
+inline std::vector<std::string> split_fen(std::string str, char split)
+{
+    std::string word = "";
+    std::vector<std::string> result;
+    for (auto i : str)
+    {
+        if (i == split && word != "")
+        {
+            result.push_back(word);
+            word = "";
+            continue;
+        }
+        word += i;
+    }
+
+    if (!word.empty())
+    {
+        result.push_back(word);
+    }
+    return result;
+
+}
+
 }
 
 

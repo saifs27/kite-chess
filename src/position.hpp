@@ -16,7 +16,9 @@ class Position {
     std::vector<GameState> gameState = {};
 
 
-    Position();    
+    Position();
+    Position(std::string fen);
+    Position(const Position&) = delete;
     void start_position(); 
     void read_fen(std::string fen);
     void switch_sides() {side = (side == Color::WHITE) ? Color::BLACK : Color::WHITE;};
@@ -32,8 +34,7 @@ class Position {
     void set_pieceBB(Piece piece, U64 bb) {pieceBB[static_cast<int>(piece)] = bb;};
     short update_castlingPerm(const Move move) const;
     GameState new_gameState(Move move) const;
-    bool is_check(Move move);
-    U64 opponent_attacks() const;
+
     Square enPassant() const {
         if (!gameState.empty()) {return gameState.back().enPassant;}
         return Square::A1;
@@ -55,11 +56,17 @@ class Position {
     U64 get_bitboard(const Color color, const Piece piece) const;
     Piece get_piece(const Square sq) const ;
     Color check_square_color(const Square sq) const; // Check if square has white or black piece. Returns Color::NONE if empty.
-    U64 get_attacks(const Color color) const;    
+    U64 get_attacks(const Color color, U64 blockers) const;    
     void print_board() const;
-
+    
+    U64 opponent_attacks() const;
+    bool is_check() const;
     bool can_castle(const Castling castlingSide) const;
+    U64 pinned_pieces() const;
+    U64 potential_checks() const;
 
 };
+
+Position& fen_to_position(std::string fen);
 
 }
