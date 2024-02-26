@@ -6,6 +6,7 @@
 using namespace Smyslov;
 Position board;
 
+
 TEST_CASE("uci", "[uci]") {
     board.start_position();
     Move move(Square::E2, Square::E4, Flag::DOUBLE_PAWN);
@@ -41,4 +42,10 @@ TEST_CASE("misc board", "[misc board]") {
     REQUIRE (board.check_square_color(Square::D7) == Color::BLACK);
     REQUIRE (board.get_piece(Square::D1) == Piece::QUEEN);
 
+}
+
+TEST_CASE("check mask" "[check mask]")
+{
+    Position pos("8/5rpk/4Q3/P1p1p1p1/4p3/4B3/3R1PP1/q5K1 w - - 3 50");
+    REQUIRE (pos.check_mask(Color::WHITE) == 0x3f);
 }
