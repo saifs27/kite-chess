@@ -58,7 +58,7 @@ namespace Rays
 
     inline U64 getRayAttacks(Square sq, Direction dir)
     {
-        
+        if (sq == Square::EMPTY_SQUARE) return 0x0ULL;
         return rayAttacks[static_cast<int>(sq)][static_cast<int>(dir)];
     }
 
