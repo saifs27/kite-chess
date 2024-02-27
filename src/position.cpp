@@ -37,7 +37,10 @@ GameState Position::new_gameState(Move move) const
     return board;
 }
 
-
+void Position::shift(Piece piece, Color color, Move move)
+{
+      
+}
 
 void Position::add(Piece piece, Color color, Square addSq)
 {
@@ -121,9 +124,9 @@ Square Position::captured_enPassant(Square enPasSq, Color color) const
 
 U64 Position::get_attacks(const Color color, U64 blockers) const 
 {
-    const U64 pawnAttacks = pawn_attacksBB(get_bitboard(color, Piece::PAWN), color);
-    const U64 kingAttacks = king_attacksBB(get_bitboard(color, Piece::KING));
-    const U64 knightAttacks = knight_attacksBB(get_bitboard(color, Piece::KNIGHT));
+    const U64 pawnAttacks = pawn_attacks(get_bitboard(color, Piece::PAWN), color);
+    const U64 kingAttacks = king_attacks(get_bitboard(color, Piece::KING));
+    const U64 knightAttacks = knight_attacks(get_bitboard(color, Piece::KNIGHT));
 
     U64 rooks = get_bitboard(color, Piece::ROOK);
     U64 bishops = get_bitboard(color, Piece::BISHOP);
@@ -147,7 +150,7 @@ U64 Position::get_attacks(const Color color, U64 blockers) const
         queenAttacks |= (rook_attacks(queenSq, blockers) | bishop_attacks(queenSq, blockers));
     }
 
-    return pawnAttacks | kingAttacks | knightAttacks | bishopAttacks | queenAttacks;
+    return pawnAttacks | kingAttacks | knightAttacks | rookAttacks | bishopAttacks | queenAttacks;
 }
 
 
@@ -281,11 +284,35 @@ bool Position::is_check() const
 }
 
 
-U64 Position::pinned_pieces() const
+U64 Position::pin_mask(Color color) const
 {
-    U64 attacks = get_attacks(get_opposite_side(), 0);
-    U64 my_pieces = colorsBB(side);
-    U64 kingPos = get_bitboard(side, Piece::KING);
+    Color op_side = (color == Color::WHITE) ? Color::BLACK : Color::WHITE;
+
+    U64 attacks = get_attacks(color, 0);
+    U64 my_pieces = colorsBB(color);
+    U64 kingPos = get_bitboard(op_side, Piece::KING);
+    Square kingSq = lsb(kingPos);
+
+    U64 op_rooks = get_bitboard(op_side, Piece::ROOK);
+    U64 op_bishops = get_bitboard(op_side, Piece::BISHOP);
+    U64 op_queens = get_bitboard(op_side, Piece::QUEEN);
+
+    U64 north = Rays::getRayAttacks(kingSq, Rays::Direction::NORTH);
+    U64 south = Rays::getRayAttacks(kingSq, Rays::Direction::SOUTH);
+    U64 east = Rays::getRayAttacks(kingSq, Rays::Direction::EAST);
+    U64 west = Rays::getRayAttacks(kingSq, Rays::Direction::WEST);
+    U64 nw = Rays::getRayAttacks(kingSq, Rays::Direction::NW);
+    U64 ne = Rays::getRayAttacks(kingSq, Rays::Direction::NE);
+    U64 sw = Rays::getRayAttacks(kingSq, Rays::Direction::SW);
+    U64 se = Rays::getRayAttacks(kingSq, Rays::Direction::SE);
+
+    if (!is_empty(north & (op_rooks | op_queens)))
+    {
+
+    }
+
+
+
     U64 pinned = 0x0ULL;
 
     if (is_empty(kingPos & attacks)) return 0x0ULL;
@@ -300,41 +327,65 @@ U64 Position::pinned_pieces() const
     return pinned;
 }
 
-U64 Position::potential_checks() const
+U64 Position::check_mask(Color color) const
 {
-    Color color = get_opposite_side();
-    U64 all_attacks = 0x0ULL;
-    U64 rooks = get_bitboard(color, Piece::ROOK);
-    U64 bishops = get_bitboard(color, Piece::BISHOP);
-    U64 queens = get_bitboard(color, Piece::QUEEN);
-    U64 rookAttacks = 0x0ULL;
-    U64 bishopAttacks = 0x0ULL;
-    U64 queenAttacks = 0x0ULL;
-    U64 kingPos = get_bitboard(side, Piece::KING);
-    while (!is_empty(rooks))
+    Color op_side = (color == Color::WHITE) ? Color::BLACK : Color::WHITE;
+    U64 blockers = colorsBB(Color::WHITE) | colorsBB(Color::BLACK);
+    U64 attacks = get_attacks(op_side, blockers);
+    U64 kingPos = get_bitboard(color, Piece::KING);
+
+    if (is_empty(attacks & kingPos)) return 0xffffffffffffffff;
+
+    U64 checkMask = 0;
+    Square kingSq = lsb(kingPos);
+
+    U64 bitboardQR = get_bitboard(op_side, Piece::ROOK) | get_bitboard(op_side, Piece::QUEEN);
+    U64 bitboardQB = get_bitboard(op_side, Piece::BISHOP) | get_bitboard(op_side, Piece::QUEEN);
+
+    U64 relevantPieces = (knight_attacks(kingPos) & get_bitboard(op_side, Piece::KNIGHT))  
+                      | (pawn_attacks(kingPos, color) & get_bitboard(op_side, Piece::PAWN))
+                      | (rook_attacks(kingSq, blockers) & std::move(bitboardQR))
+                      | (bishop_attacks(kingSq, blockers) & std::move(bitboardQB)); 
+
+    checkMask |= relevantPieces;
+
+    while (!is_empty(relevantPieces))
     {
-        Square rookSq = pop_lsb(rooks);
-        rookAttacks = rook_attacks(rookSq, 0);
-        if (!is_empty(rookAttacks & kingPos)) all_attacks |= rookAttacks;
+        Square sq = pop_lsb(relevantPieces);
+        Piece pieceType = get_piece(sq);
+        U64 blockersWithoutKing = blockers & ~(set_bit(sq) | kingPos) ;
+
+        bool bishopIntersect = !is_empty(bishop_attacks(sq, blockersWithoutKing) & set_bit(kingSq));
+        bool rookIntersect = !is_empty(rook_attacks(sq, blockersWithoutKing) & set_bit(kingSq));
+
+        U64 bishopAttacks = (bishopIntersect) ? bishop_attacks(sq, blockers) & bishop_attacks(kingSq, blockers) : 0x0ULL;
+        U64 rookAttacks = (rookIntersect) ? rook_attacks(sq, blockers) & rook_attacks(kingSq, blockers) : 0x0ULL;
+        U64 queenAttacks;
+        switch (pieceType)
+        {
+            case Piece::BISHOP:
+                checkMask |= bishopAttacks;
+                break;
+            case Piece::ROOK:
+                checkMask |= rookAttacks;
+                break;
+            case Piece::QUEEN:
+                queenAttacks = rookAttacks | bishopAttacks;
+                checkMask |= queenAttacks;
+                break;
+            default:
+                break;
+        }
+        
     }
-    while (!is_empty(bishops))
-    {
-        Square bishopSq = pop_lsb(bishops);
-        bishopAttacks = bishop_attacks(bishopSq, 0);
-        if (!is_empty(bishopAttacks & kingPos)) all_attacks |= bishopAttacks;
-    }
-    while (!is_empty(queens))
-    {
-        Square queenSq = pop_lsb(queens);
-        queenAttacks |= (rook_attacks(queenSq, 0) | bishop_attacks(queenSq, 0));
-        if (!is_empty(queenAttacks & kingPos)) all_attacks |= queenAttacks;
-    }
-    return all_attacks;
+    
+    return checkMask;
 }
 
 
 Position::Position(std::string fen)
 {
+
     set_colorBB(Color::WHITE, 0x0ULL);
     set_colorBB(Color::BLACK, 0x0ULL);
     set_pieceBB(Piece::PAWN, 0x0ULL);
@@ -434,6 +485,8 @@ Position::Position(std::string fen)
             break;
             case 'q':
             castling |= static_cast<short>(Castling::BlackQueenside);
+            break;
+            case '-':
             break;
             default:
             throw std::invalid_argument("Invalid FEN, could not parse castling flags");

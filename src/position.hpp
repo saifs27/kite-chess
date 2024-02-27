@@ -4,6 +4,7 @@
 #include "types.hpp"
 #include "moves.hpp"
 #include <string>
+#include "rays.hpp"
 
 
 #include <iostream>
@@ -24,6 +25,7 @@ class Position {
     void switch_sides() {side = (side == Color::WHITE) ? Color::BLACK : Color::WHITE;};
     Color get_opposite_side() const { Color result = (side == Color::WHITE) ? Color::BLACK : Color::WHITE; return result;}
     Square captured_enPassant(Square enPasSq, Color color) const;
+    void shift(Piece, Color color, Move move);
     void add(Piece piece, Color color, Square addSq);    
     void remove(Piece piece, Color color, Square removeSq);
     bool is_empty_square(Square sq) const;
@@ -62,11 +64,10 @@ class Position {
     U64 opponent_attacks() const;
     bool is_check() const;
     bool can_castle(const Castling castlingSide) const;
-    U64 pinned_pieces() const;
-    U64 potential_checks() const;
+    U64 pin_mask(Color color) const;
+    U64 check_mask(Color color) const;
+
 
 };
-
-Position& fen_to_position(std::string fen);
 
 }
