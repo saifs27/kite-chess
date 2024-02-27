@@ -32,7 +32,7 @@ inline std::vector<Output> perft(Position& pos, int depth)
 
     n_moves.generate_all_moves();
     
-    for (auto i : n_moves.moveList)
+    for (auto i : n_moves.move_list())
     {   
         std::string move_string = UCI::move_to_uci(i);
         U64 move_nodes = 0;
