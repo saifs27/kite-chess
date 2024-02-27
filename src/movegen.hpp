@@ -7,9 +7,19 @@ namespace Smyslov {
 struct MoveGen
 {
     public:
+        MoveGen(Position& position) : pos(position) {}
+        void generate_all_moves();
+        std::vector<Move> move_list() {return moveList;};
+        bool make_move(const Move input);
+        bool undo_move();
+        int movelist_size() {return moveList.size();};
+
+    private:
         std::vector<Move> moveList = {};
         Smyslov::Position& pos;
-    private:
+        U64 checkMask = 0xffffffffffffffff;
+        U64 pinnedMask = 0x0ULL;
+
         void generate_king_moves();
         void generate_castles();
         void generate_double_pawn_push();
@@ -32,11 +42,7 @@ struct MoveGen
         bool undo_quiet(Move move);
         bool undo_promotion(Move move);
 
-    public:
-        MoveGen(Position& position) : pos(position) {}
-        void generate_all_moves();
-        bool make_move(const Move input);
-        bool undo_move();
+
 };
 
 

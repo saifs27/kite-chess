@@ -11,10 +11,12 @@ void MoveGen::generate_king_moves()
 
     U64 king_pos = pos.get_bitboard(side,Piece::KING);
     Square from = lsb(king_pos);
-    U64 bb = king_attacksBB(king_pos);
-    U64 blockers = pos.colorsBB(side);
-    U64 attackers = pos.get_attacks(op_side, 0x0ULL);
+    U64 bb = king_attacks(king_pos);
+    U64 blockers = pos.colorsBB(side) | pos.colorsBB(op_side);
+    U64 attackers = pos.get_attacks(op_side, blockers);
     U64 moves = bb & (bb ^ (blockers | attackers));
+    if (checkMask != 0xffffffffffffffff) moves &= ~checkMask; 
+    else moves &= checkMask;
     while (!(is_empty(moves)))
     {
         Square to = pop_lsb(moves);
@@ -73,8 +75,9 @@ void MoveGen::generate_double_pawn_push()
     U64 one_sq_blockers = (side == Color::WHITE) ? (relevant_blockers & oneSqblockerMask) << 8 : (relevant_blockers & oneSqblockerMask) >> 8;
     U64 two_sq_blockers = (relevant_blockers & twoSqblockerMask);
     U64 blockers = one_sq_blockers | two_sq_blockers;
-    U64 moves = double_pawn_pushBB(pawn_pos, side);
+    U64 moves = double_pawn_push(pawn_pos, side);
     moves &= blockers ^ moves;
+    moves &= checkMask;
     U64 frombb;
     Square from;
     Square to;
@@ -101,8 +104,9 @@ void MoveGen::generate_pawn_push()
 
     Square from;
     Square to;
-    U64 moves = pawn_pushBB(pawn_pos, side);
+    U64 moves = pawn_push(pawn_pos, side);
     moves &= (relevant_blockers ^ moves);
+    moves &= checkMask;
     U64 frombb;
     Move new_move(Square::A1, Square::A1, Flag::QUIET);
 
@@ -129,8 +133,9 @@ void MoveGen::generate_pawn_captures()
     while (!is_empty(pawn_pos))
     {
         from = pop_lsb(pawn_pos);
-        attacks = pawn_attacksBB(set_bit(from), pos.side);
+        attacks = pawn_attacks(set_bit(from), pos.side);
         attacks &= opponent_pieces;
+        attacks &= checkMask;
         while (!is_empty(attacks))
         {
             to = pop_lsb(attacks);
@@ -145,6 +150,7 @@ void MoveGen::generate_en_passant()
 {
     U64 mask = (pos.side == Color::WHITE) ? rank::sixth : rank::third;
     U64 enPas = set_bit(pos.enPassant()) & mask;
+    enPas &= checkMask;
     Move m(pos.enPassant(), pos.enPassant(), Flag::EN_PASSANT);
     
     if (!is_empty(enPas))
@@ -153,7 +159,7 @@ void MoveGen::generate_en_passant()
         auto squares = get_squares(pawnsBB);
         for (auto square: squares)
         {
-            U64 pawnAttacks = pawn_attacksBB(set_bit(square), pos.side);
+            U64 pawnAttacks = pawn_attacks(set_bit(square), pos.side);
 
             if (!is_empty(enPas & pawnAttacks))
             {
@@ -187,7 +193,7 @@ void MoveGen::generate_moves(Piece piece)
         switch (piece)
         {
             case Piece::KNIGHT:
-            bb = knight_attacksBB(frombb);
+            bb = knight_attacks(frombb);
             break;
             case Piece::BISHOP:
             bb = bishop_attacks(from, blockers);
@@ -203,6 +209,7 @@ void MoveGen::generate_moves(Piece piece)
             break;
         }
         moves = bb & (bb ^ blockers);
+        moves &= checkMask;
         
         capture_moves = bb & op_blockers;
         Move new_move(from, from, Flag::QUIET);
@@ -230,6 +237,7 @@ void MoveGen::generate_promotions()
     U64 mask = (pos.side == Color::WHITE) ? rank::seventh : rank::second;
     U64 blockerMask = (pos.side == Color::WHITE) ? rank::eighth : rank::first;
     U64 pawns = pos.get_bitboard(pos.side, Piece::PAWN) & mask;
+    pawns &= checkMask;
     U64 blockers = pos.colorsBB(pos.get_opposite_side()) & blockerMask;
     Move move(Square::A1, Square::A1, Flag::QUIET);
     while (!is_empty(pawns))
@@ -262,6 +270,7 @@ void MoveGen::generate_promotion_captures()
     U64 mask = (pos.side == Color::WHITE) ? rank::seventh : rank::second;
     U64 captureMask = (pos.side == Color::WHITE) ? rank::eighth : rank::first;
     U64 pawns = pos.get_bitboard(pos.side, Piece::PAWN) & mask;
+    pawns &= checkMask;
     U64 capturables = pos.colorsBB(pos.get_opposite_side()) & captureMask;
     Move move(Square::A1, Square::A1, Flag::QUIET);
     while (!is_empty(pawns))
@@ -292,6 +301,7 @@ void MoveGen::generate_promotion_captures()
 void MoveGen::generate_all_moves()
 {
     if (!(moveList.empty())) moveList.clear();
+    checkMask = pos.check_mask(pos.side);
     generate_promotion_captures();
     generate_promotions();
     generate_pawn_captures();
@@ -388,7 +398,7 @@ bool MoveGen::make_capture(const Move move)
         pos.remove(captured, pos.get_opposite_side(), move.to());
         pos.add(piece, pos.side, move.to());
 
-        GameState board(0, 15, captured, Square::A1);
+
 
         return true;
     }
@@ -573,6 +583,7 @@ bool MoveGen::undo_move()
                 return undo_capture(move, g.captured);
             }
             default:
+                pos.switch_sides();
                 return false;
         }        
     }
