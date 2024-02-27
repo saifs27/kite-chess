@@ -121,7 +121,7 @@ inline Rank get_rank(Square square){
 
 
 template <typename T>
-inline U64 get_file_mask(T square){
+inline constexpr U64 get_file_mask(T square){
     int file = square % 8;
     switch (file) {
         case 0:
@@ -146,7 +146,7 @@ inline U64 get_file_mask(T square){
 }
 
 template <typename T>
-inline U64 get_rank_mask(const T square){
+inline constexpr U64 get_rank_mask(const T square){
     const int rank = square / 8;
     switch (rank) {
         case 0:
@@ -171,7 +171,7 @@ inline U64 get_rank_mask(const T square){
 }
 
 template <typename T>
-inline U64 mask_west(const T sq)
+inline constexpr U64 mask_west(const T sq)
 {
     U64 mask = 0x0ULL;
 
@@ -188,7 +188,7 @@ inline U64 mask_west(const T sq)
 }
 
 template <typename T>
-inline U64 mask_east(const T sq)
+inline constexpr U64 mask_east(const T sq)
 {
     U64 mask = 0x0ULL;
     const U64 stop = get_file_mask(sq);
