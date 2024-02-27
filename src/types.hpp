@@ -2,6 +2,7 @@
 #include <string>
 #include <optional>
 #include <iostream>
+#include <vector>
 
 namespace Smyslov {
 typedef unsigned long long U64;
@@ -21,22 +22,9 @@ enum class Square {
 enum File {A, B, C, D, E, F, G, H};
 enum Rank {First, Second, Third, Fourth, Fifth, Sixth, Seventh, Eighth};
 
-struct GameState
-{
-    Square enPassant;
-    short castlingPerm;
-    int fiftyMove;
 
-    GameState(Square enPas, short castling, int move50)
-    : enPassant(enPas), castlingPerm(castling), fiftyMove(move50)
-    {}
 
-    void set_enPassant(Square sq){ enPassant = sq;}
 
-    void incrementFiftyMove() {fiftyMove++;}
-    void decrementFiftyMove() {fiftyMove--;}
-
-};
 
 namespace file {
 inline constexpr U64 A = 0x101010101010101ULL;
@@ -60,7 +48,7 @@ inline constexpr U64 seventh = 0xff000000000000;
 inline constexpr U64 eighth  = 0xff00000000000000;
 }
 
-enum class Castling {WhiteKingside = 1, WhiteQueenside = 2, BlackKingside = 4, BlackQueenside = 8};
+enum class Castling {None = 0, WhiteKingside = 1, WhiteQueenside = 2, BlackKingside = 4, BlackQueenside = 8};
 
 /*
 White kingside castling: 0001
@@ -90,99 +78,37 @@ enum class Flag {
     PROMOTE_BISHOP_CAPTURE,
 };
 
-
-
-struct Move
-{
-    private:
-    short moveValue;
-
-    public:
-    Move(Square from, Square to, Flag flag)
-    {
-        int start = static_cast<int>(from);
-        int end = static_cast<int>(to);
-        int flags = static_cast<int>(flag);
-
-        moveValue =  start | (end << 6) | (flags << 12);
-    }
-
-    const Square from() const {
-        short mask = 0b0000000000111111;
-        int sq = mask & moveValue;
-        return static_cast<Square>(sq);
-    }
-    const Square to() const {
-        short mask = 0b0000111111000000;
-        int sq = (mask & moveValue) >> 6;
-        return static_cast<Square>(sq);
-    }
-
-    const Flag flags() const {
-        short mask  = 0b1111000000000000;
-        return static_cast<Flag>((moveValue & mask) >> 12);
-    }
-
-    void set_from(Square from) {
-        short mask  = 0b0000000000111111;
-        moveValue &= ~mask;
-        moveValue |= static_cast<int>(from);
-    }
-
-    void set_to(Square to) {
-        short mask  = 0b0000111111000000;
-        moveValue &= ~mask;
-        moveValue |= (static_cast<int>(to) << 6);
-    }
-
-    void set_flags(Flag flags) {
-        short mask  = 0b1111000000000000;
-        moveValue &= ~mask;
-        moveValue |= (static_cast<int>(flags) << 12);
-    }
-
-    bool is_capture()
-    {
-        Flag flag = flags();
-        switch (flag)
-        {
-            case Flag::CAPTURE:
-            return true;
-            case Flag::EN_PASSANT:
-            return true;
-            case Flag::PROMOTE_ROOK_CAPTURE: case Flag::PROMOTE_QUEEN_CAPTURE:
-            return true; 
-            case Flag::PROMOTE_BISHOP_CAPTURE: case Flag::PROMOTE_KNIGHT_CAPTURE:
-            return true; 
-            default:
-            return false;
-        }
-    }
-    Piece get_promotion_piece()
-    {
-        Flag flag = flags();
-        switch (flag)
-        {
-            case Flag::PROMOTE_BISHOP: case Flag::PROMOTE_BISHOP_CAPTURE:
-            return Piece::BISHOP; 
-            case Flag::PROMOTE_KNIGHT: case Flag::PROMOTE_KNIGHT_CAPTURE:
-            return Piece::KNIGHT; 
-            case Flag::PROMOTE_QUEEN: case Flag::PROMOTE_QUEEN_CAPTURE:
-            return Piece::QUEEN; 
-            case Flag::PROMOTE_ROOK: case Flag::PROMOTE_ROOK_CAPTURE:
-            return Piece::ROOK;
-            default:
-            return Piece::EMPTY;
-        }
-    }
-
-};
-
-
-
 inline U64 set_bit(Square sq) {
     return 0x1ULL << static_cast<int>(sq);
 }
+
+inline bool is_empty(U64 bb)  {
+    return bb == 0x0ULL;
+}
+
+inline bool has(U64 bb, Square square) {
+    U64 check_sq = bb & set_bit(square);
+    return !(is_empty(check_sq));
+}
+
+
+struct GameState
+{
+    int fiftyMove;
+    short castlingPerm;
+    Piece captured;
+    Square enPassant;
+
+    GameState(int move50, short castling, Piece capture, Square enPas)
+    : enPassant(enPas), captured(capture), castlingPerm(castling), fiftyMove(move50)
+    {}
+
+    void set_enPassant(Square sq){ enPassant = sq;}
+
+    void incrementFiftyMove() {fiftyMove++;}
+    void decrementFiftyMove() {fiftyMove--;}
+
+};
 
 inline File get_file(Square square){
     int file = static_cast<int>(square) % 8;
@@ -193,8 +119,9 @@ inline Rank get_rank(Square square){
     return static_cast<Rank>(rank);
 }
 
+
 template <typename T>
-inline U64 get_file_mask(T square){
+inline constexpr U64 get_file_mask(T square){
     int file = square % 8;
     switch (file) {
         case 0:
@@ -219,7 +146,7 @@ inline U64 get_file_mask(T square){
 }
 
 template <typename T>
-inline U64 get_rank_mask(const T square){
+inline constexpr U64 get_rank_mask(const T square){
     const int rank = square / 8;
     switch (rank) {
         case 0:
@@ -244,7 +171,7 @@ inline U64 get_rank_mask(const T square){
 }
 
 template <typename T>
-inline U64 mask_west(const T sq)
+inline constexpr U64 mask_west(const T sq)
 {
     U64 mask = 0x0ULL;
 
@@ -261,7 +188,7 @@ inline U64 mask_west(const T sq)
 }
 
 template <typename T>
-inline U64 mask_east(const T sq)
+inline constexpr U64 mask_east(const T sq)
 {
     U64 mask = 0x0ULL;
     const U64 stop = get_file_mask(sq);
@@ -285,6 +212,30 @@ inline std::optional<Square> try_offset(Square sq, int file_offset, int rank_off
 
     return static_cast<Square>(new_square);
 }
+
+inline std::vector<std::string> split_fen(std::string str, char split)
+{
+    std::string word = "";
+    std::vector<std::string> result;
+    for (auto i : str)
+    {
+        if (i == split && word != "")
+        {
+            result.push_back(word);
+            word = "";
+            continue;
+        }
+        word += i;
+    }
+
+    if (!word.empty())
+    {
+        result.push_back(word);
+    }
+    return result;
+
+}
+
 }
 
 

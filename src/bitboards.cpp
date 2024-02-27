@@ -1,15 +1,6 @@
 #include "bitboards.hpp"
 namespace Smyslov {
 
-bool is_empty(U64 bb)  {
-    return bb == 0x0ULL;
-}
-
-bool has(U64 bb, Square square) {
-    U64 check_sq = bb & set_bit(square);
-    return !(is_empty(check_sq));
-}
-
 
 int population_count(const U64 bitboard) {
     int count = 0;
@@ -94,7 +85,7 @@ void print_bitboard(const U64 bitboard) {
     std::cout << '\n';
 }
 
-U64 king_attacksBB(const U64 bb) {
+U64 king_attacks(const U64 bb) {
     U64 kingPosition = bb;
     const U64 left = kingPosition >> 1;
     const U64 right = kingPosition << 1;
@@ -110,7 +101,7 @@ U64 king_attacksBB(const U64 bb) {
     return attacks;
 }
 
-U64 knight_attacksBB(const U64 bb) {
+U64 knight_attacks(const U64 bb) {
     const U64 notAB = ~file::A & ~file::B;
     const U64 notGH = ~file::G & ~file::H;
     const U64 notA = ~file::A;
@@ -129,7 +120,7 @@ U64 knight_attacksBB(const U64 bb) {
     return a | b | c | d | e | f | g | h ;
 }
 
-U64 pawn_attacksBB(const U64 bb, const Color color) {
+U64 pawn_attacks(const U64 bb, const Color color) {
     const U64 notA = ~file::A; 
     const U64 notH = ~file::H;
 
@@ -142,12 +133,12 @@ U64 pawn_attacksBB(const U64 bb, const Color color) {
 }
 
 
-U64 pawn_pushBB(const U64 bb, const Color color)
+U64 pawn_push(const U64 bb, const Color color)
 {
     U64 push = (color == Color::WHITE) ? (bb << 8) : (bb >> 8);
     return push;
 }
-U64 double_pawn_pushBB(const U64 bb, Color color)
+U64 double_pawn_push(const U64 bb, Color color)
 {
     U64 mask = (color == Color::WHITE) ? 0xff00ULL : 0xff000000000000ULL;
     U64 push = (color == Color::WHITE) ? ((mask & bb) << 16) : ((mask & bb) >> 16);
@@ -165,24 +156,24 @@ U64 rook_attacks(Square sq, const U64 blockers) {
     attacks |= Rays::getRayAttacks(sq, Rays::Direction::NORTH);
 
     if (Rays::getRayAttacks(sq, Rays::Direction::NORTH)) {
-        int blockerIndex = static_cast<int>(lsb(Rays::getRayAttacks(sq, Rays::Direction::NORTH) & blockers));
-        attacks &= ~Rays::rayAttacks[blockerIndex][Rays::Direction::NORTH];
+        Square blockerIndex = (lsb(Rays::getRayAttacks(sq, Rays::Direction::NORTH) & blockers));
+        attacks &= ~Rays::getRayAttacks(blockerIndex, Rays::Direction::NORTH);
     }
     attacks |= Rays::getRayAttacks(sq, Rays::Direction::SOUTH);
 
     if (Rays::getRayAttacks(sq, Rays::Direction::SOUTH)) {
-        int blockerIndex = static_cast<int>(msb(Rays::getRayAttacks(sq, Rays::Direction::SOUTH) & blockers));
-        attacks &= ~Rays::rayAttacks[blockerIndex][Rays::Direction::SOUTH];
+        Square blockerIndex = (msb(Rays::getRayAttacks(sq, Rays::Direction::SOUTH) & blockers));
+        attacks &= ~Rays::getRayAttacks(blockerIndex, Rays::Direction::SOUTH);
     }
     attacks |= Rays::getRayAttacks(sq, Rays::EAST);
     if (Rays::getRayAttacks(sq, Rays::EAST)) {
-        int blockerIndex = static_cast<int>(lsb(Rays::getRayAttacks(sq, Rays::EAST) & blockers));
-        attacks &= ~Rays::rayAttacks[blockerIndex][Rays::EAST];
+        Square blockerIndex = (lsb(Rays::getRayAttacks(sq, Rays::EAST) & blockers));
+        attacks &= ~Rays::getRayAttacks(blockerIndex,Rays::EAST);
     }
     attacks |= Rays::getRayAttacks(sq, Rays::WEST);
     if (Rays::getRayAttacks(sq, Rays::WEST)) {
-        int blockerIndex = static_cast<int>(msb(Rays::getRayAttacks(sq, Rays::WEST) & blockers));
-        attacks &= ~Rays::rayAttacks[blockerIndex][Rays::WEST];
+        Square blockerIndex = (msb(Rays::getRayAttacks(sq, Rays::WEST) & blockers));
+        attacks &= ~Rays::getRayAttacks(blockerIndex, Rays::WEST);
     }
     return attacks;
     
@@ -194,24 +185,24 @@ U64 bishop_attacks(Square sq, const U64 blockers) {
     attacks |= Rays::getRayAttacks(sq, Rays::NE);
 
     if (Rays::getRayAttacks(sq, Rays::NE)) {
-        int blockerIndex = static_cast<int>(lsb(Rays::getRayAttacks(sq, Rays::NE) & blockers));
-        attacks &= ~Rays::rayAttacks[blockerIndex][Rays::NE];
+        Square blockerIndex = (lsb(Rays::getRayAttacks(sq, Rays::NE) & blockers));
+        attacks &= ~Rays::getRayAttacks(blockerIndex, Rays::NE);    
     }
     attacks |= Rays::getRayAttacks(sq, Rays::SE);
 
     if (Rays::getRayAttacks(sq, Rays::SE)) {
-        int blockerIndex = static_cast<int>(msb(Rays::getRayAttacks(sq, Rays::SE) & blockers));
-        attacks &= ~Rays::rayAttacks[blockerIndex][Rays::SE];
+        Square blockerIndex = (msb(Rays::getRayAttacks(sq, Rays::SE) & blockers));
+        attacks &= ~Rays::getRayAttacks(blockerIndex, Rays::SE);
     }
     attacks |= Rays::getRayAttacks(sq,Rays::NW);
     if (Rays::getRayAttacks(sq, Rays::NW)) {
-        int blockerIndex = static_cast<int>(lsb(Rays::getRayAttacks(sq, Rays::NW) & blockers));
-        attacks &= ~Rays::rayAttacks[blockerIndex][Rays::NW];
+        Square blockerIndex = (lsb(Rays::getRayAttacks(sq, Rays::NW) & blockers));
+        attacks &= ~Rays::getRayAttacks(blockerIndex, Rays::NW);
     }
     attacks |= Rays::getRayAttacks(sq, Rays::SW);
     if (Rays::getRayAttacks(sq, Rays::SW)) {
-        int blockerIndex = static_cast<int>(msb(Rays::getRayAttacks(sq, Rays::SW) & blockers));
-        attacks &= ~Rays::rayAttacks[blockerIndex][Rays::SW];
+        Square blockerIndex = (msb(Rays::getRayAttacks(sq, Rays::SW) & blockers));
+        attacks &= ~Rays::getRayAttacks(blockerIndex, Rays::SW);
     }
     return attacks;
 }

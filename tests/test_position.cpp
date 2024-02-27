@@ -6,6 +6,7 @@
 using namespace Smyslov;
 Position board;
 
+
 TEST_CASE("uci", "[uci]") {
     board.start_position();
     Move move(Square::E2, Square::E4, Flag::DOUBLE_PAWN);
@@ -16,11 +17,6 @@ TEST_CASE("uci", "[uci]") {
 
 }
 
-TEST_CASE("legal" "[legal]") {
-    board.start_position();
-    Move m(Square::G1, Square::G3, Flag::DOUBLE_PAWN);
-    REQUIRE(board.is_pseudo_legal(m) == false);
-}
 
 TEST_CASE("make move", "[move]") {
     board.start_position();
@@ -38,4 +34,20 @@ TEST_CASE("population count", "[popcount]") {
 TEST_CASE("bitboards", "[bitboard]") {
     board.start_position();
     REQUIRE (board.get_bitboard(Color::WHITE, Piece::KING) == 0x10ULL);
+}
+
+TEST_CASE("misc board", "[misc board]") {
+    board.start_position();
+    REQUIRE (board.check_square_color(Square::A1) == Color::WHITE);
+    REQUIRE (board.check_square_color(Square::D7) == Color::BLACK);
+    REQUIRE (board.get_piece(Square::D1) == Piece::QUEEN);
+
+}
+
+TEST_CASE("check mask" "[check mask]")
+{
+    Position pos("8/5rpk/4Q3/P1p1p1p1/4p3/4B3/3R1PP1/q5K1 w - - 3 50");
+    Position queenCheck("Q3k3/8/8/8/8/8/8/6K1 w - - 0 1");
+    REQUIRE (pos.check_mask(Color::WHITE) == 0x3f);
+    REQUIRE (queenCheck.check_mask(Color::BLACK) == 0xf00000000000000);
 }
