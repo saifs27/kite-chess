@@ -10,7 +10,7 @@ A UCI chess engine which analyzes and attempts to output the best moves. (Still 
 
 ## Build Instructions
 
-Smyslov Chess requires a C++ 17 compiler and CMake 3.22. Run these commands to build:
+Smyslov requires a C++ 17 compiler and CMake 3.22. Run these commands to build:
 
 ```
 mkdir build
