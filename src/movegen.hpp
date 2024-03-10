@@ -31,6 +31,7 @@ struct MoveGen
         void generate_promotions();
         void generate_promotion_captures();
         std::optional<Move> select_move(const Move move); // choose from moveList
+        bool is_check();
         bool make_enPassant(Move move);
         bool make_castle(Move move);
         bool make_capture(Move move);

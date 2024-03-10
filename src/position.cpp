@@ -289,6 +289,7 @@ U64 Position::pin_mask(Color color) const
     Color op_side = (color == Color::WHITE) ? Color::BLACK : Color::WHITE;
 
     U64 attacks = get_attacks(color, 0);
+    U64 op_blockers = colorsBB(op_side);
     U64 my_pieces = colorsBB(color);
     U64 kingPos = get_bitboard(op_side, Piece::KING);
     Square kingSq = lsb(kingPos);
@@ -296,6 +297,14 @@ U64 Position::pin_mask(Color color) const
     U64 op_rooks = get_bitboard(op_side, Piece::ROOK);
     U64 op_bishops = get_bitboard(op_side, Piece::BISHOP);
     U64 op_queens = get_bitboard(op_side, Piece::QUEEN);
+
+    U64 bitboardQR = get_bitboard(op_side, Piece::ROOK) | get_bitboard(op_side, Piece::QUEEN);
+    U64 bitboardQB = get_bitboard(op_side, Piece::BISHOP) | get_bitboard(op_side, Piece::QUEEN);
+
+    U64 relevantPieces = (rook_attacks(kingSq, op_blockers) & std::move(bitboardQR))
+                      | (bishop_attacks(kingSq, op_blockers) & std::move(bitboardQB)); 
+
+
 
     U64 north = Rays::getRayAttacks(kingSq, Rays::Direction::NORTH);
     U64 south = Rays::getRayAttacks(kingSq, Rays::Direction::SOUTH);
@@ -306,10 +315,38 @@ U64 Position::pin_mask(Color color) const
     U64 sw = Rays::getRayAttacks(kingSq, Rays::Direction::SW);
     U64 se = Rays::getRayAttacks(kingSq, Rays::Direction::SE);
 
-    if (!is_empty(north & (op_rooks | op_queens)))
+    std::vector<U64> hv = {north, south, east, west};
+    std::vector<U64> diagonals = {nw, ne, sw, se};
+    Square attackingPiece;
+    U64 hv_mask = 0;
+    while (!is_empty(relevantPieces))
     {
+        pop_lsb(relevantPieces);
+
+        for (auto line : hv)
+        {
+            bool isRelevantLine = !is_empty(line & relevantPieces);
+            U64 pinned = line & my_pieces;
+            Square pinnedSq = pop_lsb(pinned);
+            bool isPinned = is_empty(pinned);
+            if (isRelevantLine && isPinned)
+            {
+                hv_mask |= (line);
+            }
+
+            
+        }
+
+
+
+
+
+
+
 
     }
+
+
 
 
 
@@ -326,6 +363,7 @@ U64 Position::pin_mask(Color color) const
 
     return pinned;
 }
+
 
 U64 Position::check_mask(Color color) const
 {

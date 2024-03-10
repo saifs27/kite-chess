@@ -16,7 +16,7 @@ int main() {
     Smyslov::MoveGen moves(board);
     moves.generate_all_moves();
 
-    Smyslov::Position perft_ex("rnbq1k1r/pp1Pbppp/2p5/8/2B5/8/PPP1NnPP/RNBQK2R w KQ - 1 8");
+    //Smyslov::Position perft_ex("rnbq1k1r/pp1Pbppp/2p5/8/2B5/8/PPP1NnPP/RNBQK2R w KQ - 1 8");
     Smyslov::print_perft(board, 4);
     //Smyslov::print_perft(perft_ex, 1);
     /*
@@ -36,9 +36,11 @@ int main() {
         std::string side = (board.side == Smyslov::Color::WHITE) ? "White to move" : "Black to move";
         std::cout << "fifty move: " << board.fiftyMove() << '\n';
         std::cout << side << '\n';
-        std::cout<<"Move: ";
+
         moves.generate_all_moves();
         std::cout << "Legal moves: " << moves.movelist_size() << '\n';
+        std::cout<<"Move: ";
+
         std::string my_move;
         std::cin >> my_move;
         if (my_move.find("undo") == std::string::npos)
