@@ -41,7 +41,7 @@ struct MoveGen
         bool undo_capture(Move move, Piece capture);
         bool undo_enPassant();
         bool undo_quiet(Move move);
-        bool undo_promotion(Move move);
+        bool undo_promotion(Move move, Piece captured);
 
 
 };

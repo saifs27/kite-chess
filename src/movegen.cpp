@@ -463,6 +463,38 @@ bool MoveGen::make_enPassant(Move move)
     return false;
 }
 
+
+bool MoveGen::make_promotion(Move move)
+{
+    Piece promotedPiece;
+    Piece captured = pos.get_piece(move.to());
+    switch (move.flags())
+    {
+        case Flag::PROMOTE_QUEEN: case Flag::PROMOTE_QUEEN_CAPTURE:
+            promotedPiece = Piece::QUEEN;
+            break;
+        case Flag::PROMOTE_ROOK: case Flag::PROMOTE_ROOK_CAPTURE:
+            promotedPiece = Piece::ROOK;
+            break;
+        case Flag::PROMOTE_KNIGHT: case Flag::PROMOTE_KNIGHT_CAPTURE:
+            promotedPiece = Piece::KNIGHT;
+            break;
+        case Flag::PROMOTE_BISHOP: case Flag::PROMOTE_BISHOP_CAPTURE:
+            promotedPiece = Piece::BISHOP;
+            break;
+        default:
+            return false;
+    }
+
+    if (captured != Piece::EMPTY) 
+    {
+        pos.remove(captured, pos.get_opposite_side(), move.to());
+    }
+    pos.remove(Piece::PAWN, pos.side, move.from());
+    pos.add(promotedPiece, pos.side, move.to());
+    return true;
+}
+
 bool MoveGen::make_move(const Move input) 
 {
     
@@ -475,23 +507,25 @@ bool MoveGen::make_move(const Move input)
     switch(move.flags())
     {
         case Flag::QUIET: case Flag::DOUBLE_PAWN:
-        isValid = make_quiet(move); 
-        if (is_check()) {undo_quiet(move); isValid = false;}
-        break;
+            isValid = make_quiet(move); 
+            if (is_check()) {undo_quiet(move); isValid = false;}
+            break;
         case Flag::KING_CASTLE: case Flag::QUEEN_CASTLE:
-        isValid = make_castle(move);
-        if (is_check()) {undo_castle(move); isValid = false;}
-        break;
+            isValid = make_castle(move);
+            if (is_check()) {undo_castle(move); isValid = false;}
+            break;
         case Flag::CAPTURE:
-        isValid =  make_capture(move);
-        if (is_check()) {undo_capture(move, game_state.captured); isValid = false;}
-        break;
+            isValid =  make_capture(move);
+            if (is_check()) {undo_capture(move, game_state.captured); isValid = false;}
+            break;
         case Flag::EN_PASSANT:
-        isValid = make_enPassant(move); 
-        if (is_check()) {undo_capture(move, Piece::PAWN); isValid = false;}
-        break;
+            isValid = make_enPassant(move); 
+            if (is_check()) {undo_capture(move, Piece::PAWN); isValid = false;}
+            break;
         default:
-        isValid = false; break;
+            isValid = make_promotion(move);
+            if (is_check()) {undo_promotion(move, game_state.captured); isValid = false;}
+            break;
     }
     
     if (isValid)
@@ -507,19 +541,6 @@ bool MoveGen::make_move(const Move input)
 bool MoveGen::undo_quiet(Move move)
 {
         Piece piece = pos.get_piece(move.to());
-        if ( move.flags() == Flag::EN_PASSANT)
-        {
-            Square enPas = move.to();
-            auto captured = (pos.side == Color::WHITE) ? try_offset(enPas, 0, -1) : try_offset(enPas, 0, 1);
-            if (captured.has_value())
-            {
-                pos.remove(Piece::PAWN, pos.side, move.to());
-                pos.add(Piece::PAWN, pos.side, move.from());
-                pos.add(Piece::PAWN, pos.get_opposite_side(), captured.value());
-                return true;
-            }
-
-        }
         const U64 prevBB = set_bit(move.from());
         const U64 currentBB = set_bit(move.to());
 
@@ -575,9 +596,9 @@ bool MoveGen::undo_capture(Move move, Piece capture)
         const U64 currentBB = set_bit(move.to());
         if (move.flags() == Flag::EN_PASSANT && capture !=Piece::EMPTY)
             {
-                Square enPasSq = pos.enPassant();
-                U64 enPasBB = set_bit(enPasSq);
-                Square capturedEnPas = (pos.side == Color::WHITE) ? try_offset(enPasSq, 0, -1).value() : try_offset(enPasSq, 0, 1).value();
+                const Square enPasSq = pos.enPassant();
+                const U64 enPasBB = set_bit(enPasSq);
+                const Square capturedEnPas = (pos.side == Color::WHITE) ? try_offset(enPasSq, 0, -1).value() : try_offset(enPasSq, 0, 1).value();
                 pos.add(Piece::PAWN, pos.side, capturedEnPas);
                 pos.add(Piece::PAWN, pos.get_opposite_side(), capturedEnPas);
                 return true;
@@ -588,6 +609,24 @@ bool MoveGen::undo_capture(Move move, Piece capture)
     return false;  
     
 }
+
+bool MoveGen::undo_promotion(Move move, Piece captured)
+{
+    Piece piece = pos.get_piece(move.to());
+    const U64 prevBB = set_bit(move.from());
+    const U64 currentBB = set_bit(move.to());
+
+    pos.remove(piece, pos.side, move.to());
+    pos.add(piece, pos.side, move.from());
+
+    if (captured != Piece::EMPTY)
+    {
+        pos.add(captured, pos.get_opposite_side(), move.to());
+    }
+    
+    return true;
+}
+
 bool MoveGen::undo_move() 
 {
     if (!pos.moveHistory.empty())
@@ -610,8 +649,7 @@ bool MoveGen::undo_move()
                 return undo_capture(move, g.captured);
             }
             default:
-                pos.switch_sides();
-                return false;
+                return undo_promotion(move, g.captured);
         }        
     }
     return false;

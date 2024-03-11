@@ -11,13 +11,12 @@
 
 int main() {
 
-    Smyslov::Position board;
-    board.start_position(); 
+    Smyslov::Position board("r1bqkbnr/pP3ppp/2n5/4p3/8/8/PPPP1PPP/RNBQKBNR w KQkq - 1 5");
     Smyslov::MoveGen moves(board);
     moves.generate_all_moves();
 
     //Smyslov::Position perft_ex("rnbq1k1r/pp1Pbppp/2p5/8/2B5/8/PPP1NnPP/RNBQK2R w KQ - 1 8");
-    Smyslov::print_perft(board, 4);
+    //Smyslov::print_perft(board, 4);
     //Smyslov::print_perft(perft_ex, 1);
     /*
     
