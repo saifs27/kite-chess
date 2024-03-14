@@ -84,7 +84,11 @@ void Position::push_move(Move move)
 
 U64 Position::get_bitboard(const Color color, const Piece piece) const 
 {
-    return pieceBB[static_cast<int>(color)] & pieceBB[static_cast<int>(piece)];
+    if (color != Color::WHITE && color != Color::BLACK)
+    {
+        throw std::invalid_argument(std::to_string(static_cast<int>(piece)));
+    }
+    return pieceBB.at(static_cast<int>(color)) & pieceBB.at(static_cast<int>(piece));
 }
 
 Piece Position::get_piece(const Square sq) const {
@@ -163,7 +167,7 @@ bool Position::can_castle(const Castling castlingSide) const
 
 
 short Position::update_castlingPerm(const Move move) const {
-    const short colorMask = (side == Color::WHITE) ? 0b0011 : 0b1100;
+    const short colorMask = (side() == Color::WHITE) ? 0b0011 : 0b1100;
 
     
     Piece piece = get_piece(move.from());
@@ -198,10 +202,10 @@ short Position::update_castlingPerm(const Move move) const {
         }
         return currentCastlingPerms & ~castling_side;
     }
-    Square queensideRook = (side == Color::WHITE) ? (Square::A8) : (Square::A1);
-    Castling queensideMask = (side == Color::WHITE) ? Castling::BlackQueenside : Castling::WhiteQueenside;
-    Square kingsideRook = (side == Color::WHITE) ? (Square::H8) : (Square::H1);
-    Castling kingsideMask = (side == Color::WHITE) ? Castling::BlackKingside : Castling::WhiteQueenside;
+    Square queensideRook = (side() == Color::WHITE) ? (Square::A8) : (Square::A1);
+    Castling queensideMask = (side() == Color::WHITE) ? Castling::BlackQueenside : Castling::WhiteQueenside;
+    Square kingsideRook = (side() == Color::WHITE) ? (Square::H8) : (Square::H1);
+    Castling kingsideMask = (side() == Color::WHITE) ? Castling::BlackKingside : Castling::WhiteQueenside;
     if (move.to() == queensideRook && get_piece(move.to()) == Piece::ROOK)
     {
         currentCastlingPerms &= ~static_cast<short>(queensideMask);
@@ -225,7 +229,7 @@ void Position::print_board() const
         check_sq = 0x1ULL << i;
         std::string symbol = " *";
         printed_board[i] = symbol;
-        color = Color::NONE;
+        color = Color::WHITE;
         if ((colorsBB(Color::WHITE) & check_sq) != 0) {color = Color::WHITE;}
         else if ((colorsBB(Color::BLACK) & check_sq) != 0) {color = Color::BLACK;}
         else {continue;}
@@ -278,8 +282,8 @@ void Position::print_board() const
 
 bool Position::is_check() const
 {
-    U64 kingPos = get_bitboard(side, Piece::KING);
-    U64 attacks = get_attacks(get_opposite_side(), colorsBB(side));
+    U64 kingPos = get_bitboard(side(), Piece::KING);
+    U64 attacks = get_attacks(get_opposite_side(), colorsBB(side()));
     return !is_empty(kingPos & attacks);
 }
 
@@ -357,13 +361,33 @@ U64 Position::pin_mask(Color color) const
     while (!is_empty(my_pieces))
     {
         Square sq = pop_lsb(my_pieces);
-        attacks = get_attacks(side, set_bit(sq));
+        attacks = get_attacks(side(), set_bit(sq));
         if (is_empty(kingPos & attacks)) pinned |= set_bit(sq);
     }
 
     return pinned;
 }
 
+U64 Position::pieces_attacking_king(Color color) const
+{
+    Color op_side = (color == Color::WHITE) ? Color::BLACK : Color::WHITE;
+    U64 blockers = colorsBB(Color::WHITE) | colorsBB(Color::BLACK);
+    U64 attacks = get_attacks(op_side, blockers);
+    U64 kingPos = get_bitboard(color, Piece::KING);
+
+    if (is_empty(attacks & kingPos)) return 0ULL;
+    Square kingSq = lsb(kingPos);
+
+    U64 bitboardQR = get_bitboard(op_side, Piece::ROOK) | get_bitboard(op_side, Piece::QUEEN);
+    U64 bitboardQB = get_bitboard(op_side, Piece::BISHOP) | get_bitboard(op_side, Piece::QUEEN);
+
+    U64 attackingPieces = (knight_attacks(kingPos) & get_bitboard(op_side, Piece::KNIGHT))  
+                      | (pawn_attacks(kingPos, color) & get_bitboard(op_side, Piece::PAWN))
+                      | (rook_attacks(kingSq, blockers) & std::move(bitboardQR))
+                      | (bishop_attacks(kingSq, blockers) & std::move(bitboardQB));
+                      
+    return attackingPieces;    
+}
 
 U64 Position::check_mask(Color color) const
 {
@@ -421,9 +445,10 @@ U64 Position::check_mask(Color color) const
 }
 
 
+
 Position::Position(std::string fen)
 {
-
+    _score.set_score(Result::EMPTY);
     set_colorBB(Color::WHITE, 0x0ULL);
     set_colorBB(Color::BLACK, 0x0ULL);
     set_pieceBB(Piece::PAWN, 0x0ULL);
@@ -588,7 +613,8 @@ Position::Position(std::string fen)
     
 
     Square enPasSquare = static_cast<Square>(enPasFile + enPasRank * 8);
-    side = (fen_side == "w") ? Color::WHITE : Color::BLACK;
+    Color side = (fen_side == "w") ? Color::WHITE : Color::BLACK;
+    set_side(side);
     GameState game(halfmoves, castling, Piece::EMPTY, enPasSquare);
     gameState.push_back(game);
 }

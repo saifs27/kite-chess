@@ -5,25 +5,33 @@
 #include "moves.hpp"
 #include <string>
 #include "rays.hpp"
+#include <array>
+#include <limits>
 
 
 #include <iostream>
 namespace Smyslov {
 class Position { 
+    private:
+    Score _score;
+    std::array<U64, 8> pieceBB;
+    Color _side = Color::WHITE;
+
     public:
-    U64 pieceBB[8];
-    Color side = Color::WHITE;
     std::vector<Move> moveHistory = {}; 
     std::vector<GameState> gameState = {};
 
-
+    public:
+    void terminate(GameResult result);
+    Color side() const {return _side;};
+    void set_side(Color side) { if (side == Color::WHITE || side == Color::BLACK) _side = side;};
     Position();
     Position(std::string fen);
     Position(const Position&) = delete;
     void start_position(); 
     void read_fen(std::string fen);
-    void switch_sides() {side = (side == Color::WHITE) ? Color::BLACK : Color::WHITE;};
-    Color get_opposite_side() const { Color result = (side == Color::WHITE) ? Color::BLACK : Color::WHITE; return result;}
+    void switch_sides() {_side = (side() == Color::WHITE) ? Color::BLACK : Color::WHITE;};
+    Color get_opposite_side() const { Color result = (side() == Color::WHITE) ? Color::BLACK : Color::WHITE; return result;}
     Square captured_enPassant(Square enPasSq, Color color) const;
     void shift(Piece, Color color, Move move);
     void add(Piece piece, Color color, Square addSq);    
@@ -34,6 +42,9 @@ class Position {
     const U64& piecesBB(Piece piece) const {return pieceBB[static_cast<int>(piece)];};
     void set_colorBB(Color color, U64 bb) {pieceBB[static_cast<int>(color)] = bb;};
     void set_pieceBB(Piece piece, U64 bb) {pieceBB[static_cast<int>(piece)] = bb;};
+
+    Score score() const {return _score;};
+    void set_score(Result res) {_score.set_score(res);};
     short update_castlingPerm(const Move move) const;
     GameState new_gameState(Move move) const;
 
@@ -64,6 +75,8 @@ class Position {
     U64 opponent_attacks() const;
     bool is_check() const;
     bool can_castle(const Castling castlingSide) const;
+
+    U64 pieces_attacking_king(Color color) const;
     U64 pin_mask(Color color) const;
     U64 check_mask(Color color) const;
 
