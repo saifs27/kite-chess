@@ -3,6 +3,7 @@
 #include <optional>
 #include <iostream>
 #include <vector>
+#include <limits>
 
 namespace Smyslov {
 typedef unsigned long long U64;
@@ -48,15 +49,56 @@ inline constexpr U64 seventh = 0xff000000000000;
 inline constexpr U64 eighth  = 0xff00000000000000;
 }
 
+
 enum class Castling {None = 0, WhiteKingside = 1, WhiteQueenside = 2, BlackKingside = 4, BlackQueenside = 8};
 
+enum Result {WHITE_WIN, BLACK_WIN, DRAW, EMPTY};
+
+
+struct Score
+{
+    void set_score(Result res)
+    {
+        switch(res)
+        {
+            case Result::WHITE_WIN:
+                _white = std::numeric_limits<int>::max();
+                _black = std::numeric_limits<int>::lowest();
+                break;
+            case Result::BLACK_WIN:
+                _white = std::numeric_limits<int>::lowest();
+                _black = std::numeric_limits<int>::max();
+                break;
+            case Result::DRAW:
+                _white = 0;
+                _black = 0;
+                break;
+            case Result::EMPTY:
+                _white = Result::EMPTY;
+                _black = Result::EMPTY;
+                break;
+            default:
+                break;
+        }
+        
+    }
+
+    int white_score() const {return _white;}
+    int black_score() const {return _black;}
+
+
+
+    private:
+    int _white = Result::EMPTY;
+    int _black  = Result::EMPTY;
+};
 /*
 White kingside castling: 0001
 0010
 0100
 1000
 */
-
+enum class GameResult {WHITE_WINS, BLACK_WINS, DRAW};
 
 enum class Color {WHITE, BLACK, NONE}; 
 enum class Piece {PAWN = 2, KNIGHT, BISHOP, ROOK, QUEEN, KING, EMPTY}; // starts at 2 to access position bitboard array

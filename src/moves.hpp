@@ -25,6 +25,7 @@ struct Move
     void set_flags(Flag flags) {_flag = flags;};
 
     bool has_capture_flag() const;
+    bool has_promotion_flag() const;
     bool is_capture(const U64 opponentBB) const;
     Piece get_promotion_piece() const;
     bool switch_flag_to_capture();

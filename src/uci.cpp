@@ -67,6 +67,15 @@ std::string piece_to_string(Piece piece)
     }
 }
 
+Piece string_to_piece(const char string)
+{
+    if (string == 'Q') return Piece::QUEEN;
+    else if (string == 'R') return Piece::ROOK;
+    else if (string == 'N' ) return Piece::KNIGHT;
+    else if (string == 'B') return Piece::BISHOP;
+    else return Piece::EMPTY;
+}
+
 std::string move_to_uci(Move move)
 {
     std::string uciResult;
@@ -88,6 +97,23 @@ std::optional<Move> uci_to_move(Position& pos, std::string uci)
     int to_file = static_cast<int>(uci[2])-97;
     int to_rank = static_cast<int>(uci[3])-49;
 
+    Piece promoted = Piece::EMPTY;
+
+    if (uci.size() == 5)
+    {
+        Flag promoteFlag;
+        promoted = string_to_piece(uci.at(4));
+        switch(promoted)
+        {
+            case Piece::QUEEN: promoteFlag = Flag::PROMOTE_QUEEN; break;
+            case Piece::ROOK: promoteFlag = Flag::PROMOTE_ROOK; break;
+            case Piece::KNIGHT: promoteFlag = Flag::PROMOTE_KNIGHT; break;
+            case Piece::BISHOP: promoteFlag = Flag::PROMOTE_BISHOP; break;
+            default: return {}; 
+        }
+        move.set_flags(promoteFlag);
+    }
+
     int input[4] = {from_file, from_rank, to_file, to_rank};
 
     for (auto i: input) 
@@ -100,10 +126,10 @@ std::optional<Move> uci_to_move(Position& pos, std::string uci)
     move.set_from(static_cast<Square>(from_rank * 8 + from_file));
     move.set_to(static_cast<Square>(to_rank * 8 + to_file));
     Piece pce = pos.get_piece(move.from());
-    if (pce == Piece::EMPTY) 
-    {
-        return {};
-    }
+    Piece captured = pos.get_piece(move.to());
+
+    if (captured != Piece::EMPTY) move.switch_flag_to_capture();
+    if (pce == Piece::EMPTY) return {};
 
     if (pce == Piece::KING && move.from() == Square::E1 && move.to() == Square::G1) 
     {
@@ -122,6 +148,7 @@ std::optional<Move> uci_to_move(Position& pos, std::string uci)
     {
         move.set_flags(Flag::QUEEN_CASTLE);
     }
+
     return move;
 
 }

@@ -36,6 +36,7 @@ Square lsb(const U64 bitboard) {
             return sq;
         }
     }
+
     return Square::EMPTY_SQUARE;
 }
 
@@ -124,10 +125,8 @@ U64 pawn_attacks(const U64 bb, const Color color) {
     const U64 notA = ~file::A; 
     const U64 notH = ~file::H;
 
-    const U64 nwShift = (color == Color::WHITE) ? 7 : -7;
-    const U64 neShift = (color == Color::WHITE) ? 9 : -9;
-    const U64 left = (bb & notA) << nwShift;
-    const U64 right = (bb & notH) << neShift;
+    const U64 left = (color == Color::WHITE) ? (bb & notA) << 7 : (bb & notA) >> 7;
+    const U64 right = (color == Color::WHITE) ? (bb & notH) << 9 : (bb & notH) >> 9;
 
     return left | right;
 }
