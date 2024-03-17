@@ -54,33 +54,34 @@ class Position {
 
     Score score() const {return _score;};
     void set_score(Result res) {_score.set_score(res);};
-    short update_castlingPerm(const Move move) const;
+    std::optional<short> update_castlingPerm(const Move move) const;
     std::optional<GameState> new_gameState(Move move) const;
 
-    Square enPassant() const {
+    std::optional<Square> enPassant() const {
         if (!gameState.empty()) 
         {
-            return gameState.back().enPassant;
+            auto en_pas = gameState.back().enPassant;
+            if (square_in_range(static_cast<int>(en_pas))) return en_pas;
         }
-        return Square::A1;
+        return {};
     }
 
-    int fiftyMove() const {
+    std::optional<int> fiftyMove() const {
         if (!gameState.empty()) 
         {
-            auto lastGameState = gameState.back();
-            return lastGameState.fiftyMove;
+            auto m50 = gameState.back().fiftyMove;
+            if (m50 >=0) return m50;
         }
-        return 0;
+        return {};
     }
 
-    short castlingPerms() const {
+    std::optional<short> castlingPerms() const {
         if (!gameState.empty()) 
         {
-            GameState last_game_state = gameState.back();
-            return last_game_state.castlingPerm;
+            auto castling = gameState.back().castlingPerm;
+            if (is_valid_castling_perm(castling)) return castling;
         }
-        return 0b0000;
+        return {};
     }
 
 

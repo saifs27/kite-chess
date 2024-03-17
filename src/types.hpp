@@ -103,6 +103,9 @@ enum class GameResult {WHITE_WINS, BLACK_WINS, DRAW};
 enum class Color {WHITE, BLACK, NONE}; 
 enum class Piece {PAWN = 2, KNIGHT, BISHOP, ROOK, QUEEN, KING, EMPTY}; // starts at 2 to access position bitboard array
 
+
+inline bool is_valid_castling_perm(short castling_perm) {return (castling_perm >= 0 && castling_perm <= 0b1111);}
+
 inline bool color_in_range(int color) {return (color == 0 || color == 1);}
 inline bool piece_in_range(int piece) {return (piece >= 2 && piece < 8);}
 inline bool square_in_range(int square) {return (square >= 0 && square < 64);}

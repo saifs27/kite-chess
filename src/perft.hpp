@@ -36,10 +36,10 @@ inline int perft(Position& pos, int depth)
         if (isValidMove)
         {
             nodes += perft(pos, depth - 1);
-            
+            moves.undo_move();
         }
     
-        moves.undo_move();
+        
     }
     return nodes;
 }

@@ -30,18 +30,20 @@ void Position::start_position()
 std::optional<GameState> Position::new_gameState(Move move) const
 {
     Piece piece = get_piece(move.from());
-    auto move50 = (piece == Piece::PAWN || move.has_capture_flag()) ? 0 : fiftyMove() + 1;
+    if (!fiftyMove().has_value()) return {};
+    auto move50 = (piece == Piece::PAWN || move.has_capture_flag()) ? 0 : fiftyMove().value() + 1;
     auto castlingRights = update_castlingPerm(move);
+    if (!castlingRights.has_value()) return {};
     auto enPas = move.get_enPassant_square();
     auto capture = (move.flags() != Flag::EN_PASSANT) ? get_piece(move.to()) : Piece::PAWN;
 
     bool isValidCastle = castlingRights >= 0 || castlingRights <= 0b1111;
-    bool isValidCapture = piece_in_range(static_cast<int>(capture)) || piece == Piece::EMPTY;
+    bool isValidCapture = piece_in_range(static_cast<int>(capture)) || (capture == Piece::EMPTY);
     bool isValidEnPas = square_in_range(static_cast<int>(enPas));
 
     if (isValidCapture && isValidCastle && isValidEnPas)
     {
-        GameState board(move50, castlingRights, capture, enPas);
+        GameState board(move50, castlingRights.value(), capture, enPas);
         return board;        
     }
     return {};
@@ -182,22 +184,27 @@ U64 Position::get_attacks(const Color color, U64 blockers) const
 
 bool Position::can_castle(const Castling castlingSide) const 
 { 
-    return !is_empty(static_cast<int>(castlingSide) & castlingPerms());
+    if (!castlingPerms().has_value()) return false;
+    return !is_empty(static_cast<int>(castlingSide) & castlingPerms().value());
 }
 
 
 
-short Position::update_castlingPerm(const Move move) const {
+std::optional<short> Position::update_castlingPerm(const Move move) const {
     const short colorMask = (side() == Color::WHITE) ? 0b0011 : 0b1100;
 
     
     Piece piece = get_piece(move.from());
-    short currentCastlingPerms = castlingPerms();
+    if (!castlingPerms().has_value()) return {};
+    short currentCastlingPerms = castlingPerms().value();
+    short newCastlingPerms = 0;
     if (colorMask & currentCastlingPerms == 0) {return currentCastlingPerms;}
 
     if (piece == Piece::KING) 
     {
-        return currentCastlingPerms & ~colorMask;
+        newCastlingPerms = currentCastlingPerms & ~colorMask;
+        if (is_valid_castling_perm(newCastlingPerms)) return newCastlingPerms;
+
     }
 
     else if (piece == Piece::ROOK) 
@@ -221,7 +228,8 @@ short Position::update_castlingPerm(const Move move) const {
             default:
                 castling_side = 0;
         }
-        return currentCastlingPerms & ~castling_side;
+        newCastlingPerms = currentCastlingPerms & ~castling_side;
+        if (is_valid_castling_perm(newCastlingPerms)) return newCastlingPerms;
     }
     Square queensideRook = (side() == Color::WHITE) ? (Square::A8) : (Square::A1);
     Castling queensideMask = (side() == Color::WHITE) ? Castling::BlackQueenside : Castling::WhiteQueenside;
@@ -236,7 +244,10 @@ short Position::update_castlingPerm(const Move move) const {
         currentCastlingPerms &= ~static_cast<short>(kingsideMask);
     }
 
-    return currentCastlingPerms;   
+
+    if (is_valid_castling_perm(currentCastlingPerms)) return currentCastlingPerms;
+
+    return {};
 }
 
 
@@ -361,13 +372,6 @@ U64 Position::pin_mask(Color color) const
 
             
         }
-
-
-
-
-
-
-
 
     }
 

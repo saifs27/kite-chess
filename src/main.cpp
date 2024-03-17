@@ -21,7 +21,9 @@ int main() {
     moves.generate_all_moves();
     Smyslov::Position perft_ex("rnbq1k1r/pp1Pbppp/2p5/8/2B5/8/PPP1NnPP/RNBQK2R w KQ - 1 8");
 
-    Smyslov::print_perft(board, 5);
+    //Smyslov::print_perft(board, 5);
+    int s = perft(board, 5);
+    std::cout << s << '\n';
 
  
     //game_loop(board, moves);
@@ -41,7 +43,7 @@ void game_loop(Smyslov::Position& board, Smyslov::MoveGen moves)
         if (board.score().white_score() != Smyslov::Result::EMPTY) {std::cout << "CHECKMATE" ; break;}
         board.print_board();
         std::string side = (board.side() == Smyslov::Color::WHITE) ? "White to move" : "Black to move";
-        std::cout << "fifty move: " << board.fiftyMove() << '\n';
+        //std::cout << "fifty move: " << board.fiftyMove().value() << '\n';
         std::cout << side << '\n';
 
         moves.generate_all_moves();

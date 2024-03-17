@@ -151,10 +151,12 @@ void MoveGen::generate_pawn_captures()
 
 void MoveGen::generate_en_passant()
 {
+    if (!pos.enPassant().has_value()) return;
+    if (pos.enPassant().value() == Square::A1) return;
     U64 mask = (pos.side() == Color::WHITE) ? rank::sixth : rank::third;
-    U64 enPas = set_bit(pos.enPassant()) & mask;
+    U64 enPas = set_bit(pos.enPassant().value()) & mask;
     enPas &= checkMask;
-    Move m(pos.enPassant(), pos.enPassant(), Flag::EN_PASSANT);
+    Move m(pos.enPassant().value(), pos.enPassant().value(), Flag::EN_PASSANT);
     
     if (!is_empty(enPas))
     {
@@ -398,11 +400,12 @@ bool MoveGen::make_castle(Move move)
     Flag castleFlag = move.flags();
     if (castleFlag == Flag::KING_CASTLE || castleFlag == Flag::QUEEN_CASTLE)
     {
-        auto incrementmove = pos.fiftyMove() + 1;
+        if (!pos.fiftyMove().has_value() || !pos.castlingPerms().has_value()) return false;
+        auto incrementmove = pos.fiftyMove().value() + 1;
 
         short castlingMask = (pos.side() == Color::WHITE) ? 0b0011 : 0b1100;
-        auto castling = (pos.castlingPerms()) ^ castlingMask;
-        GameState state(incrementmove, castling, Piece::EMPTY, Square::A1);
+        auto castling = (pos.castlingPerms().value()) ^ castlingMask;
+
         U64 fromKBB = set_bit(move.from());
         U64 toKBB = set_bit(move.to());
 
@@ -490,7 +493,8 @@ bool MoveGen::make_quiet(const Move move)
 
 bool MoveGen::make_enPassant(Move move)
 {
-    Square enPassantSq = (pos.enPassant());
+    if (!pos.enPassant().has_value()) return false;
+    Square enPassantSq = (pos.enPassant().value());
     auto capturedPawn = (pos.side() == Color::WHITE) ? try_offset(enPassantSq, 0, -1) : try_offset(enPassantSq, 0, 1);
 
     if ((move.flags() == Flag::EN_PASSANT) && (enPassantSq != Square::A1) && (capturedPawn.has_value()))
@@ -652,7 +656,8 @@ bool MoveGen::undo_capture(Move move, Piece capture)
         const U64 currentBB = set_bit(move.to());
         if (move.flags() == Flag::EN_PASSANT && capture !=Piece::EMPTY)
             {
-                const Square enPasSq = pos.enPassant();
+                if (!pos.enPassant().has_value()) return false;
+                const Square enPasSq = pos.enPassant().value();
                 const U64 enPasBB = set_bit(enPasSq);
                 const Square capturedEnPas = (pos.side() == Color::WHITE) ? try_offset(enPasSq, 0, -1).value() : try_offset(enPasSq, 0, 1).value();
                 pos.add(Piece::PAWN, pos.side(), capturedEnPas);
@@ -697,9 +702,14 @@ bool MoveGen::undo_move()
         pos.switch_sides();
         Move move = pos.moveHistory.back();
         pos.moveHistory.pop_back();
-        
-        GameState& g = pos.gameState.back();
+
+        if (pos.gameState.empty()) return false;
+        GameState g = pos.gameState.back();
         pos.gameState.pop_back();
+
+        if (!g.is_valid_gameState()) return false;
+
+        
 
         switch (move.flags())
         {
