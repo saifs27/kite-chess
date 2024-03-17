@@ -18,11 +18,36 @@ struct Output
 
 bool compareOutputs(Output a, Output b) {return a.move < b.move;}
 
+inline int perft(Position& pos, int depth)
+{
+    if (pos.side() != Color::WHITE && pos.side()!= Color::BLACK)
+    {
+        throw std::invalid_argument(std::to_string(depth));
+    }
+    MoveGen moves(pos);
+    U64 nodes = 0;
+    if (depth == 0) return 1;
 
-inline std::vector<Output> perft(Position& pos, int depth)
+    moves.generate_all_moves();
+    if (depth == 1) return moves.movelist_size();
+    for (auto move : moves.move_list())
+    {
+        bool isValidMove = moves.make_move(move);
+        if (isValidMove)
+        {
+            nodes += perft(pos, depth - 1);
+            
+        }
+    
+        moves.undo_move();
+    }
+    return nodes;
+}
+
+inline std::vector<Output> perft_verbose(Position& pos, int depth)
 {
     std::vector<Output> result;
-    std::vector<Move> moveList;
+    //std::vector<Move> moveList;
     MoveGen n_moves(pos);
     U64 nodes = 0;
     if (depth == 0) return {{"null", 1ULL}};
@@ -45,7 +70,7 @@ inline std::vector<Output> perft(Position& pos, int depth)
 
           
             //nodes += perft(pos, depth - 1);
-            move_nodes += perft(pos, depth -1).back().nodes;
+            move_nodes += perft_verbose(pos, depth -1).back().nodes;
 
             nodes += move_nodes;
             Output output = {move_string, move_nodes};
@@ -61,12 +86,31 @@ inline std::vector<Output> perft(Position& pos, int depth)
 
 inline void print_perft(Position& pos, short depth)
 {
-    auto result = perft(pos, depth);
+    auto result = perft_verbose(pos, depth);
     std::sort(result.begin(), result.end(), compareOutputs);
 
     for (auto n : result)
     {
         std::cout << n.move << ": " << n.nodes << '\n';
+    }
+}
+
+inline void debug_perft(Position& pos, short initial_depth)
+{
+    MoveGen moves(pos);
+    moves.generate_all_moves();
+    short depth = initial_depth;
+    std::string moveString;
+    while (depth >= 0)
+    {
+        //print_perft(pos, depth);
+        int nodes = perft(pos,depth);
+        std::cout << nodes << '\n';
+        --depth;
+        std::cin >> moveString;
+        auto move = UCI::uci_to_move(pos, moveString);
+        if (move.has_value()) moves.make_move(move.value());
+        else break;
     }
 }
 

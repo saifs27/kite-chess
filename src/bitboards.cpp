@@ -124,9 +124,11 @@ U64 knight_attacks(const U64 bb) {
 U64 pawn_attacks(const U64 bb, const Color color) {
     const U64 notA = ~file::A; 
     const U64 notH = ~file::H;
+    const U64 leftBB = (color == Color::WHITE) ? (bb & notA) : (bb & notH);
+    const U64 rightBB = (color == Color::WHITE) ? (bb & notH) : (bb & notA);
 
-    const U64 left = (color == Color::WHITE) ? (bb & notA) << 7 : (bb & notA) >> 7;
-    const U64 right = (color == Color::WHITE) ? (bb & notH) << 9 : (bb & notH) >> 9;
+    const U64 left = (color == Color::WHITE) ? (leftBB) << 7 : leftBB >> 7;
+    const U64 right = (color == Color::WHITE) ? rightBB << 9 : rightBB >> 9;
 
     return left | right;
 }

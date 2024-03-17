@@ -10,7 +10,7 @@ Position::Position()
     set_pieceBB(Piece::ROOK, 0x0ULL);
     set_pieceBB(Piece::QUEEN, 0x0ULL);
     set_pieceBB(Piece::KING, 0x0ULL);
-    GameState game(0, 15, Piece::EMPTY, Square::A1);
+    GameState game(0, 0b1111, Piece::EMPTY, Square::A1);
     gameState.push_back(game);
 }
 void Position::start_position() 
@@ -23,18 +23,29 @@ void Position::start_position()
     set_pieceBB(Piece::ROOK, 0x8100000000000081ULL);
     set_pieceBB(Piece::QUEEN, 0x800000000000008ULL);
     set_pieceBB(Piece::KING, 0x1000000000000010ULL);
+    set_side(Color::WHITE);
 }
 
 
-GameState Position::new_gameState(Move move) const
+std::optional<GameState> Position::new_gameState(Move move) const
 {
     Piece piece = get_piece(move.from());
     auto move50 = (piece == Piece::PAWN || move.has_capture_flag()) ? 0 : fiftyMove() + 1;
     auto castlingRights = update_castlingPerm(move);
     auto enPas = move.get_enPassant_square();
     auto capture = (move.flags() != Flag::EN_PASSANT) ? get_piece(move.to()) : Piece::PAWN;
-    GameState board(move50, castlingRights, capture, enPas);
-    return board;
+
+    bool isValidCastle = castlingRights >= 0 || castlingRights <= 0b1111;
+    bool isValidCapture = piece_in_range(static_cast<int>(capture)) || piece == Piece::EMPTY;
+    bool isValidEnPas = square_in_range(static_cast<int>(enPas));
+
+    if (isValidCapture && isValidCastle && isValidEnPas)
+    {
+        GameState board(move50, castlingRights, capture, enPas);
+        return board;        
+    }
+    return {};
+
 }
 
 void Position::shift(Piece piece, Color color, Move move)
@@ -44,18 +55,28 @@ void Position::shift(Piece piece, Color color, Move move)
 
 void Position::add(Piece piece, Color color, Square addSq)
 {
+    auto pieceInt = static_cast<int>(piece);
+    auto colorInt = static_cast<int>(color);
+    bool canIndex = piece_in_range(pieceInt) && color_in_range(colorInt);
     // always remove before adding to avoid two pieces on same square.
-    if (is_empty_square(addSq))
+    if (is_empty_square(addSq) && canIndex)
     {
-        pieceBB[static_cast<int>(piece)] |= set_bit(addSq);
-        pieceBB[static_cast<int>(color)] |= set_bit(addSq);        
+        pieceBB[pieceInt] |= set_bit(addSq);
+        pieceBB[colorInt] |= set_bit(addSq);        
     }
 }
 
 void Position::remove(Piece piece, Color color, Square removeSq)
 {
-    pieceBB[static_cast<int>(piece)] &= ~set_bit(removeSq);
-    pieceBB[static_cast<int>(color)] &= ~set_bit(removeSq);
+    int piece_int = static_cast<int>(piece);
+    int color_int = static_cast<int>(color);
+    bool canIndex = piece_in_range(piece_int) && color_in_range(color_int);
+    if (canIndex)
+    {
+        pieceBB[piece_int] &= ~set_bit(removeSq);
+        pieceBB[color_int] &= ~set_bit(removeSq);
+    }
+
 }
 
 
@@ -96,9 +117,9 @@ Piece Position::get_piece(const Square sq) const {
     bool empty = is_empty((colorsBB(Color::WHITE) | colorsBB(Color::BLACK)) & sqbb);
 
     if (!empty) {
-        for (int i = 2; i <= 8; i++)
+        for (int i = 2; i < 8; i++)
         {
-            if (!is_empty(pieceBB[i] & sqbb)) {
+            if (!is_empty(pieceBB.at(i) & sqbb)) {
                 return static_cast<Piece>(i);
             }
         }
@@ -555,6 +576,8 @@ Position::Position(std::string fen)
             throw std::invalid_argument("Invalid FEN, could not parse castling flags");
         }
     }
+
+    if (castling > 0b1111) throw std::invalid_argument("Invalid FEN. Could not parse castling flags");
 
     
     int enPasFile = 10;

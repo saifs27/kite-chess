@@ -7,6 +7,7 @@
 #include "rays.hpp"
 #include <array>
 #include <limits>
+#include <algorithm>
 
 
 #include <iostream>
@@ -14,7 +15,7 @@ namespace Smyslov {
 class Position { 
     private:
     Score _score;
-    std::array<U64, 8> pieceBB;
+    std::array<U64, 8> pieceBB = {0, 0, 0, 0, 0, 0, 0, 0};
     Color _side = Color::WHITE;
 
     public:
@@ -38,28 +39,47 @@ class Position {
     void remove(Piece piece, Color color, Square removeSq);
     bool is_empty_square(Square sq) const;
     void push_move(Move move);
-    const U64& colorsBB(Color color) const {return pieceBB[static_cast<int>(color)];};
-    const U64& piecesBB(Piece piece) const {return pieceBB[static_cast<int>(piece)];};
+    const U64 colorsBB(Color color) const 
+    {
+        if (color_in_range(static_cast<int>(color))) return pieceBB[static_cast<int>(color)];
+        else return 0;
+    }
+    const U64 piecesBB(Piece piece) const 
+    {
+        if (piece_in_range(static_cast<int>(piece))) return pieceBB[static_cast<int>(piece)];
+        else return 0;
+    }
     void set_colorBB(Color color, U64 bb) {pieceBB[static_cast<int>(color)] = bb;};
     void set_pieceBB(Piece piece, U64 bb) {pieceBB[static_cast<int>(piece)] = bb;};
 
     Score score() const {return _score;};
     void set_score(Result res) {_score.set_score(res);};
     short update_castlingPerm(const Move move) const;
-    GameState new_gameState(Move move) const;
+    std::optional<GameState> new_gameState(Move move) const;
 
     Square enPassant() const {
-        if (!gameState.empty()) {return gameState.back().enPassant;}
+        if (!gameState.empty()) 
+        {
+            return gameState.back().enPassant;
+        }
         return Square::A1;
     }
 
     int fiftyMove() const {
-        if (!gameState.empty()) {return gameState.back().fiftyMove;}
+        if (!gameState.empty()) 
+        {
+            auto lastGameState = gameState.back();
+            return lastGameState.fiftyMove;
+        }
         return 0;
     }
 
     short castlingPerms() const {
-        if (!gameState.empty()) {return gameState.back().castlingPerm;}
+        if (!gameState.empty()) 
+        {
+            GameState last_game_state = gameState.back();
+            return last_game_state.castlingPerm;
+        }
         return 0b0000;
     }
 

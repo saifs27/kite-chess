@@ -50,7 +50,7 @@ inline constexpr U64 eighth  = 0xff00000000000000;
 }
 
 
-enum class Castling {None = 0, WhiteKingside = 1, WhiteQueenside = 2, BlackKingside = 4, BlackQueenside = 8};
+enum class Castling {None = 0b0000, WhiteKingside = 0b0001, WhiteQueenside = 0b0010, BlackKingside = 0b0100, BlackQueenside = 0b1000};
 
 enum Result {WHITE_WIN, BLACK_WIN, DRAW, EMPTY};
 
@@ -103,6 +103,10 @@ enum class GameResult {WHITE_WINS, BLACK_WINS, DRAW};
 enum class Color {WHITE, BLACK, NONE}; 
 enum class Piece {PAWN = 2, KNIGHT, BISHOP, ROOK, QUEEN, KING, EMPTY}; // starts at 2 to access position bitboard array
 
+inline bool color_in_range(int color) {return (color == 0 || color == 1);}
+inline bool piece_in_range(int piece) {return (piece >= 2 && piece < 8);}
+inline bool square_in_range(int square) {return (square >= 0 && square < 64);}
+
 enum class Flag {
     QUIET,
     DOUBLE_PAWN,
@@ -136,17 +140,30 @@ inline bool has(U64 bb, Square square) {
 
 struct GameState
 {
-    int fiftyMove;
-    short castlingPerm;
-    Piece captured;
-    Square enPassant;
+    int fiftyMove  = 0;
+    short castlingPerm = 0b1111;
+    Piece captured = Piece::EMPTY;
+    Square enPassant = Square::A1;
 
     GameState(int move50, short castling, Piece capture, Square enPas)
     : enPassant(enPas), captured(capture), castlingPerm(castling), fiftyMove(move50)
-    {}
+    {
+        if (!is_valid_gameState())
+        {
+            throw std::invalid_argument("invalid gamestate.");
+        }
+    }
 
     void set_enPassant(Square sq){ enPassant = sq;}
+    bool is_valid_gameState()
+    {
+        bool isValidCastling = (castlingPerm >= 0 && castlingPerm <= 0b1111);
+        bool isValidEnPas = square_in_range(static_cast<int>(enPassant));
+        bool isValidCapture = piece_in_range(static_cast<int>(captured)) || captured == Piece::EMPTY;
 
+        return isValidCapture && isValidCastling && isValidCapture;
+
+    }
     void incrementFiftyMove() {fiftyMove++;}
     void decrementFiftyMove() {fiftyMove--;}
 

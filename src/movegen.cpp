@@ -12,12 +12,13 @@ void MoveGen::generate_king_moves()
     U64 king_pos = pos.get_bitboard(side, Piece::KING);
     Square from = lsb(king_pos);
     U64 bb = king_attacks(king_pos);
-    U64 blockers = pos.colorsBB(side);
+    U64 blockers = pos.colorsBB(side) | pos.colorsBB(op_side);
+    U64 friendlyPieces = pos.colorsBB(side);
     U64 attackers = pos.get_attacks(op_side, blockers);
-    U64 moves = bb & (bb ^ (blockers | attackers));
+    U64 moves = bb & (bb ^ (friendlyPieces | attackers));
     Flag moveFlag = Flag::QUIET;
-    //if (checkMask != 0xffffffffffffffff) moves &= ~checkMask; 
-    //else moves &= checkMask;
+    if (checkMask != 0xffffffffffffffff) moves &= ~checkMask; 
+    else moves &= checkMask;
     while (!(is_empty(moves)))
     {
         Square to = pop_lsb(moves);
@@ -79,7 +80,7 @@ void MoveGen::generate_double_pawn_push()
     U64 blockers = one_sq_blockers | two_sq_blockers;
     U64 moves = double_pawn_push(pawn_pos, side);
     moves &= blockers ^ moves;
-    //moves &= checkMask;
+    moves &= checkMask;
     U64 frombb;
     Square from;
     Square to;
@@ -108,7 +109,7 @@ void MoveGen::generate_pawn_push()
     Square to;
     U64 moves = pawn_push(pawn_pos, side);
     moves &= (relevant_blockers ^ moves);
-    //moves &= checkMask;
+    moves &= checkMask;
     U64 frombb;
     Move new_move(Square::A1, Square::A1, Flag::QUIET);
 
@@ -137,7 +138,7 @@ void MoveGen::generate_pawn_captures()
         from = pop_lsb(pawn_pos);
         attacks = pawn_attacks(set_bit(from), pos.side());
         attacks &= opponent_pieces;
-        //attacks &= checkMask;
+        attacks &= checkMask;
         while (!is_empty(attacks))
         {
             to = pop_lsb(attacks);
@@ -152,7 +153,7 @@ void MoveGen::generate_en_passant()
 {
     U64 mask = (pos.side() == Color::WHITE) ? rank::sixth : rank::third;
     U64 enPas = set_bit(pos.enPassant()) & mask;
-    //enPas &= checkMask;
+    enPas &= checkMask;
     Move m(pos.enPassant(), pos.enPassant(), Flag::EN_PASSANT);
     
     if (!is_empty(enPas))
@@ -211,7 +212,7 @@ void MoveGen::generate_moves(Piece piece)
             break;
         }
         moves = bb & (bb ^ blockers);
-        //moves &= checkMask;
+        moves &= checkMask;
         
         capture_moves = bb & op_blockers;
         Move new_move(from, from, Flag::QUIET);
@@ -239,7 +240,7 @@ void MoveGen::generate_promotions()
     U64 mask = (pos.side() == Color::WHITE) ? rank::seventh : rank::second;
     U64 blockerMask = (pos.side() == Color::WHITE) ? rank::eighth : rank::first;
     U64 pawns = pos.get_bitboard(pos.side(), Piece::PAWN) & mask;
-    //pawns &= checkMask;
+    pawns &= checkMask;
     U64 blockers = pos.colorsBB(pos.get_opposite_side()) & blockerMask;
     Move move(Square::A1, Square::A1, Flag::QUIET);
     while (!is_empty(pawns))
@@ -272,7 +273,7 @@ void MoveGen::generate_promotion_captures()
     U64 mask = (pos.side() == Color::WHITE) ? rank::seventh : rank::second;
     U64 captureMask = (pos.side() == Color::WHITE) ? rank::eighth : rank::first;
     U64 pawns = pos.get_bitboard(pos.side(), Piece::PAWN) & mask;
-    //pawns &= checkMask;
+    pawns &= checkMask;
     U64 capturables = pos.colorsBB(pos.get_opposite_side()) & captureMask;
     Move move(Square::A1, Square::A1, Flag::QUIET);
     while (!is_empty(pawns))
@@ -303,7 +304,7 @@ void MoveGen::generate_promotion_captures()
 void MoveGen::generate_all_moves()
 {
     if (!(moveList.empty())) moveList.clear();
-    //checkMask = pos.check_mask(pos.side());
+    checkMask = pos.check_mask(pos.side());
     generate_promotion_captures();
     generate_promotions();
     generate_pawn_captures();
@@ -316,11 +317,13 @@ void MoveGen::generate_all_moves()
     generate_moves(Piece::ROOK);
     generate_moves(Piece::QUEEN);
     generate_king_moves();
+
+    //is_checkmate();
 }
 
 std::optional<Move> MoveGen::select_move(Move move)
 {
-    generate_all_moves();
+    //generate_all_moves();
     if (!moveList.empty())
     {
         for (auto m : moveList)
@@ -353,7 +356,6 @@ bool MoveGen::is_checkmate()
     U64 kingBB = pos.get_bitboard(pos.side(), Piece::KING);
     Square kingSq = lsb(kingBB);
 
-    generate_all_moves();
     // Only have to check king moves if it is in double check.
     if (numberOfAttackers > 1) 
     {
@@ -367,10 +369,10 @@ bool MoveGen::is_checkmate()
                 return false;
             }
         }
+        Result res = (pos.side() == Color::WHITE) ? BLACK_WIN : WHITE_WIN;
+        pos.set_score(res);
         return true;
     }
-
-    
 
     else if (numberOfAttackers == 1)
     {
@@ -548,8 +550,10 @@ bool MoveGen::make_move(const Move input)
     Move move = n_move.value();
 
     if (pos.score().white_score() != Result::EMPTY) return false;
+    
+    auto game_state = pos.new_gameState(move);
 
-    GameState game_state = pos.new_gameState(move);
+    if (!game_state.has_value()) return false;
     //pos.gameState.push_back(game_state); 
     Piece piece = pos.get_piece(move.from());
     bool isValid = false;
@@ -565,7 +569,7 @@ bool MoveGen::make_move(const Move input)
             break;
         case Flag::CAPTURE:
             isValid =  make_capture(move);
-            if (pos.is_check()) {undo_capture(move, game_state.captured); isValid = false; pos.gameState.pop_back();} 
+            if (pos.is_check()) {undo_capture(move, game_state.value().captured); isValid = false; pos.gameState.pop_back();} 
             break;
         case Flag::EN_PASSANT:
             isValid = make_enPassant(move); 
@@ -573,7 +577,7 @@ bool MoveGen::make_move(const Move input)
             break;
         default:
             isValid = make_promotion(move);
-            if (pos.is_check()) {undo_promotion(move, game_state.captured); isValid = false; pos.gameState.pop_back();}
+            if (pos.is_check()) {undo_promotion(move, game_state.value().captured); isValid = false; pos.gameState.pop_back();}
             break;
     }
 
@@ -583,7 +587,7 @@ bool MoveGen::make_move(const Move input)
     {
         pos.moveHistory.push_back(move);
         pos.switch_sides();
-        pos.gameState.push_back(game_state); 
+        pos.gameState.push_back(game_state.value()); 
     }
 
 
