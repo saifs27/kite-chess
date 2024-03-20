@@ -60,6 +60,20 @@ bool Move::has_capture_flag() const
     }
 }
 
+bool Move::has_promotion_flag() const
+{
+    switch (flags())
+    {
+        case Flag::PROMOTE_BISHOP: case Flag::PROMOTE_QUEEN:
+        case Flag::PROMOTE_ROOK: case Flag::PROMOTE_KNIGHT:
+        case Flag::PROMOTE_BISHOP_CAPTURE: case Flag::PROMOTE_QUEEN_CAPTURE:
+        case Flag::PROMOTE_ROOK_CAPTURE: case Flag::PROMOTE_KNIGHT_CAPTURE:
+            return true;
+        default:
+            return false;
+    }
+}
+
 Piece Move::get_promotion_piece() const
 {
     Flag flag = flags();

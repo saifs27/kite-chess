@@ -13,7 +13,9 @@ struct MoveGen
         bool make_move(const Move input);
         bool undo_move();
         int movelist_size() {return moveList.size();};
-
+        bool is_check();
+        bool is_checkmate();
+        bool is_stalemate();
     private:
         std::vector<Move> moveList = {};
         Smyslov::Position& pos;
@@ -31,6 +33,7 @@ struct MoveGen
         void generate_promotions();
         void generate_promotion_captures();
         std::optional<Move> select_move(const Move move); // choose from moveList
+
         bool make_enPassant(Move move);
         bool make_castle(Move move);
         bool make_capture(Move move);
@@ -40,7 +43,7 @@ struct MoveGen
         bool undo_capture(Move move, Piece capture);
         bool undo_enPassant();
         bool undo_quiet(Move move);
-        bool undo_promotion(Move move);
+        bool undo_promotion(Move move, Piece captured);
 
 
 };

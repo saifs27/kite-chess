@@ -3,6 +3,7 @@
 #include <optional>
 #include <iostream>
 #include <vector>
+#include <limits>
 
 namespace Smyslov {
 typedef unsigned long long U64;
@@ -48,18 +49,66 @@ inline constexpr U64 seventh = 0xff000000000000;
 inline constexpr U64 eighth  = 0xff00000000000000;
 }
 
-enum class Castling {None = 0, WhiteKingside = 1, WhiteQueenside = 2, BlackKingside = 4, BlackQueenside = 8};
 
+enum class Castling {None = 0b0000, WhiteKingside = 0b0001, WhiteQueenside = 0b0010, BlackKingside = 0b0100, BlackQueenside = 0b1000};
+
+enum Result {WHITE_WIN, BLACK_WIN, DRAW, EMPTY};
+
+
+struct Score
+{
+    void set_score(Result res)
+    {
+        switch(res)
+        {
+            case Result::WHITE_WIN:
+                _white = std::numeric_limits<int>::max();
+                _black = std::numeric_limits<int>::lowest();
+                break;
+            case Result::BLACK_WIN:
+                _white = std::numeric_limits<int>::lowest();
+                _black = std::numeric_limits<int>::max();
+                break;
+            case Result::DRAW:
+                _white = 0;
+                _black = 0;
+                break;
+            case Result::EMPTY:
+                _white = Result::EMPTY;
+                _black = Result::EMPTY;
+                break;
+            default:
+                break;
+        }
+        
+    }
+
+    int white_score() const {return _white;}
+    int black_score() const {return _black;}
+
+
+
+    private:
+    int _white = Result::EMPTY;
+    int _black  = Result::EMPTY;
+};
 /*
 White kingside castling: 0001
 0010
 0100
 1000
 */
-
+enum class GameResult {WHITE_WINS, BLACK_WINS, DRAW};
 
 enum class Color {WHITE, BLACK, NONE}; 
 enum class Piece {PAWN = 2, KNIGHT, BISHOP, ROOK, QUEEN, KING, EMPTY}; // starts at 2 to access position bitboard array
+
+
+inline bool is_valid_castling_perm(short castling_perm) {return (castling_perm >= 0 && castling_perm <= 0b1111);}
+
+inline bool color_in_range(int color) {return (color == 0 || color == 1);}
+inline bool piece_in_range(int piece) {return (piece >= 2 && piece < 8);}
+inline bool square_in_range(int square) {return (square >= 0 && square < 64);}
 
 enum class Flag {
     QUIET,
@@ -92,23 +141,6 @@ inline bool has(U64 bb, Square square) {
 }
 
 
-struct GameState
-{
-    int fiftyMove;
-    short castlingPerm;
-    Piece captured;
-    Square enPassant;
-
-    GameState(int move50, short castling, Piece capture, Square enPas)
-    : enPassant(enPas), captured(capture), castlingPerm(castling), fiftyMove(move50)
-    {}
-
-    void set_enPassant(Square sq){ enPassant = sq;}
-
-    void incrementFiftyMove() {fiftyMove++;}
-    void decrementFiftyMove() {fiftyMove--;}
-
-};
 
 inline File get_file(Square square){
     int file = static_cast<int>(square) % 8;

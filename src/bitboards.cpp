@@ -36,6 +36,7 @@ Square lsb(const U64 bitboard) {
             return sq;
         }
     }
+
     return Square::EMPTY_SQUARE;
 }
 
@@ -87,14 +88,14 @@ void print_bitboard(const U64 bitboard) {
 
 U64 king_attacks(const U64 bb) {
     U64 kingPosition = bb;
-    const U64 left = kingPosition >> 1;
-    const U64 right = kingPosition << 1;
+    const U64 left = (kingPosition & ~file::A) >> 1;
+    const U64 right = (kingPosition & ~file::H) << 1;
     U64 attacks = left | right;
 
     kingPosition |= attacks;
 
-    const U64 up = kingPosition << 8;
-    const U64 down = kingPosition >> 8;
+    const U64 up = (kingPosition & ~rank::eighth) << 8;
+    const U64 down = (kingPosition & ~rank::first) >> 8;
 
     attacks |= up | down;
 
@@ -123,11 +124,11 @@ U64 knight_attacks(const U64 bb) {
 U64 pawn_attacks(const U64 bb, const Color color) {
     const U64 notA = ~file::A; 
     const U64 notH = ~file::H;
+    const U64 leftBB = (color == Color::WHITE) ? (bb & notA) : (bb & notH);
+    const U64 rightBB = (color == Color::WHITE) ? (bb & notH) : (bb & notA);
 
-    const U64 nwShift = (color == Color::WHITE) ? 7 : -7;
-    const U64 neShift = (color == Color::WHITE) ? 9 : -9;
-    const U64 left = (bb & notA) << nwShift;
-    const U64 right = (bb & notH) << neShift;
+    const U64 left = (color == Color::WHITE) ? (leftBB) << 7 : leftBB >> 7;
+    const U64 right = (color == Color::WHITE) ? rightBB << 9 : rightBB >> 9;
 
     return left | right;
 }
