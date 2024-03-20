@@ -15,15 +15,18 @@ void game_loop(Smyslov::Position& board, Smyslov::MoveGen moves);
 int main() {
 //"r1bqkbnr/pP3ppp/2n5/4p3/8/8/PPPP1PPP/RNBQKBNR w KQkq - 1 5"
     //Smyslov::Position board("rnbq1k1r/pp1Pbppp/2p5/8/2B5/8/PPP1NnPP/RNBQK2R w KQ - 1 8");
-    Smyslov::Position board("rnbqkbnr/ppp1pppp/8/3p4/6P1/7B/PPPPPP1P/RNBQK1NR b KQkq - 1 2");
-    board.start_position();
+    Smyslov::Position board("r3k2r/Pppp1ppp/1b3nbN/nP6/BBP1P3/q4N2/Pp1P2PP/R2Q1RK1 w kq - 0 1");
+    //board.start_position();
     Smyslov::MoveGen moves(board);
     moves.generate_all_moves();
-    Smyslov::Position perft_ex("rnbq1k1r/pp1Pbppp/2p5/8/2B5/8/PPP1NnPP/RNBQK2R w KQ - 1 8");
 
-    //Smyslov::print_perft(board, 5);
-    int s = perft(board, 5);
-    std::cout << s << '\n';
+    Smyslov::Position pos4("rnbq1k1r/pp1Pbppp/2p5/8/2B5/P7/1PP1NnPP/RNBQK2R b KQ - 0 8");
+    //Smyslov::Position pos31("8/8/8/1Ppp3r/RK3p1k/8/4P1P1/8 w - c6 0 3");
+    //pos3.print_board();
+    Smyslov::print_perft(pos4, 2);
+    //pos3.print_board();
+    //int s = perft(pos3, 2);
+    //std::cout << s << '\n';
 
  
     //game_loop(board, moves);

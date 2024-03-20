@@ -2,8 +2,6 @@
 #include "types.hpp"
 namespace Smyslov {
 
-
-
 struct Move
 {
     private:
@@ -36,7 +34,60 @@ struct Move
 
 };
 
+
+
+class GameState
+{
+    private:
+    Move _move;
+    int _fiftyMove  = 0;
+    short _castlingPerm = 0b1111;
+    Piece _captured = Piece::EMPTY;
+    Square _enPassant = Square::A1;
+    public:
+    GameState(Move move, int fiftyMove, short castling, Piece capture, Square enPas)
+    : _move(move), _enPassant(enPas), _captured(capture), _castlingPerm(castling), _fiftyMove(fiftyMove)
+    {
+        if (!is_valid_gameState())
+        {
+            throw std::invalid_argument("invalid gamestate.");
+        }
+    }
+
+    Move move() const {return _move;}
+    int fifty_move() const {return _fiftyMove;}
+    short castling_perms() const {return _castlingPerm;}
+    Piece captured() const {return _captured;}
+    Square en_passant() const {return _enPassant;}
+
+    void set_move(const Move move) {_move = move;}
+    void set_fifty_move(const int half_moves) {_fiftyMove = half_moves;}
+    void set_castling_perms(const short castlingPerms) {_castlingPerm = castlingPerms;}
+    void set_captured(Piece captured) {_captured = captured;}
+    void set_enPassant(Square sq){ _enPassant = sq;}
+    bool is_valid_gameState()
+    {
+
+        bool isValidCastling = (_castlingPerm >= 0 && _castlingPerm <= 0b1111);
+        bool isValidEnPas = square_in_range(static_cast<int>(_enPassant));
+        bool isValidCapture = piece_in_range(static_cast<int>(_captured)) || _captured == Piece::EMPTY;
+
+        if (move().has_capture_flag() && captured() == Piece::EMPTY) return false;
+
+        return isValidCapture && isValidCastling && isValidCapture;
+
+    }
+
+};
+
+
+
+
+
+
 /*
+
+
 
 More memory efficient but harder to debug. Will switch to this later.
 

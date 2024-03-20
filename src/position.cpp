@@ -2,6 +2,7 @@
 namespace Smyslov {
 Position::Position() 
 {
+
     set_colorBB(Color::WHITE, 0x0ULL);
     set_colorBB(Color::BLACK, 0x0ULL);
     set_pieceBB(Piece::PAWN, 0x0ULL);
@@ -10,8 +11,9 @@ Position::Position()
     set_pieceBB(Piece::ROOK, 0x0ULL);
     set_pieceBB(Piece::QUEEN, 0x0ULL);
     set_pieceBB(Piece::KING, 0x0ULL);
-    GameState game(0, 0b1111, Piece::EMPTY, Square::A1);
-    gameState.push_back(game);
+    Move null(Square::A1, Square::A1, Flag::QUIET);
+    GameState game(null, 0, 0b1111, Piece::EMPTY, Square::A1);
+    gameHistory.push_back(game);
 }
 void Position::start_position() 
 {
@@ -27,7 +29,7 @@ void Position::start_position()
 }
 
 
-std::optional<GameState> Position::new_gameState(Move move) const
+std::optional<GameState> Position::next_game_state(Move move) const
 {
     Piece piece = get_piece(move.from());
     if (!fiftyMove().has_value()) return {};
@@ -40,10 +42,12 @@ std::optional<GameState> Position::new_gameState(Move move) const
     bool isValidCastle = castlingRights >= 0 || castlingRights <= 0b1111;
     bool isValidCapture = piece_in_range(static_cast<int>(capture)) || (capture == Piece::EMPTY);
     bool isValidEnPas = square_in_range(static_cast<int>(enPas));
+    
+    if (move.has_capture_flag() && capture == Piece::EMPTY) return {};
 
     if (isValidCapture && isValidCastle && isValidEnPas)
     {
-        GameState board(move50, castlingRights.value(), capture, enPas);
+        GameState board(move, move50, castlingRights.value(), capture, enPas);
         return board;        
     }
     return {};
@@ -95,14 +99,6 @@ bool Position::is_empty_square(Square sq) const
         
     }
     return true;
-}
-void Position::push_move(Move move) 
-{
-    moveHistory.push_back(move);
-    if (move.has_capture_flag())
-    {
-        Piece capturedPiece = get_piece(move.to());
-    }
 }
 
 U64 Position::get_bitboard(const Color color, const Piece piece) const 
@@ -198,6 +194,29 @@ std::optional<short> Position::update_castlingPerm(const Move move) const {
     if (!castlingPerms().has_value()) return {};
     short currentCastlingPerms = castlingPerms().value();
     short newCastlingPerms = 0;
+    U64 initialRookPos = 0x8100000000000081;
+
+    if (currentCastlingPerms == 0) return 0;
+    if (move.has_capture_flag())
+    {
+        switch (move.to())
+        {
+            case Square::A1:
+                return currentCastlingPerms & ~static_cast<int>(Castling::WhiteQueenside);
+                break;
+            case Square::H1:
+                return currentCastlingPerms & ~static_cast<int>(Castling::WhiteKingside);
+                break;
+            case Square::A8:
+                return currentCastlingPerms & ~static_cast<int>(Castling::BlackQueenside);
+                break;
+            case Square::H8:
+                return currentCastlingPerms & ~static_cast<int>(Castling::BlackKingside);
+                break;
+            default:
+                break;
+        }
+    }
     if (colorMask & currentCastlingPerms == 0) {return currentCastlingPerms;}
 
     if (piece == Piece::KING) 
@@ -210,6 +229,7 @@ std::optional<short> Position::update_castlingPerm(const Move move) const {
     else if (piece == Piece::ROOK) 
     {
         int castling_side;
+        
 
         switch(move.from()) 
         {
@@ -315,7 +335,7 @@ void Position::print_board() const
 bool Position::is_check() const
 {
     U64 kingPos = get_bitboard(side(), Piece::KING);
-    U64 attacks = get_attacks(get_opposite_side(), colorsBB(side()));
+    U64 attacks = get_attacks(get_opposite_side(), colorsBB(get_opposite_side()) | colorsBB(side()));
     return !is_empty(kingPos & attacks);
 }
 
@@ -639,11 +659,14 @@ Position::Position(std::string fen)
     }
     
 
-    Square enPasSquare = static_cast<Square>(enPasFile + enPasRank * 8);
+    Square enPasSquare = (!noEnPas) ? static_cast<Square>(enPasFile + enPasRank * 8) : Square::A1;
+    if (!square_in_range(static_cast<int>(enPasSquare))) throw std::invalid_argument("Invalid FEN. Could not parse en passant square.");
+
     Color side = (fen_side == "w") ? Color::WHITE : Color::BLACK;
     set_side(side);
-    GameState game(halfmoves, castling, Piece::EMPTY, enPasSquare);
-    gameState.push_back(game);
+    Move nullMove(Square::A1, Square::A1, Flag::QUIET);
+    GameState game(nullMove, halfmoves, castling, Piece::EMPTY, enPasSquare);
+    gameHistory.push_back(game);
 }
 
 }

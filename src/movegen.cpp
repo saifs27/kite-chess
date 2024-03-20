@@ -8,7 +8,7 @@ void MoveGen::generate_king_moves()
 {
     Color side = pos.side();
     Color op_side = static_cast<Color>((static_cast<int>(side) + 1) % 2);
-
+    U64 checkingPieces = pos.pieces_attacking_king(pos.side());
     U64 king_pos = pos.get_bitboard(side, Piece::KING);
     Square from = lsb(king_pos);
     U64 bb = king_attacks(king_pos);
@@ -19,6 +19,8 @@ void MoveGen::generate_king_moves()
     Flag moveFlag = Flag::QUIET;
     if (checkMask != 0xffffffffffffffff) moves &= ~checkMask; 
     else moves &= checkMask;
+    moves |= (checkingPieces & bb);
+    
     while (!(is_empty(moves)))
     {
         Square to = pop_lsb(moves);
@@ -31,6 +33,7 @@ void MoveGen::generate_king_moves()
 
 void MoveGen::generate_castles()
 {
+    if (pos.is_check()) return;
     U64 kingPos = pos.get_bitboard(pos.side(), Piece::KING);
     U64 rooksPos = pos.get_bitboard(pos.side(), Piece::ROOK);
     Square from = (pos.side() == Color::WHITE) ? Square::E1 : Square::E8;
@@ -42,12 +45,13 @@ void MoveGen::generate_castles()
 
 
     U64 kingsideMask = (pos.side() == Color::WHITE) ? 0x60 : 0x6000000000000000;
-    U64 queensideMask = (pos.side() == Color::WHITE) ? 0xe : 0xe00000000000000;
+    U64 queensideAttackerMask = (pos.side() == Color::WHITE) ? 0xc : 0xc00000000000000;
+    U64 queensideBlockerMask = (pos.side() == Color::WHITE) ? 0xe : 0xe00000000000000;
 
     U64 blockers = pos.colorsBB(pos.side()) | pos.colorsBB(pos.get_opposite_side());
-    U64 attackers = pos.get_attacks(pos.get_opposite_side(), 0x0ULL);
+    U64 attackers = pos.get_attacks(pos.get_opposite_side(), pos.colorsBB(Color::WHITE) | pos.colorsBB(Color::BLACK));
     bool canCastleKingside = is_empty((blockers | attackers) & kingsideMask);
-    bool canCastleQueenside = is_empty((blockers | attackers) & queensideMask);
+    bool canCastleQueenside = is_empty( attackers & queensideAttackerMask) && is_empty(blockers & queensideBlockerMask);
     Castling kingsideFlag = (pos.side() == Color::WHITE) ? Castling::WhiteKingside : Castling::BlackKingside;
     Castling queensideFlag = (pos.side() == Color::WHITE) ? Castling::WhiteQueenside : Castling::BlackQueenside; 
     if (canCastleKingside && pos.can_castle(kingsideFlag))
@@ -102,7 +106,9 @@ void MoveGen::generate_double_pawn_push()
 void MoveGen::generate_pawn_push()
 {
     Color side = pos.side();
-    U64 pawn_pos = pos.get_bitboard(side, Piece::PAWN);
+
+    U64 notPromotionMask = (pos.side() == Color::WHITE) ?  ~rank::seventh : ~rank::second;
+    U64 pawn_pos = pos.get_bitboard(side, Piece::PAWN) & notPromotionMask;
     U64 relevant_blockers = pos.colorsBB(Color::WHITE) | pos.colorsBB(Color::BLACK);
 
     Square from;
@@ -155,7 +161,7 @@ void MoveGen::generate_en_passant()
     if (pos.enPassant().value() == Square::A1) return;
     U64 mask = (pos.side() == Color::WHITE) ? rank::sixth : rank::third;
     U64 enPas = set_bit(pos.enPassant().value()) & mask;
-    enPas &= checkMask;
+    //enPas &= checkMask;
     Move m(pos.enPassant().value(), pos.enPassant().value(), Flag::EN_PASSANT);
     
     if (!is_empty(enPas))
@@ -330,7 +336,12 @@ std::optional<Move> MoveGen::select_move(Move move)
     {
         for (auto m : moveList)
         {
-            if ((move.from() == m.from()) && (move.to() == m.to())) return m;
+            if ((move.from() == m.from()) && (move.to() == m.to())) 
+            {
+                if (!m.has_promotion_flag()) return m;
+
+                if (m.flags() == move.flags()) return m;
+            }
         }
     }
 
@@ -436,9 +447,6 @@ bool MoveGen::make_castle(Move move)
 
         pos.remove(Piece::ROOK, pos.side(), RookSq);
         pos.add(Piece::ROOK, pos.side(), RookSqTo);
-        
-
-        pos.push_move(move);
 
         return true;
 
@@ -555,7 +563,7 @@ bool MoveGen::make_move(const Move input)
 
     if (pos.score().white_score() != Result::EMPTY) return false;
     
-    auto game_state = pos.new_gameState(move);
+    auto game_state = pos.next_game_state(move);
 
     if (!game_state.has_value()) return false;
     //pos.gameState.push_back(game_state); 
@@ -565,23 +573,23 @@ bool MoveGen::make_move(const Move input)
     {
         case Flag::QUIET: case Flag::DOUBLE_PAWN:
             isValid = make_quiet(move);    
-            if (pos.is_check()) {undo_quiet(move); isValid = false; pos.gameState.pop_back();}
+            if (pos.is_check()) {undo_quiet(move); return false;}
             break;
         case Flag::KING_CASTLE: case Flag::QUEEN_CASTLE:
             isValid = make_castle(move);
-            if (pos.is_check()) {undo_castle(move); isValid = false; pos.gameState.pop_back();}
+            if (pos.is_check()) {undo_castle(move); return false;}
             break;
         case Flag::CAPTURE:
             isValid =  make_capture(move);
-            if (pos.is_check()) {undo_capture(move, game_state.value().captured); isValid = false; pos.gameState.pop_back();} 
+            if (pos.is_check()) {undo_capture(move, game_state.value().captured()); return false;} 
             break;
         case Flag::EN_PASSANT:
             isValid = make_enPassant(move); 
-            if (pos.is_check()) {undo_capture(move, Piece::PAWN); isValid = false; pos.gameState.pop_back();}
+            if (pos.is_check()) {undo_capture(move, Piece::PAWN); return false;}
             break;
         default:
             isValid = make_promotion(move);
-            if (pos.is_check()) {undo_promotion(move, game_state.value().captured); isValid = false; pos.gameState.pop_back();}
+            if (pos.is_check()) {undo_promotion(move, game_state.value().captured()); return false;}
             break;
     }
 
@@ -589,13 +597,13 @@ bool MoveGen::make_move(const Move input)
     
     if (isValid)
     {
-        pos.moveHistory.push_back(move);
         pos.switch_sides();
-        pos.gameState.push_back(game_state.value()); 
+        pos.gameHistory.push_back(game_state.value());
+        return true;
     }
 
 
-    return isValid;
+    return false;
 
 }
 bool MoveGen::undo_quiet(Move move)
@@ -613,7 +621,12 @@ bool MoveGen::undo_castle(Move move)
 {
     if (move.flags() == Flag::KING_CASTLE || move.flags() == Flag::QUEEN_CASTLE)
     {
-        undo_quiet(move);
+        Piece piece = pos.get_piece(move.to());
+        const U64 prevBB = set_bit(move.from());
+        const U64 currentBB = set_bit(move.to());
+
+        pos.remove(piece, pos.side(), move.to());
+        pos.add(piece, pos.side(), move.from());undo_quiet(move);
 
         switch (move.flags())
         {
@@ -656,18 +669,18 @@ bool MoveGen::undo_capture(Move move, Piece capture)
         const U64 currentBB = set_bit(move.to());
         if (move.flags() == Flag::EN_PASSANT && capture !=Piece::EMPTY)
             {
-                if (!pos.enPassant().has_value()) return false;
-                const Square enPasSq = pos.enPassant().value();
+                if (!pos.enPassant().has_value()) throw std::invalid_argument("no enPas value");
+                const Square enPasSq = pos.gameHistory.end()[-1].en_passant();
                 const U64 enPasBB = set_bit(enPasSq);
                 const Square capturedEnPas = (pos.side() == Color::WHITE) ? try_offset(enPasSq, 0, -1).value() : try_offset(enPasSq, 0, 1).value();
-                pos.add(Piece::PAWN, pos.side(), capturedEnPas);
+                pos.add(Piece::PAWN, pos.side(), move.from());
                 pos.add(Piece::PAWN, pos.get_opposite_side(), capturedEnPas);
                 return true;
             }
         pos.add(capture, pos.get_opposite_side(), move.to());
         return true;
     }
-    return false;  
+    throw std::invalid_argument(std::to_string(static_cast<int>(capture)));  
     
 }
 
@@ -691,42 +704,58 @@ bool MoveGen::undo_promotion(Move move, Piece captured)
 
 bool MoveGen::undo_move() 
 {
-    if (!pos.moveHistory.empty())
+    if (!pos.gameHistory.empty())
     {
+        
+        Move move = pos.gameHistory.back().move();
+        
+
+        if (pos.gameHistory.size() <= 1) throw std::invalid_argument("invalid gamestate, less than size 1");
+        GameState g = pos.gameHistory.back();
+        
+        
+
+        if (!g.is_valid_gameState()) throw std::invalid_argument("not a valid gamestate");
+
+        bool canUndo = false;
+        pos.switch_sides();
+        pos.gameHistory.pop_back();
+        switch (move.flags())
+        {
+            case Flag::QUIET: case Flag::DOUBLE_PAWN:
+                canUndo = undo_quiet(move);
+                if (!canUndo) throw std::invalid_argument("can't undo quiet");
+                break;
+            case Flag::KING_CASTLE: case Flag::QUEEN_CASTLE:
+                canUndo = undo_castle(move);
+                if (!canUndo) throw std::invalid_argument("can't undo castling");
+                break;
+            case Flag::EN_PASSANT: case Flag::CAPTURE:
+            {
+                if (g.captured() == Piece::EMPTY) throw std::invalid_argument("captured piece can't be empty");
+                canUndo = undo_capture(move, g.captured());
+                if (!canUndo) throw std::invalid_argument("can't undo capture");
+                break;
+            }
+            default:
+                canUndo = undo_promotion(move, g.captured());
+                if (!canUndo) throw std::invalid_argument("can't undo promotion");
+                break;
+        }
 
         if (pos.score().white_score() != Result::EMPTY)
         {
             pos.set_score(Result::EMPTY);
         }
 
-        pos.switch_sides();
-        Move move = pos.moveHistory.back();
-        pos.moveHistory.pop_back();
+        //pos.gameHistory.pop_back();
+        return canUndo; 
 
-        if (pos.gameState.empty()) return false;
-        GameState g = pos.gameState.back();
-        pos.gameState.pop_back();
 
-        if (!g.is_valid_gameState()) return false;
-
-        
-
-        switch (move.flags())
-        {
-            case Flag::QUIET: case Flag::DOUBLE_PAWN:
-                return undo_quiet(move);
-            case Flag::KING_CASTLE: case Flag::QUEEN_CASTLE:
-                return undo_castle(move);
-            case Flag::EN_PASSANT: case Flag::CAPTURE:
-            {
-                return undo_capture(move, g.captured);
-            }
-            default:
-                return undo_promotion(move, g.captured);
-        }        
     }
+    
     generate_all_moves();
-    return false;
+    throw std::invalid_argument("can't undo");
 }
 
 

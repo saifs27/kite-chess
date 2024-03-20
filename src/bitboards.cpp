@@ -88,14 +88,14 @@ void print_bitboard(const U64 bitboard) {
 
 U64 king_attacks(const U64 bb) {
     U64 kingPosition = bb;
-    const U64 left = kingPosition >> 1;
-    const U64 right = kingPosition << 1;
+    const U64 left = (kingPosition & ~file::A) >> 1;
+    const U64 right = (kingPosition & ~file::H) << 1;
     U64 attacks = left | right;
 
     kingPosition |= attacks;
 
-    const U64 up = kingPosition << 8;
-    const U64 down = kingPosition >> 8;
+    const U64 up = (kingPosition & ~rank::eighth) << 8;
+    const U64 down = (kingPosition & ~rank::first) >> 8;
 
     attacks |= up | down;
 

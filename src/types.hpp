@@ -141,36 +141,6 @@ inline bool has(U64 bb, Square square) {
 }
 
 
-struct GameState
-{
-    int fiftyMove  = 0;
-    short castlingPerm = 0b1111;
-    Piece captured = Piece::EMPTY;
-    Square enPassant = Square::A1;
-
-    GameState(int move50, short castling, Piece capture, Square enPas)
-    : enPassant(enPas), captured(capture), castlingPerm(castling), fiftyMove(move50)
-    {
-        if (!is_valid_gameState())
-        {
-            throw std::invalid_argument("invalid gamestate.");
-        }
-    }
-
-    void set_enPassant(Square sq){ enPassant = sq;}
-    bool is_valid_gameState()
-    {
-        bool isValidCastling = (castlingPerm >= 0 && castlingPerm <= 0b1111);
-        bool isValidEnPas = square_in_range(static_cast<int>(enPassant));
-        bool isValidCapture = piece_in_range(static_cast<int>(captured)) || captured == Piece::EMPTY;
-
-        return isValidCapture && isValidCastling && isValidCapture;
-
-    }
-    void incrementFiftyMove() {fiftyMove++;}
-    void decrementFiftyMove() {fiftyMove--;}
-
-};
 
 inline File get_file(Square square){
     int file = static_cast<int>(square) % 8;

@@ -19,8 +19,8 @@ class Position {
     Color _side = Color::WHITE;
 
     public:
-    std::vector<Move> moveHistory = {}; 
-    std::vector<GameState> gameState = {};
+    //std::vector<Move> moveHistory = {}; 
+    std::vector<GameState> gameHistory = {};
 
     public:
     void terminate(GameResult result);
@@ -38,7 +38,6 @@ class Position {
     void add(Piece piece, Color color, Square addSq);    
     void remove(Piece piece, Color color, Square removeSq);
     bool is_empty_square(Square sq) const;
-    void push_move(Move move);
     const U64 colorsBB(Color color) const 
     {
         if (color_in_range(static_cast<int>(color))) return pieceBB[static_cast<int>(color)];
@@ -55,30 +54,30 @@ class Position {
     Score score() const {return _score;};
     void set_score(Result res) {_score.set_score(res);};
     std::optional<short> update_castlingPerm(const Move move) const;
-    std::optional<GameState> new_gameState(Move move) const;
+    std::optional<GameState> next_game_state(Move move) const;
 
     std::optional<Square> enPassant() const {
-        if (!gameState.empty()) 
+        if (!gameHistory.empty()) 
         {
-            auto en_pas = gameState.back().enPassant;
+            auto en_pas = gameHistory.back().en_passant();
             if (square_in_range(static_cast<int>(en_pas))) return en_pas;
         }
         return {};
     }
 
     std::optional<int> fiftyMove() const {
-        if (!gameState.empty()) 
+        if (!gameHistory.empty()) 
         {
-            auto m50 = gameState.back().fiftyMove;
+            auto m50 = gameHistory.back().fifty_move();
             if (m50 >=0) return m50;
         }
         return {};
     }
 
     std::optional<short> castlingPerms() const {
-        if (!gameState.empty()) 
+        if (!gameHistory.empty()) 
         {
-            auto castling = gameState.back().castlingPerm;
+            auto castling = gameHistory.back().castling_perms();
             if (is_valid_castling_perm(castling)) return castling;
         }
         return {};

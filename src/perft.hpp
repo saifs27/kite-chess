@@ -24,23 +24,35 @@ inline int perft(Position& pos, int depth)
     {
         throw std::invalid_argument(std::to_string(depth));
     }
+
+    int initalGameHistory = pos.gameHistory.size();
     MoveGen moves(pos);
     U64 nodes = 0;
     if (depth == 0) return 1;
 
     moves.generate_all_moves();
-    if (depth == 1) return moves.movelist_size();
     for (auto move : moves.move_list())
     {
+        int initial_game_history_size = pos.gameHistory.size();
         bool isValidMove = moves.make_move(move);
         if (isValidMove)
         {
             nodes += perft(pos, depth - 1);
-            moves.undo_move();
+            bool undo = moves.undo_move();
+            int current_game_history_size = pos.gameHistory.size();
+
+            bool isValidGameHistory = (initial_game_history_size == current_game_history_size);
+            if (!undo || !isValidGameHistory)
+            {
+              throw std::invalid_argument("can't undo.");  
+            }
+             
         }
     
         
     }
+    bool gameHistoryIsConsistent = (pos.gameHistory.size() == initalGameHistory);
+    if (!gameHistoryIsConsistent) throw std::invalid_argument("inconsistent game history");
     return nodes;
 }
 
@@ -55,7 +67,7 @@ inline std::vector<Output> perft_verbose(Position& pos, int depth)
     
     n_moves.generate_all_moves();
 
-    if (depth == 1) return {{"null", static_cast<U64>(n_moves.move_list().size())}};
+    //if (depth == 1) return {{"null", static_cast<U64>(n_moves.move_list().size())}};
     for (auto i : n_moves.move_list())
     {       
 
@@ -103,9 +115,9 @@ inline void debug_perft(Position& pos, short initial_depth)
     std::string moveString;
     while (depth >= 0)
     {
-        //print_perft(pos, depth);
-        int nodes = perft(pos,depth);
-        std::cout << nodes << '\n';
+        print_perft(pos, depth);
+        //int nodes = perft(pos,depth);
+        //std::cout << nodes << '\n';
         --depth;
         std::cin >> moveString;
         auto move = UCI::uci_to_move(pos, moveString);
