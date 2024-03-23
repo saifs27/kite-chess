@@ -34,6 +34,8 @@ add_executable(smyslov
                 src/uci.hpp
                 src/moves.cpp
                 src/moves.hpp
+                src/evaluation.cpp
+                src/evaluation.hpp
                 )
 
 target_include_directories(smyslov PRIVATE src)

@@ -19,11 +19,9 @@ class Position {
     Color _side = Color::WHITE;
 
     public:
-    //std::vector<Move> moveHistory = {}; 
     std::vector<GameState> gameHistory = {};
 
     public:
-    void terminate(GameResult result);
     Color side() const {return _side;};
     void set_side(Color side) { if (side == Color::WHITE || side == Color::BLACK) _side = side;};
     Position();
@@ -82,9 +80,6 @@ class Position {
         }
         return {};
     }
-
-
-
 
     U64 get_bitboard(const Color color, const Piece piece) const;
     Piece get_piece(const Square sq) const ;

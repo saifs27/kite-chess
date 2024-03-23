@@ -2,14 +2,16 @@
 
 #include <array>
 #include "types.hpp"
-namespace Smyslov {
-
-
-namespace Rays
-{
+namespace Smyslov::Rays {
     enum Direction {NORTH, SOUTH, EAST, WEST, NE, NW, SE, SW};
-    
-    // Initializing rayAttacks at compile time using lambdas. (The () at the end is to call the lambda right away.)
+
+
+    /*
+    Initializing rayAttacks at compile time using lambdas. 
+    The () at the end is to call the lambda right away.
+    */
+
+
     inline static constexpr auto rayAttacks = []()
     {
         std::array<std::array<U64, 8>, 64> rays{};
@@ -25,7 +27,6 @@ namespace Rays
             rays[sq][static_cast<int>(Direction::NORTH)] = north;
             rays[63-sq][static_cast<int>(Direction::SOUTH)] = south;  
         }
-
 
         for (int sq = 0; sq < 64; sq++, east <<=1, west >>=1) {
             rays[sq][static_cast<int>(Direction::EAST)] = east & get_rank_mask<int>(sq);
@@ -52,30 +53,11 @@ namespace Rays
 
         return rays;
     }();
-    
 
-
-
-    inline U64 getRayAttacks(Square sq, Direction dir)
+    inline U64 get_ray_attacks(Square sq, Direction dir)
     {
         if (sq == Square::EMPTY_SQUARE) return 0x0ULL;
         return rayAttacks[static_cast<int>(sq)][static_cast<int>(dir)];
     }
-
-
-
-
-
-
-}
-
-
-    
-
-
-
-
-
-
 
 }

@@ -154,27 +154,27 @@ U64 double_pawn_push(const U64 bb, Color color)
 
 U64 rook_attacks(Square sq, const U64 blockers) {
     U64 attacks = 0x0ULL;
-    attacks |= Rays::getRayAttacks(sq, Rays::Direction::NORTH);
+    attacks |= Rays::get_ray_attacks(sq, Rays::Direction::NORTH);
 
-    if (Rays::getRayAttacks(sq, Rays::Direction::NORTH)) {
-        Square blockerIndex = (lsb(Rays::getRayAttacks(sq, Rays::Direction::NORTH) & blockers));
-        attacks &= ~Rays::getRayAttacks(blockerIndex, Rays::Direction::NORTH);
+    if (Rays::get_ray_attacks(sq, Rays::Direction::NORTH)) {
+        Square blockerIndex = (lsb(Rays::get_ray_attacks(sq, Rays::Direction::NORTH) & blockers));
+        attacks &= ~Rays::get_ray_attacks(blockerIndex, Rays::Direction::NORTH);
     }
-    attacks |= Rays::getRayAttacks(sq, Rays::Direction::SOUTH);
+    attacks |= Rays::get_ray_attacks(sq, Rays::Direction::SOUTH);
 
-    if (Rays::getRayAttacks(sq, Rays::Direction::SOUTH)) {
-        Square blockerIndex = (msb(Rays::getRayAttacks(sq, Rays::Direction::SOUTH) & blockers));
-        attacks &= ~Rays::getRayAttacks(blockerIndex, Rays::Direction::SOUTH);
+    if (Rays::get_ray_attacks(sq, Rays::Direction::SOUTH)) {
+        Square blockerIndex = (msb(Rays::get_ray_attacks(sq, Rays::Direction::SOUTH) & blockers));
+        attacks &= ~Rays::get_ray_attacks(blockerIndex, Rays::Direction::SOUTH);
     }
-    attacks |= Rays::getRayAttacks(sq, Rays::EAST);
-    if (Rays::getRayAttacks(sq, Rays::EAST)) {
-        Square blockerIndex = (lsb(Rays::getRayAttacks(sq, Rays::EAST) & blockers));
-        attacks &= ~Rays::getRayAttacks(blockerIndex,Rays::EAST);
+    attacks |= Rays::get_ray_attacks(sq, Rays::EAST);
+    if (Rays::get_ray_attacks(sq, Rays::EAST)) {
+        Square blockerIndex = (lsb(Rays::get_ray_attacks(sq, Rays::EAST) & blockers));
+        attacks &= ~Rays::get_ray_attacks(blockerIndex,Rays::EAST);
     }
-    attacks |= Rays::getRayAttacks(sq, Rays::WEST);
-    if (Rays::getRayAttacks(sq, Rays::WEST)) {
-        Square blockerIndex = (msb(Rays::getRayAttacks(sq, Rays::WEST) & blockers));
-        attacks &= ~Rays::getRayAttacks(blockerIndex, Rays::WEST);
+    attacks |= Rays::get_ray_attacks(sq, Rays::WEST);
+    if (Rays::get_ray_attacks(sq, Rays::WEST)) {
+        Square blockerIndex = (msb(Rays::get_ray_attacks(sq, Rays::WEST) & blockers));
+        attacks &= ~Rays::get_ray_attacks(blockerIndex, Rays::WEST);
     }
     return attacks;
     
@@ -183,27 +183,27 @@ U64 rook_attacks(Square sq, const U64 blockers) {
 
 U64 bishop_attacks(Square sq, const U64 blockers) {
     U64 attacks = 0x0ULL;
-    attacks |= Rays::getRayAttacks(sq, Rays::NE);
+    attacks |= Rays::get_ray_attacks(sq, Rays::NE);
 
-    if (Rays::getRayAttacks(sq, Rays::NE)) {
-        Square blockerIndex = (lsb(Rays::getRayAttacks(sq, Rays::NE) & blockers));
-        attacks &= ~Rays::getRayAttacks(blockerIndex, Rays::NE);    
+    if (Rays::get_ray_attacks(sq, Rays::NE)) {
+        Square blockerIndex = (lsb(Rays::get_ray_attacks(sq, Rays::NE) & blockers));
+        attacks &= ~Rays::get_ray_attacks(blockerIndex, Rays::NE);    
     }
-    attacks |= Rays::getRayAttacks(sq, Rays::SE);
+    attacks |= Rays::get_ray_attacks(sq, Rays::SE);
 
-    if (Rays::getRayAttacks(sq, Rays::SE)) {
-        Square blockerIndex = (msb(Rays::getRayAttacks(sq, Rays::SE) & blockers));
-        attacks &= ~Rays::getRayAttacks(blockerIndex, Rays::SE);
+    if (Rays::get_ray_attacks(sq, Rays::SE)) {
+        Square blockerIndex = (msb(Rays::get_ray_attacks(sq, Rays::SE) & blockers));
+        attacks &= ~Rays::get_ray_attacks(blockerIndex, Rays::SE);
     }
-    attacks |= Rays::getRayAttacks(sq,Rays::NW);
-    if (Rays::getRayAttacks(sq, Rays::NW)) {
-        Square blockerIndex = (lsb(Rays::getRayAttacks(sq, Rays::NW) & blockers));
-        attacks &= ~Rays::getRayAttacks(blockerIndex, Rays::NW);
+    attacks |= Rays::get_ray_attacks(sq,Rays::NW);
+    if (Rays::get_ray_attacks(sq, Rays::NW)) {
+        Square blockerIndex = (lsb(Rays::get_ray_attacks(sq, Rays::NW) & blockers));
+        attacks &= ~Rays::get_ray_attacks(blockerIndex, Rays::NW);
     }
-    attacks |= Rays::getRayAttacks(sq, Rays::SW);
-    if (Rays::getRayAttacks(sq, Rays::SW)) {
-        Square blockerIndex = (msb(Rays::getRayAttacks(sq, Rays::SW) & blockers));
-        attacks &= ~Rays::getRayAttacks(blockerIndex, Rays::SW);
+    attacks |= Rays::get_ray_attacks(sq, Rays::SW);
+    if (Rays::get_ray_attacks(sq, Rays::SW)) {
+        Square blockerIndex = (msb(Rays::get_ray_attacks(sq, Rays::SW) & blockers));
+        attacks &= ~Rays::get_ray_attacks(blockerIndex, Rays::SW);
     }
     return attacks;
 }

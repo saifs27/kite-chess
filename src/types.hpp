@@ -4,6 +4,8 @@
 #include <iostream>
 #include <vector>
 #include <limits>
+#include <chrono>
+#include <thread>
 
 namespace Smyslov {
 typedef unsigned long long U64;
@@ -23,9 +25,28 @@ enum class Square {
 enum File {A, B, C, D, E, F, G, H};
 enum Rank {First, Second, Third, Fourth, Fifth, Sixth, Seventh, Eighth};
 
+enum class Color {WHITE, BLACK, NONE}; 
+enum class Piece {PAWN = 2, KNIGHT, BISHOP, ROOK, QUEEN, KING, EMPTY}; // starts at 2 to access position bitboard array
+enum class Castling {None = 0b0000, WhiteKingside = 0b0001, WhiteQueenside = 0b0010, BlackKingside = 0b0100, BlackQueenside = 0b1000};
+enum Result {WHITE_WIN, BLACK_WIN, DRAW, EMPTY};
 
-
-
+// Flags for move type
+enum class Flag {
+    QUIET,
+    DOUBLE_PAWN,
+    KING_CASTLE,
+    QUEEN_CASTLE,
+    EN_PASSANT,
+    CAPTURE,
+    PROMOTE_QUEEN,
+    PROMOTE_KNIGHT,
+    PROMOTE_ROOK,
+    PROMOTE_BISHOP,
+    PROMOTE_KNIGHT_CAPTURE,
+    PROMOTE_QUEEN_CAPTURE,
+    PROMOTE_ROOK_CAPTURE,
+    PROMOTE_BISHOP_CAPTURE,
+};
 
 namespace file {
 inline constexpr U64 A = 0x101010101010101ULL;
@@ -49,10 +70,52 @@ inline constexpr U64 seventh = 0xff000000000000;
 inline constexpr U64 eighth  = 0xff00000000000000;
 }
 
+namespace PieceValue
+{
+    inline constexpr int queen = 900;
+    inline constexpr int rook = 500;
+    inline constexpr int bishop = 325;
+    inline constexpr int knight = 300;
+    inline constexpr int pawn = 100;
+    inline constexpr int king = std::numeric_limits<int>::max();
+}
 
-enum class Castling {None = 0b0000, WhiteKingside = 0b0001, WhiteQueenside = 0b0010, BlackKingside = 0b0100, BlackQueenside = 0b1000};
+inline int get_piece_value(Piece piece)
+{
+    switch (piece)
+    {
+        case Piece::QUEEN: return PieceValue::queen;
+        case Piece::ROOK: return PieceValue::rook;
+        case Piece::BISHOP: return PieceValue::bishop;
+        case Piece::KNIGHT: return PieceValue::knight;
+        case Piece::PAWN: return PieceValue::pawn;
+        case Piece::KING: return PieceValue::king;
+        default: return 0;
+    }
+}
 
-enum Result {WHITE_WIN, BLACK_WIN, DRAW, EMPTY};
+
+
+struct Timer
+{
+private:
+    std::chrono::time_point<std::chrono::high_resolution_clock> start, end;
+    std::chrono::duration<float> duration;
+public:
+    Timer()
+    {
+        start = std::chrono::high_resolution_clock::now();
+    }
+
+    ~Timer()
+    {
+        end = std::chrono::high_resolution_clock::now();
+        duration = end - start;
+        float ms = duration.count() * 1000.0f;
+        std::cout << "Took " << ms << " ms" << '\n';
+    }
+
+};
 
 
 struct Score
@@ -92,48 +155,19 @@ struct Score
     int _white = Result::EMPTY;
     int _black  = Result::EMPTY;
 };
-/*
-White kingside castling: 0001
-0010
-0100
-1000
-*/
-enum class GameResult {WHITE_WINS, BLACK_WINS, DRAW};
 
-enum class Color {WHITE, BLACK, NONE}; 
-enum class Piece {PAWN = 2, KNIGHT, BISHOP, ROOK, QUEEN, KING, EMPTY}; // starts at 2 to access position bitboard array
+
 
 
 inline bool is_valid_castling_perm(short castling_perm) {return (castling_perm >= 0 && castling_perm <= 0b1111);}
-
 inline bool color_in_range(int color) {return (color == 0 || color == 1);}
 inline bool piece_in_range(int piece) {return (piece >= 2 && piece < 8);}
 inline bool square_in_range(int square) {return (square >= 0 && square < 64);}
 
-enum class Flag {
-    QUIET,
-    DOUBLE_PAWN,
-    KING_CASTLE,
-    QUEEN_CASTLE,
-    EN_PASSANT,
-    CAPTURE,
-    PROMOTE_QUEEN,
-    PROMOTE_KNIGHT,
-    PROMOTE_ROOK,
-    PROMOTE_BISHOP,
-    PROMOTE_KNIGHT_CAPTURE,
-    PROMOTE_QUEEN_CAPTURE,
-    PROMOTE_ROOK_CAPTURE,
-    PROMOTE_BISHOP_CAPTURE,
-};
 
-inline U64 set_bit(Square sq) {
-    return 0x1ULL << static_cast<int>(sq);
-}
+inline U64 set_bit(Square sq) { return 0x1ULL << static_cast<int>(sq);}
 
-inline bool is_empty(U64 bb)  {
-    return bb == 0x0ULL;
-}
+inline bool is_empty(U64 bb)  { return bb == 0x0ULL;}
 
 inline bool has(U64 bb, Square square) {
     U64 check_sq = bb & set_bit(square);
@@ -151,29 +185,19 @@ inline Rank get_rank(Square square){
     return static_cast<Rank>(rank);
 }
 
-
 template <typename T>
-inline constexpr U64 get_file_mask(T square){
+inline constexpr U64 get_file_mask(const T square){
     int file = square % 8;
     switch (file) {
-        case 0:
-        return file::A;
-        case 1:
-        return file::B;
-        case 2:
-        return file::C;
-        case 3:
-        return file::D;
-        case 4:
-        return file::E;
-        case 5:
-        return file::F;
-        case 6:
-        return file::G;
-        case 7:
-        return file::H;
-        default:
-        return 0x0ULL;
+        case 0: return file::A;
+        case 1: return file::B;
+        case 2: return file::C;
+        case 3: return file::D;
+        case 4: return file::E;
+        case 5: return file::F;
+        case 6: return file::G;
+        case 7: return file::H;
+        default: return 0x0ULL;
     }
 }
 
@@ -181,24 +205,15 @@ template <typename T>
 inline constexpr U64 get_rank_mask(const T square){
     const int rank = square / 8;
     switch (rank) {
-        case 0:
-        return rank::first;
-        case 1:
-        return rank::second;
-        case 2:
-        return rank::third;
-        case 3:
-        return rank::fourth;
-        case 4:
-        return rank::fifth;
-        case 5:
-        return rank::sixth;
-        case 6:
-        return rank::seventh;
-        case 7:
-        return rank::eighth;
-        default:
-        return 0x0ULL;
+        case 0: return rank::first;
+        case 1: return rank::second;
+        case 2: return rank::third;
+        case 3: return rank::fourth;
+        case 4: return rank::fifth;
+        case 5: return rank::sixth;
+        case 6: return rank::seventh;
+        case 7: return rank::eighth;
+        default: return 0x0ULL;
     }
 }
 
@@ -206,17 +221,14 @@ template <typename T>
 inline constexpr U64 mask_west(const T sq)
 {
     U64 mask = 0x0ULL;
-
     const U64 stop = get_file_mask(sq);
 
     for (U64 file = file::A; file < stop; file <<= 1)
     {
-
         mask |= file;
     }
 
     return mask;
-
 }
 
 template <typename T>

@@ -53,7 +53,7 @@ TEST_CASE("pawn pushes", "[pawnpush]") {
 
 TEST_CASE ("bishop attacks", "[bishop]") {
     REQUIRE (bishop_attacks(Square::D4, 0x0ULL) == 0x8041221400142241);
-    REQUIRE (Rays::getRayAttacks(Square::D4, Rays::Direction::NE) == 0x8040201000000000);
+    REQUIRE (Rays::get_ray_attacks(Square::D4, Rays::Direction::NE) == 0x8040201000000000);
 }
 
 TEST_CASE ("msb", "[msb]") {

@@ -327,10 +327,7 @@ void Position::print_board() const
 
     }
     std::cout << '\n';
-
-
 }
-
 
 bool Position::is_check() const
 {
@@ -362,14 +359,14 @@ U64 Position::pin_mask(Color color) const
 
 
 
-    U64 north = Rays::getRayAttacks(kingSq, Rays::Direction::NORTH);
-    U64 south = Rays::getRayAttacks(kingSq, Rays::Direction::SOUTH);
-    U64 east = Rays::getRayAttacks(kingSq, Rays::Direction::EAST);
-    U64 west = Rays::getRayAttacks(kingSq, Rays::Direction::WEST);
-    U64 nw = Rays::getRayAttacks(kingSq, Rays::Direction::NW);
-    U64 ne = Rays::getRayAttacks(kingSq, Rays::Direction::NE);
-    U64 sw = Rays::getRayAttacks(kingSq, Rays::Direction::SW);
-    U64 se = Rays::getRayAttacks(kingSq, Rays::Direction::SE);
+    U64 north = Rays::get_ray_attacks(kingSq, Rays::Direction::NORTH);
+    U64 south = Rays::get_ray_attacks(kingSq, Rays::Direction::SOUTH);
+    U64 east = Rays::get_ray_attacks(kingSq, Rays::Direction::EAST);
+    U64 west = Rays::get_ray_attacks(kingSq, Rays::Direction::WEST);
+    U64 nw = Rays::get_ray_attacks(kingSq, Rays::Direction::NW);
+    U64 ne = Rays::get_ray_attacks(kingSq, Rays::Direction::NE);
+    U64 sw = Rays::get_ray_attacks(kingSq, Rays::Direction::SW);
+    U64 se = Rays::get_ray_attacks(kingSq, Rays::Direction::SE);
 
     std::vector<U64> hv = {north, south, east, west};
     std::vector<U64> diagonals = {nw, ne, sw, se};

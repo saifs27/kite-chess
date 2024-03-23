@@ -8,6 +8,14 @@
 #include "uci.hpp"
 namespace Smyslov {
 
+/*
+Perft is a recursive debugging function which makes it easier to find obscure edge 
+cases and bugs in move generation.
+
+perft_verbose lists out all the nodes from each move from the starting position. 
+This makes it easier to compare with Stockfish's perft results.
+
+*/
 
 
 struct Output
@@ -16,7 +24,7 @@ struct Output
     U64 nodes;
 };
 
-bool compareOutputs(Output a, Output b) {return a.move < b.move;}
+bool compare_outputs(Output a, Output b) {return a.move < b.move;}
 
 inline int perft(Position& pos, int depth)
 {
@@ -99,7 +107,7 @@ inline std::vector<Output> perft_verbose(Position& pos, int depth)
 inline void print_perft(Position& pos, short depth)
 {
     auto result = perft_verbose(pos, depth);
-    std::sort(result.begin(), result.end(), compareOutputs);
+    std::sort(result.begin(), result.end(), compare_outputs);
 
     for (auto n : result)
     {

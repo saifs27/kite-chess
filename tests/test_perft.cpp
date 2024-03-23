@@ -5,6 +5,10 @@
 
 using namespace Smyslov;
 
+/* 
+Verify perft numbers.
+Positions taken from https://www.chessprogramming.org/Perft_Results. 
+*/
 
 TEST_CASE("startpos", "[startpos]")
 {

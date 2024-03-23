@@ -16,9 +16,6 @@ Square pop_lsb(U64& bitboard);
 void print_bitboard(const U64 bitboard);
 std::vector<Square> get_squares(const U64 bb);
 
-
-
-
 U64 king_attacks(const U64 bb);
 U64 knight_attacks(const U64 bb);
 U64 pawn_attacks(const U64 bb, const Color color);
