@@ -1,9 +1,9 @@
-[![Kite](https://github.com/saifs27/kite-chess/actions/workflows/smyslov.yml/badge.svg)](https://github.com/saifs27/smyslov-chess/actions/workflows/smyslov.yml)
+[![Kite](https://github.com/saifs27/kite-chess/actions/workflows/kite.yml/badge.svg)](https://github.com/saifs27/kite-chess/actions/workflows/kite.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 
 
-# Smyslov Chess Engine
+# Kite Chess Engine
 
 ## About
 A UCI chess engine which analyzes and outputs the best moves. (Still a work in progress)
