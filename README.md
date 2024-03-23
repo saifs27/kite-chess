@@ -6,7 +6,7 @@
 # Kite Chess Engine
 
 ## About
-A UCI chess engine which analyzes and outputs the best moves. (Still a work in progress)
+Kite is a UCI chess engine which analyzes and outputs the best moves. (Still a work in progress)
 
 ## Build Instructions
 
