@@ -16,7 +16,6 @@ Square msb(const U64 bitboard) {
 
     for (int sq = 63; sq >= 0; sq--, mask >>=1)
     {
-
         if ((bitboard & mask) == mask) {
             return static_cast<Square>(sq);
         }
@@ -145,8 +144,6 @@ U64 double_pawn_push(const U64 bb, Color color)
     return push;
 }
 
-
-
 /*
     Using classical approach instead of magic bitboards for sliding pieces
 */
@@ -206,8 +203,5 @@ U64 bishop_attacks(Square sq, const U64 blockers) {
     }
     return attacks;
 }
-
-
-
 
 }

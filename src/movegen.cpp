@@ -48,8 +48,8 @@ void MoveGen::generate_castles()
     U64 queensideAttackerMask = (pos.side() == Color::WHITE) ? 0xc : 0xc00000000000000;
     U64 queensideBlockerMask = (pos.side() == Color::WHITE) ? 0xe : 0xe00000000000000;
 
-    U64 blockers = pos.colorsBB(pos.side()) | pos.colorsBB(pos.get_opposite_side());
-    U64 attackers = pos.get_attacks(pos.get_opposite_side(), pos.colorsBB(Color::WHITE) | pos.colorsBB(Color::BLACK));
+    U64 blockers = pos.colorsBB(pos.side()) | pos.colorsBB(pos.opposite_side());
+    U64 attackers = pos.get_attacks(pos.opposite_side(), pos.colorsBB(Color::WHITE) | pos.colorsBB(Color::BLACK));
     bool canCastleKingside = is_empty((blockers | attackers) & kingsideMask);
     bool canCastleQueenside = is_empty( attackers & queensideAttackerMask) && is_empty(blockers & queensideBlockerMask);
     Castling kingsideFlag = (pos.side() == Color::WHITE) ? Castling::WhiteKingside : Castling::BlackKingside;
@@ -136,7 +136,7 @@ void MoveGen::generate_pawn_captures()
     U64 mask = (pos.side() == Color::WHITE) ? ~(rank::seventh | rank::eighth) : ~(rank::second | rank::first);
     U64 pawn_pos = pos.get_bitboard(pos.side(), Piece::PAWN) & mask; // to deal with promotion captures elsewhere
     U64 attacks;
-    U64 opponent_pieces = pos.colorsBB(pos.get_opposite_side());
+    U64 opponent_pieces = pos.colorsBB(pos.opposite_side());
     Square from;
     Square to;
     while (!is_empty(pawn_pos))
@@ -157,12 +157,12 @@ void MoveGen::generate_pawn_captures()
 
 void MoveGen::generate_en_passant()
 {
-    if (!pos.enPassant().has_value()) return;
-    if (pos.enPassant().value() == Square::A1) return;
+    if (!pos.en_passant().has_value()) return;
+    if (pos.en_passant().value() == Square::A1) return;
     U64 mask = (pos.side() == Color::WHITE) ? rank::sixth : rank::third;
-    U64 enPas = set_bit(pos.enPassant().value()) & mask;
+    U64 enPas = set_bit(pos.en_passant().value()) & mask;
     //enPas &= checkMask;
-    Move m(pos.enPassant().value(), pos.enPassant().value(), Flag::EN_PASSANT);
+    Move m(pos.en_passant().value(), pos.en_passant().value(), Flag::EN_PASSANT);
     
     if (!is_empty(enPas))
     {
@@ -184,7 +184,7 @@ void MoveGen::generate_en_passant()
 void MoveGen::generate_moves(Piece piece) 
 {
     Color side = pos.side();
-    Color op_side = pos.get_opposite_side();
+    Color op_side = pos.opposite_side();
 
     U64 piece_pos = pos.get_bitboard(side, piece);
     Square from;
@@ -249,7 +249,7 @@ void MoveGen::generate_promotions()
     U64 blockerMask = (pos.side() == Color::WHITE) ? rank::eighth : rank::first;
     U64 pawns = pos.get_bitboard(pos.side(), Piece::PAWN) & mask;
     pawns &= checkMask;
-    U64 blockers = pos.colorsBB(pos.get_opposite_side()) & blockerMask;
+    U64 blockers = pos.colorsBB(pos.opposite_side()) & blockerMask;
     Move move(Square::A1, Square::A1, Flag::QUIET);
     while (!is_empty(pawns))
     {
@@ -282,7 +282,7 @@ void MoveGen::generate_promotion_captures()
     U64 captureMask = (pos.side() == Color::WHITE) ? rank::eighth : rank::first;
     U64 pawns = pos.get_bitboard(pos.side(), Piece::PAWN) & mask;
     pawns &= checkMask;
-    U64 capturables = pos.colorsBB(pos.get_opposite_side()) & captureMask;
+    U64 capturables = pos.colorsBB(pos.opposite_side()) & captureMask;
     Move move(Square::A1, Square::A1, Flag::QUIET);
     while (!is_empty(pawns))
     {
@@ -365,7 +365,7 @@ bool MoveGen::is_checkmate()
 
     
     U64 blockers = (pos.colorsBB(Color::WHITE) | pos.colorsBB(Color::BLACK)) & ~attackers;
-    U64 attackMask = pos.get_attacks(pos.get_opposite_side(), blockers);
+    U64 attackMask = pos.get_attacks(pos.opposite_side(), blockers);
     U64 kingBB = pos.get_bitboard(pos.side(), Piece::KING);
     Square kingSq = lsb(kingBB);
 
@@ -466,7 +466,7 @@ bool MoveGen::make_capture(const Move move)
         Piece piece = pos.get_piece(move.from());
 
         pos.remove(piece, pos.side(), move.from());
-        pos.remove(captured, pos.get_opposite_side(), move.to());
+        pos.remove(captured, pos.opposite_side(), move.to());
         pos.add(piece, pos.side(), move.to());
 
 
@@ -501,14 +501,14 @@ bool MoveGen::make_quiet(const Move move)
 
 bool MoveGen::make_enPassant(Move move)
 {
-    if (!pos.enPassant().has_value()) return false;
-    Square enPassantSq = (pos.enPassant().value());
+    if (!pos.en_passant().has_value()) return false;
+    Square enPassantSq = (pos.en_passant().value());
     auto capturedPawn = (pos.side() == Color::WHITE) ? try_offset(enPassantSq, 0, -1) : try_offset(enPassantSq, 0, 1);
 
     if ((move.flags() == Flag::EN_PASSANT) && (enPassantSq != Square::A1) && (capturedPawn.has_value()))
     {
         
-        pos.remove(Piece::PAWN, pos.get_opposite_side(), capturedPawn.value());
+        pos.remove(Piece::PAWN, pos.opposite_side(), capturedPawn.value());
         pos.remove(Piece::PAWN, pos.side(), move.from());
         pos.add(Piece::PAWN, pos.side(), enPassantSq);
         return true;
@@ -543,7 +543,7 @@ bool MoveGen::make_promotion(Move move)
 
         if (captured != Piece::EMPTY) 
         {
-            pos.remove(captured, pos.get_opposite_side(), move.to());
+            pos.remove(captured, pos.opposite_side(), move.to());
         }
         pos.remove(Piece::PAWN, pos.side(), move.from());
         pos.add(promotedPiece, pos.side(), move.to());
@@ -669,15 +669,15 @@ bool MoveGen::undo_capture(Move move, Piece capture)
         const U64 currentBB = set_bit(move.to());
         if (move.flags() == Flag::EN_PASSANT && capture !=Piece::EMPTY)
             {
-                if (!pos.enPassant().has_value()) throw std::invalid_argument("no enPas value");
+                if (!pos.en_passant().has_value()) throw std::invalid_argument("no enPas value");
                 const Square enPasSq = pos.gameHistory.end()[-1].en_passant();
                 const U64 enPasBB = set_bit(enPasSq);
                 const Square capturedEnPas = (pos.side() == Color::WHITE) ? try_offset(enPasSq, 0, -1).value() : try_offset(enPasSq, 0, 1).value();
                 pos.add(Piece::PAWN, pos.side(), move.from());
-                pos.add(Piece::PAWN, pos.get_opposite_side(), capturedEnPas);
+                pos.add(Piece::PAWN, pos.opposite_side(), capturedEnPas);
                 return true;
             }
-        pos.add(capture, pos.get_opposite_side(), move.to());
+        pos.add(capture, pos.opposite_side(), move.to());
         return true;
     }
     throw std::invalid_argument(std::to_string(static_cast<int>(capture)));  
@@ -696,7 +696,7 @@ bool MoveGen::undo_promotion(Move move, Piece captured)
 
     if (captured != Piece::EMPTY)
     {
-        pos.add(captured, pos.get_opposite_side(), move.to());
+        pos.add(captured, pos.opposite_side(), move.to());
     }
     
     return true;

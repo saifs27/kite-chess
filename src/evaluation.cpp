@@ -2,7 +2,6 @@
 
 namespace Kite::Eval
 {
-
 int material_count(const Position& pos, Color side)
 {
     int queens = population_count(pos.get_bitboard(side, Piece::QUEEN));
@@ -22,7 +21,7 @@ int material_count(const Position& pos, Color side)
 
 float evaluate(const Position& pos)
 {
-    auto materialDiff = material_count(pos, pos.side())- material_count(pos, pos.get_opposite_side());
+    auto materialDiff = material_count(pos, pos.side())- material_count(pos, pos.opposite_side());
     return materialDiff;
 
 

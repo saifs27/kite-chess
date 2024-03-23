@@ -143,7 +143,32 @@ Square Position::captured_enPassant(Square enPasSq, Color color) const
 
 }
 
+    std::optional<Square> Position::en_passant() const {
+        if (!gameHistory.empty()) 
+        {
+            auto en_pas = gameHistory.back().en_passant();
+            if (square_in_range(static_cast<int>(en_pas))) return en_pas;
+        }
+        return {};
+    }
 
+    std::optional<int> Position::fiftyMove() const {
+        if (!gameHistory.empty()) 
+        {
+            auto m50 = gameHistory.back().fifty_move();
+            if (m50 >=0) return m50;
+        }
+        return {};
+    }
+
+    std::optional<short> Position::castlingPerms() const {
+        if (!gameHistory.empty()) 
+        {
+            auto castling = gameHistory.back().castling_perms();
+            if (is_valid_castling_perm(castling)) return castling;
+        }
+        return {};
+    }
 
 U64 Position::get_attacks(const Color color, U64 blockers) const 
 {
@@ -332,7 +357,7 @@ void Position::print_board() const
 bool Position::is_check() const
 {
     U64 kingPos = get_bitboard(side(), Piece::KING);
-    U64 attacks = get_attacks(get_opposite_side(), colorsBB(get_opposite_side()) | colorsBB(side()));
+    U64 attacks = get_attacks(opposite_side(), colorsBB(opposite_side()) | colorsBB(side()));
     return !is_empty(kingPos & attacks);
 }
 
