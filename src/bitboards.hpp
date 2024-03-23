@@ -7,7 +7,7 @@
 #include <string>
 #include <iostream>
 #include "moves.hpp"
-namespace Smyslov {
+namespace Kite {
 
 int population_count(const U64 bitboard);
 Square msb(const U64 bitboard);

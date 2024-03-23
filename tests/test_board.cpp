@@ -6,7 +6,7 @@
 #include "../src/moves.cpp"
 
 
-using namespace Smyslov;
+using namespace Kite;
 TEST_CASE("misc", "[misc]") {
     U64 bb = set_bit(Square::E4);
     REQUIRE (try_offset(Square::D4, 1, 1).value() == Square::E5);

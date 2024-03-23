@@ -1,6 +1,6 @@
 #include "movegen.hpp"
 
-namespace Smyslov
+namespace Kite
 {
 
 

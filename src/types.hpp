@@ -7,7 +7,7 @@
 #include <chrono>
 #include <thread>
 
-namespace Smyslov {
+namespace Kite {
 typedef unsigned long long U64;
 
 enum class Square {

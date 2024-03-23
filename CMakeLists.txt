@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.22.1)
 
 project(
-    SmyslovEngine
+    KiteChess
     VERSION 1.0
     DESCRIPTION "A chess engine"
     LANGUAGES CXX)
@@ -17,7 +17,7 @@ endif()
 enable_testing()
 include(FetchContent)
 
-add_executable(smyslov
+add_executable(kite
                 src/main.cpp
                 src/bitboards.cpp
                 src/bitboards.hpp 
@@ -38,7 +38,7 @@ add_executable(smyslov
                 src/evaluation.hpp
                 )
 
-target_include_directories(smyslov PRIVATE src)
+target_include_directories(kite PRIVATE src)
 
 
 if((CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME OR MODERN_CMAKE_BUILD_TESTING)

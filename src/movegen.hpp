@@ -2,7 +2,7 @@
 #include "types.hpp"
 #include "position.hpp"
 
-namespace Smyslov {
+namespace Kite {
 
 struct MoveGen
 {
@@ -18,7 +18,7 @@ struct MoveGen
         bool is_stalemate();
     private:
         std::vector<Move> moveList = {};
-        Smyslov::Position& pos;
+        Kite::Position& pos;
         U64 checkMask = 0xffffffffffffffff;
         U64 pinnedMask = 0x0ULL;
 

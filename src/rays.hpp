@@ -2,7 +2,7 @@
 
 #include <array>
 #include "types.hpp"
-namespace Smyslov::Rays {
+namespace Kite::Rays {
     enum Direction {NORTH, SOUTH, EAST, WEST, NE, NW, SE, SW};
 
 

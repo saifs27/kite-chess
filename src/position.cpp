@@ -1,5 +1,5 @@
 #include "position.hpp"
-namespace Smyslov {
+namespace Kite {
 Position::Position() 
 {
 

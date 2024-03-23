@@ -11,7 +11,7 @@
 
 
 #include <iostream>
-namespace Smyslov {
+namespace Kite {
 class Position { 
     private:
     Score _score;

@@ -1,6 +1,5 @@
 #include "bitboards.hpp"
-namespace Smyslov {
-
+namespace Kite {
 
 int population_count(const U64 bitboard) {
     int count = 0;

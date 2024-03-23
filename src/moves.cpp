@@ -1,7 +1,7 @@
 #include "moves.hpp"
 
 
-namespace Smyslov {
+namespace Kite {
 /*
 const Square Move::from() const {
         short mask = 0b0000000000111111;

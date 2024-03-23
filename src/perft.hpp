@@ -6,7 +6,7 @@
 #include <vector>
 #include <string>
 #include "uci.hpp"
-namespace Smyslov {
+namespace Kite {
 
 /*
 Perft is a recursive debugging function which makes it easier to find obscure edge 

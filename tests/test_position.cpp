@@ -3,7 +3,7 @@
 
 #include "../src/position.cpp"
 
-using namespace Smyslov;
+using namespace Kite;
 Position board;
 
 

@@ -11,15 +11,15 @@
 #include "search.hpp"
 
 
-void game_loop(Smyslov::Position& board, Smyslov::MoveGen moves);
+void game_loop(Kite::Position& board, Kite::MoveGen moves);
 
 int main() {
-    Smyslov::Timer timer;
-    Smyslov::Position board("8/2k5/3q4/8/8/8/3Q4/7K w - - 0 1");
+    Kite::Timer timer;
+    Kite::Position board("8/2k5/3q4/8/8/8/3Q4/7K w - - 0 1");
     //board.start_position();
     //Smyslov::MoveGen moves(board);
     //moves.generate_all_moves();
-    int score =  Smyslov::Search::search(board, 1);
+    int score =  Kite::Search::search(board, 1);
     std::cout << "score: " << score << '\n';
  
     //game_loop(board, moves);
@@ -32,13 +32,13 @@ int main() {
 
 
 
-void game_loop(Smyslov::Position& board, Smyslov::MoveGen moves)
+void game_loop(Kite::Position& board, Kite::MoveGen moves)
 {
     while (true) 
     {
-        if (board.score().white_score() != Smyslov::Result::EMPTY) {std::cout << "CHECKMATE" ; break;}
+        if (board.score().white_score() != Kite::Result::EMPTY) {std::cout << "CHECKMATE" ; break;}
         board.print_board();
-        std::string side = (board.side() == Smyslov::Color::WHITE) ? "White to move" : "Black to move";
+        std::string side = (board.side() == Kite::Color::WHITE) ? "White to move" : "Black to move";
         //std::cout << "fifty move: " << board.fiftyMove().value() << '\n';
         std::cout << side << '\n';
 
@@ -50,7 +50,7 @@ void game_loop(Smyslov::Position& board, Smyslov::MoveGen moves)
         std::cin >> my_move;
         if (my_move.find("undo") == std::string::npos)
         {
-            auto move = Smyslov::UCI::uci_to_move(board, my_move);
+            auto move = Kite::UCI::uci_to_move(board, my_move);
             if (move.has_value()) moves.make_move(move.value());
         }
 

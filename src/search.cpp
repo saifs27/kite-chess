@@ -1,6 +1,6 @@
 #include "search.hpp"
 
-namespace Smyslov::Search {
+namespace Kite::Search {
 
 void order_moves(const Position& pos, std::vector<Move> moves)
 {
@@ -39,6 +39,10 @@ std::vector<Move> filter_illegal_moves(MoveGen& moves)
 
 int quiesce(Position& pos, MoveGen& moves, int alpha, int beta)
 {
+    /*
+    The quiescence search makes sure to only stop the search in quiet 
+    positions (no captures or checks) to avoid the horizon effect.
+    */
     int stand_pat = Eval::evaluate(pos);
     if (stand_pat >= beta) return beta;
     if (stand_pat > alpha) alpha = stand_pat;
@@ -59,6 +63,23 @@ int quiesce(Position& pos, MoveGen& moves, int alpha, int beta)
     return alpha;
 
 }
+
+int alpha_beta(Position& pos, MoveGen& moves, int alpha, int beta, int depthLeft)
+{
+    if (depthLeft == 0) return quiesce(pos, moves, alpha, beta);
+
+    auto moveList = filter_illegal_moves(moves);
+    int score;
+    for (Move move : moveList)
+    {
+        score = -alpha_beta(pos, moves, -beta, -alpha, depthLeft - 1);
+        if (score >= beta) return beta;
+        if (score > alpha) alpha = score;
+    }
+
+    return alpha;
+}
+
 
 int search(Position& pos, int depth)
 {

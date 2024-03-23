@@ -1,6 +1,6 @@
 #pragma once
 #include "types.hpp"
-namespace Smyslov {
+namespace Kite {
 
 struct Move
 {

@@ -1,6 +1,6 @@
 #include "uci.hpp"
 
-namespace Smyslov{
+namespace Kite{
 namespace UCI {
 std::string square_to_string(Square sq)
 {

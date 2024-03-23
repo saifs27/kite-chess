@@ -3,7 +3,7 @@
 
 #include "../src/perft.hpp"
 
-using namespace Smyslov;
+using namespace Kite;
 
 /* 
 Verify perft numbers.

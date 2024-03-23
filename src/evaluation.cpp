@@ -1,6 +1,6 @@
 #include "evaluation.hpp"
 
-namespace Smyslov::Eval
+namespace Kite::Eval
 {
 
 int material_count(const Position& pos, Color side)
@@ -22,9 +22,9 @@ int material_count(const Position& pos, Color side)
 
 float evaluate(const Position& pos)
 {
-    auto friendlyMaterialCount = material_count(pos, pos.side());
-    auto opMatterialCount = material_count(pos, pos.get_opposite_side());
-    return friendlyMaterialCount - opMatterialCount;
+    auto materialDiff = material_count(pos, pos.side())- material_count(pos, pos.get_opposite_side());
+    return materialDiff;
+
 
 }
 
