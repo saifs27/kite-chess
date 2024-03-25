@@ -10,11 +10,11 @@ int material_count(const Position& pos, Color side)
     int knights = population_count(pos.get_bitboard(side, Piece::KNIGHT));
     int pawns = population_count(pos.get_bitboard(side, Piece::PAWN));
 
-    auto queen_val = queens * PieceValue::queen;
-    auto bishop_val = bishops * PieceValue::bishop;
-    auto rook_val = rooks * PieceValue::rook;
-    auto knight_val = knights * PieceValue::knight;
-    auto pawn_val = pawns * PieceValue::pawn;
+    auto queen_val = queens * PieceWeight::queen;
+    auto bishop_val = bishops * PieceWeight::bishop;
+    auto rook_val = rooks * PieceWeight::rook;
+    auto knight_val = knights * PieceWeight::knight;
+    auto pawn_val = pawns * PieceWeight::pawn;
 
     return queen_val + bishop_val + rook_val + knight_val + pawn_val;
 }

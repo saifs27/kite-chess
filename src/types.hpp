@@ -70,7 +70,7 @@ inline constexpr U64 seventh = 0xff000000000000;
 inline constexpr U64 eighth  = 0xff00000000000000;
 }
 
-namespace PieceValue
+namespace PieceWeight
 {
     inline constexpr int queen = 900;
     inline constexpr int rook = 500;
@@ -84,12 +84,12 @@ inline int get_piece_value(Piece piece)
 {
     switch (piece)
     {
-        case Piece::QUEEN: return PieceValue::queen;
-        case Piece::ROOK: return PieceValue::rook;
-        case Piece::BISHOP: return PieceValue::bishop;
-        case Piece::KNIGHT: return PieceValue::knight;
-        case Piece::PAWN: return PieceValue::pawn;
-        case Piece::KING: return PieceValue::king;
+        case Piece::QUEEN: return PieceWeight::queen;
+        case Piece::ROOK: return PieceWeight::rook;
+        case Piece::BISHOP: return PieceWeight::bishop;
+        case Piece::KNIGHT: return PieceWeight::knight;
+        case Piece::PAWN: return PieceWeight::pawn;
+        case Piece::KING: return PieceWeight::king;
         default: return 0;
     }
 }
