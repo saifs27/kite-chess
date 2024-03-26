@@ -20,11 +20,14 @@
 #include "position.hpp"
 namespace Kite {
 namespace UCI {
+inline const std::string version = "Kite 2024";
 std::string square_to_string(Square sq);
 std::string piece_to_string(Piece piece);
 Piece string_to_piece(const char string);
 std::string move_to_uci(Move move);
 std::optional<Move> uci_to_move(Position& pos, std::string uci);
+std::vector<std::string> split(std::string str, char split);
+void uci_loop();
 
 }
 }
