@@ -16,8 +16,8 @@
 
 #include "uci.hpp"
 
-namespace Kite{
-namespace UCI {
+namespace Kite::UCI{
+
 std::string square_to_string(Square sq)
 {
     File sqFile = get_file(sq);
@@ -169,6 +169,55 @@ std::optional<Move> uci_to_move(Position& pos, std::string uci)
 
 }
 
-    
+std::vector<std::string> split(std::string str, char split)
+{
+    std::string word = "";
+    std::vector<std::string> result;
+    for (auto i : str)
+    {
+        if (i == split && word != "")
+        {
+            result.push_back(word);
+            word = "";
+            continue;
+        }
+        word += i;
+    }
+
+    if (!word.empty())
+    {
+        result.push_back(word);
+    }
+    return result;
+
 }
+
+void uci_loop()
+{
+    while (true)
+    {
+        std::string input;
+        std::cin >> input;
+        auto args = split(input, ' ');
+
+        if (args.empty()) continue;
+
+        if (args.at(0).compare("uci") == 0) std::cout << "id name " << engine_version << '\n' << "uciok";
+    
+        else if (args.at(0).compare("isready") == 0) std::cout << "readyok";
+
+        else if (args.at(0).compare("quit") == 0) break;
+
+        if (args.size() == 2)
+        {
+
+        }
+
+
+
+    }
+}
+
+
+    
 }

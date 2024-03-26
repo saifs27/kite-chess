@@ -20,7 +20,7 @@
 #include "position.hpp"
 namespace Kite {
 namespace UCI {
-inline const std::string version = "Kite 2024";
+inline const std::string engine_version = "Kite 2024";
 std::string square_to_string(Square sq);
 std::string piece_to_string(Piece piece);
 Piece string_to_piece(const char string);
