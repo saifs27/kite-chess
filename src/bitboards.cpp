@@ -1,5 +1,5 @@
 #include "bitboards.hpp"
-namespace Kite {
+namespace Kite::Bitboard {
 
 int population_count(const U64 bitboard) {
     int count = 0;
@@ -11,7 +11,9 @@ int population_count(const U64 bitboard) {
     return count;
 }
 
-Square msb(const U64 bitboard) {
+Square msb(const U64 bitboard) 
+{
+    // most significant bit in bitboard
     U64 mask = set_bit(Square::H8);
 
     for (int sq = 63; sq >= 0; sq--, mask >>=1)
@@ -24,7 +26,8 @@ Square msb(const U64 bitboard) {
     return Square::EMPTY_SQUARE;
 }
 
-Square lsb(const U64 bitboard) {
+Square lsb(const U64 bitboard) 
+{
     Square sq;
     U64 sqbb;
     for (int i = 0; i < 64; i++) {

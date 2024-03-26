@@ -10,8 +10,8 @@ void MoveGen::generate_king_moves()
     Color op_side = static_cast<Color>((static_cast<int>(side) + 1) % 2);
     U64 checkingPieces = pos.pieces_attacking_king(pos.side());
     U64 king_pos = pos.get_bitboard(side, Piece::KING);
-    Square from = lsb(king_pos);
-    U64 bb = king_attacks(king_pos);
+    Square from = Bitboard::lsb(king_pos);
+    U64 bb = Bitboard::king_attacks(king_pos);
     U64 blockers = pos.colorsBB(side) | pos.colorsBB(op_side);
     U64 friendlyPieces = pos.colorsBB(side);
     U64 attackers = pos.get_attacks(op_side, blockers);
@@ -23,7 +23,7 @@ void MoveGen::generate_king_moves()
     
     while (!(is_empty(moves)))
     {
-        Square to = pop_lsb(moves);
+        Square to = Bitboard::pop_lsb(moves);
         moveFlag = (pos.get_piece(to) != Piece::EMPTY) ? Flag::CAPTURE : Flag::QUIET;
         Move new_move(from, to, moveFlag);
         moveList.push_back(new_move);
@@ -82,7 +82,7 @@ void MoveGen::generate_double_pawn_push()
     U64 one_sq_blockers = (side == Color::WHITE) ? (relevant_blockers & oneSqblockerMask) << 8 : (relevant_blockers & oneSqblockerMask) >> 8;
     U64 two_sq_blockers = (relevant_blockers & twoSqblockerMask);
     U64 blockers = one_sq_blockers | two_sq_blockers;
-    U64 moves = double_pawn_push(pawn_pos, side);
+    U64 moves = Bitboard::double_pawn_push(pawn_pos, side);
     moves &= blockers ^ moves;
     moves &= checkMask;
     U64 frombb;
@@ -92,9 +92,9 @@ void MoveGen::generate_double_pawn_push()
 
     while (!is_empty(moves))
     {
-    to = pop_lsb(moves);
+    to = Bitboard::pop_lsb(moves);
     frombb = (side == Color::WHITE) ? (set_bit(to) >> 16) : (set_bit(to) << 16);
-    from = pop_lsb(frombb);
+    from = Bitboard::pop_lsb(frombb);
     new_move.set_from(from);
     new_move.set_to(to);
     moveList.push_back(new_move);
@@ -113,7 +113,7 @@ void MoveGen::generate_pawn_push()
 
     Square from;
     Square to;
-    U64 moves = pawn_push(pawn_pos, side);
+    U64 moves = Bitboard::pawn_push(pawn_pos, side);
     moves &= (relevant_blockers ^ moves);
     moves &= checkMask;
     U64 frombb;
@@ -121,9 +121,9 @@ void MoveGen::generate_pawn_push()
 
     while (!is_empty(moves))
     {
-        to = pop_lsb(moves);
+        to = Bitboard::pop_lsb(moves);
         frombb = (side == Color::WHITE) ? (set_bit(to) >> 8) : (set_bit(to) << 8);     
-        from = pop_lsb(frombb);  
+        from = Bitboard::pop_lsb(frombb);  
         new_move.set_from(from);
         new_move.set_to(to);
         moveList.push_back(new_move);
@@ -141,13 +141,13 @@ void MoveGen::generate_pawn_captures()
     Square to;
     while (!is_empty(pawn_pos))
     {
-        from = pop_lsb(pawn_pos);
-        attacks = pawn_attacks(set_bit(from), pos.side());
+        from = Bitboard::pop_lsb(pawn_pos);
+        attacks = Bitboard::pawn_attacks(set_bit(from), pos.side());
         attacks &= opponent_pieces;
         attacks &= checkMask;
         while (!is_empty(attacks))
         {
-            to = pop_lsb(attacks);
+            to = Bitboard::pop_lsb(attacks);
             Move move(from, to, Flag::CAPTURE);
             moveList.push_back(move);
         }
@@ -167,10 +167,10 @@ void MoveGen::generate_en_passant()
     if (!is_empty(enPas))
     {
         U64 pawnsBB = pos.get_bitboard(pos.side(), Piece::PAWN);
-        auto squares = get_squares(pawnsBB);
+        auto squares = Bitboard::get_squares(pawnsBB);
         for (auto square: squares)
         {
-            U64 pawnAttacks = pawn_attacks(set_bit(square), pos.side());
+            U64 pawnAttacks = Bitboard::pawn_attacks(set_bit(square), pos.side());
 
             if (!is_empty(enPas & pawnAttacks))
             {
@@ -197,23 +197,23 @@ void MoveGen::generate_moves(Piece piece)
     U64 capture_moves;
     do
     {
-        from = pop_lsb(piece_pos);
+        from = Bitboard::pop_lsb(piece_pos);
         frombb = set_bit(from);
 
         if (from == Square::EMPTY_SQUARE) {break;}
         switch (piece)
         {
             case Piece::KNIGHT:
-            bb = knight_attacks(frombb);
+            bb = Bitboard::knight_attacks(frombb);
             break;
             case Piece::BISHOP:
-            bb = bishop_attacks(from, blockers);
+            bb = Bitboard::bishop_attacks(from, blockers);
             break;
             case Piece::ROOK:
-            bb = rook_attacks(from, blockers);
+            bb = Bitboard::rook_attacks(from, blockers);
             break;
             case Piece::QUEEN:
-            bb = rook_attacks(from, blockers) | bishop_attacks(from, blockers);
+            bb = Bitboard::rook_attacks(from, blockers) | Bitboard::bishop_attacks(from, blockers);
             break;
             default:
             bb = 0x0ULL;
@@ -227,14 +227,14 @@ void MoveGen::generate_moves(Piece piece)
 
         while (!is_empty(moves))
         {
-            to = pop_lsb(moves);
+            to = Bitboard::pop_lsb(moves);
             new_move.set_to(to);
             moveList.push_back(new_move);
         }
 
         while (!is_empty(capture_moves))
         {
-            to = pop_lsb(capture_moves);
+            to = Bitboard::pop_lsb(capture_moves);
             new_move.set_to(to);
             new_move.set_flags(Flag::CAPTURE);
             moveList.push_back(new_move);
@@ -254,9 +254,9 @@ void MoveGen::generate_promotions()
     while (!is_empty(pawns))
     {
 
-        Square from = pop_lsb(pawns);
-        U64 toBB = pawn_push_sq(from, pos.side());
-        Square to = lsb(toBB);
+        Square from = Bitboard::pop_lsb(pawns);
+        U64 toBB = Bitboard::pawn_push_sq(from, pos.side());
+        Square to = Bitboard::lsb(toBB);
         bool isBlocked = !is_empty(toBB & blockers);
         
         if (!isBlocked)
@@ -287,13 +287,13 @@ void MoveGen::generate_promotion_captures()
     while (!is_empty(pawns))
     {
 
-        Square from = pop_lsb(pawns);
-        U64 toBB = pawn_attacks_sq(from, pos.side());
+        Square from = Bitboard::pop_lsb(pawns);
+        U64 toBB = Bitboard::pawn_attacks_sq(from, pos.side());
         toBB &= capturables;
         
         while (!is_empty(toBB))
         {
-            Square to = pop_lsb(toBB);
+            Square to = Bitboard::pop_lsb(toBB);
             move.set_from(from);
             move.set_to(to);
             move.set_flags(Flag::PROMOTE_QUEEN_CAPTURE);
@@ -359,7 +359,7 @@ bool MoveGen::is_checkmate()
     U64 attackers = pos.pieces_attacking_king(pos.side());
 
     if (is_empty(attackers)) return false;
-    int numberOfAttackers = population_count(attackers); // to find double checks
+    int numberOfAttackers = Bitboard::population_count(attackers); // to find double checks
 
     U64 friendlyPieces = pos.colorsBB(pos.side());
 
@@ -367,7 +367,7 @@ bool MoveGen::is_checkmate()
     U64 blockers = (pos.colorsBB(Color::WHITE) | pos.colorsBB(Color::BLACK)) & ~attackers;
     U64 attackMask = pos.get_attacks(pos.opposite_side(), blockers);
     U64 kingBB = pos.get_bitboard(pos.side(), Piece::KING);
-    Square kingSq = lsb(kingBB);
+    Square kingSq = Bitboard::lsb(kingBB);
 
     // Only have to check king moves if it is in double check.
     if (numberOfAttackers > 1) 

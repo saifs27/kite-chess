@@ -4,11 +4,11 @@ namespace Kite::Eval
 {
 int material_count(const Position& pos, Color side)
 {
-    int queens = population_count(pos.get_bitboard(side, Piece::QUEEN));
-    int bishops = population_count(pos.get_bitboard(side, Piece::BISHOP));
-    int rooks = population_count(pos.get_bitboard(side, Piece::ROOK));
-    int knights = population_count(pos.get_bitboard(side, Piece::KNIGHT));
-    int pawns = population_count(pos.get_bitboard(side, Piece::PAWN));
+    int queens = Bitboard::population_count(pos.get_bitboard(side, Piece::QUEEN));
+    int bishops = Bitboard::population_count(pos.get_bitboard(side, Piece::BISHOP));
+    int rooks = Bitboard::population_count(pos.get_bitboard(side, Piece::ROOK));
+    int knights = Bitboard::population_count(pos.get_bitboard(side, Piece::KNIGHT));
+    int pawns = Bitboard::population_count(pos.get_bitboard(side, Piece::PAWN));
 
     auto queen_val = queens * PieceWeight::queen;
     auto bishop_val = bishops * PieceWeight::bishop;
@@ -23,8 +23,6 @@ float evaluate(const Position& pos)
 {
     auto materialDiff = material_count(pos, pos.side())- material_count(pos, pos.opposite_side());
     return materialDiff;
-
-
 }
 
 

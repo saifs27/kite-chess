@@ -7,7 +7,7 @@
 #include <string>
 #include <iostream>
 #include "moves.hpp"
-namespace Kite {
+namespace Kite::Bitboard {
 
 int population_count(const U64 bitboard);
 Square msb(const U64 bitboard);
