@@ -14,8 +14,16 @@
 */
 #include "accumulator.hpp"
 
+namespace Kite::NNUE {
 
-void NNUEAccumulator::update()
+void NNUEAccumulator::refresh(
+    const LinearLayer& layer,
+    NNUEAccumulator& new_acc,
+    const std::vector<int>& active_features,
+    Color side
+    )
 {
-    
+
+}
+
 }

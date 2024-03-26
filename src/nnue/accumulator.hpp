@@ -13,14 +13,33 @@
     GNU General Public License for more details.
 */
 
-
 #pragma once
 #include <array>
+#include <vector>
 #include "../search.hpp"
+#include "../types.hpp"
+namespace Kite::NNUE {
+struct LinearLayer
+{
+    int weight;
+    int bias;
 
-struct NNUEAcumulator
+};
+struct NNUEAccumulator
 {
     std::array<std::array<float, 64>, 2> v;
-    void refresh();
-    void update();
+    void refresh(
+        const LinearLayer& layer, // L_0
+        NNUEAccumulator& new_acc, //store result
+        const std::vector<int>& active_features, 
+        Color side
+    );
+    void update(
+        const LinearLayer& layer, 
+        NNUEAccumulator& new_acc, 
+        const std::vector<int>& removed_features,
+        const std::vector<int>& added_features,
+        Color side);
 };
+
+}
