@@ -51,7 +51,6 @@ struct Move
 };
 
 
-
 class GameState
 {
     private:

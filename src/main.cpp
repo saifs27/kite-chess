@@ -35,8 +35,8 @@ int main() {
     //board.start_position();
     //Smyslov::MoveGen moves(board);
     //moves.generate_all_moves();
-    int score =  Kite::Search::search(board, 1);
-    std::cout << "score: " << score << '\n';
+    auto score =  Kite::Search::search_root(board, 1);
+    std::cout << "score: " << score.score << '\n';
  
     //game_loop(board, moves);
    

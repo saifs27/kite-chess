@@ -32,6 +32,7 @@ struct MoveGen
         bool is_check();
         bool is_checkmate();
         bool is_stalemate();
+        
     private:
         std::vector<Move> moveList = {};
         Kite::Position& pos;

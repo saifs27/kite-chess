@@ -37,8 +37,6 @@ void order_moves(const Position& pos, std::vector<Move> moves)
 
 std::vector<Move> filter_illegal_moves(MoveGen& moves)
 {
-    moves.generate_all_moves();
-
     bool isLegalMove;
     std::vector<Move> legal_move_list;
     for (auto move : moves.move_list())
@@ -82,8 +80,8 @@ int quiesce(Position& pos, MoveGen& moves, int alpha, int beta)
 
 int alpha_beta(Position& pos, MoveGen& moves, int alpha, int beta, int depthLeft)
 {
-    if (depthLeft == 0) return quiesce(pos, moves, alpha, beta);
-
+    if (depthLeft <= 0) return quiesce(pos, moves, alpha, beta);
+    moves.generate_all_moves();
     auto moveList = filter_illegal_moves(moves);
     int score;
     for (Move move : moveList)
@@ -125,7 +123,40 @@ int search(Position& pos, int depth)
 }
 
 
+RootMove search_root(Position& pos, int depthLeft)
+{
+    const Move nullMove = Move(Square::A1, Square::A1, Flag::QUIET);
+    const int infinity = std::numeric_limits<int>::max();
+    int alpha = -infinity; 
+    int beta = infinity;
+    Move bestMove = nullMove;
+    MoveGen moves(pos);
+    if (depthLeft == 0)
+    {
+        int eval = quiesce(pos, moves, alpha, beta);
+        return {nullMove, eval};
+    }
 
+    moves.generate_all_moves();
+    auto moveList = filter_illegal_moves(moves);
+    int score;
+    for (Move move : moveList)
+    {
+        score = alpha_beta(pos, moves, alpha, beta, depthLeft);
+        if (score >= beta) 
+        {
+            return {bestMove, beta};
+        }
+        if (score > alpha)
+        {
+            alpha = score;
+            bestMove = move;
+        }
+    }
+
+    return {bestMove, alpha};
+
+}
 
 
 
