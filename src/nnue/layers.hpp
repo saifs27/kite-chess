@@ -13,13 +13,36 @@
     GNU General Public License for more details.
 */
 
+#pragma once
+#include <array>
+namespace Kite::NNUE {
 
-#include "movegen.hpp"
+struct Node
+{
+    int weight;
+    int bias;
+};
 
-namespace Kite::Eval {
 
-int material_count(const Position& pos, Color side);
-int mobility(const Position& pos);
-float evaluate(const Position& pos);
+struct Layer
+{
+    std::array<Node, 32> data;
+    
+
+    
+
+};
+
+
+
+
+
+
+
+
+
+
+
+
 
 }

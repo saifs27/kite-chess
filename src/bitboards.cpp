@@ -1,5 +1,20 @@
+/*
+    Kite, a UCI compliant chess engine.
+    Copyright (C) 2024  Saif
+
+    Kite is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Kite is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+*/
+
 #include "bitboards.hpp"
-namespace Kite {
+namespace Kite::Bitboard {
 
 int population_count(const U64 bitboard) {
     int count = 0;
@@ -11,12 +26,13 @@ int population_count(const U64 bitboard) {
     return count;
 }
 
-Square msb(const U64 bitboard) {
+Square msb(const U64 bitboard) 
+{
+    // most significant bit in bitboard
     U64 mask = set_bit(Square::H8);
 
     for (int sq = 63; sq >= 0; sq--, mask >>=1)
     {
-
         if ((bitboard & mask) == mask) {
             return static_cast<Square>(sq);
         }
@@ -25,7 +41,8 @@ Square msb(const U64 bitboard) {
     return Square::EMPTY_SQUARE;
 }
 
-Square lsb(const U64 bitboard) {
+Square lsb(const U64 bitboard) 
+{
     Square sq;
     U64 sqbb;
     for (int i = 0; i < 64; i++) {
@@ -145,8 +162,6 @@ U64 double_pawn_push(const U64 bb, Color color)
     return push;
 }
 
-
-
 /*
     Using classical approach instead of magic bitboards for sliding pieces
 */
@@ -206,8 +221,5 @@ U64 bishop_attacks(Square sq, const U64 blockers) {
     }
     return attacks;
 }
-
-
-
 
 }

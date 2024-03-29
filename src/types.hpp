@@ -1,3 +1,19 @@
+/*
+    Kite, a UCI compliant chess engine.
+    Copyright (C) 2024  Saif
+
+    Kite is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Kite is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+*/
+
+
 #pragma once
 #include <string>
 #include <optional>
@@ -70,7 +86,7 @@ inline constexpr U64 seventh = 0xff000000000000;
 inline constexpr U64 eighth  = 0xff00000000000000;
 }
 
-namespace PieceValue
+namespace PieceWeight
 {
     inline constexpr int queen = 900;
     inline constexpr int rook = 500;
@@ -84,12 +100,12 @@ inline int get_piece_value(Piece piece)
 {
     switch (piece)
     {
-        case Piece::QUEEN: return PieceValue::queen;
-        case Piece::ROOK: return PieceValue::rook;
-        case Piece::BISHOP: return PieceValue::bishop;
-        case Piece::KNIGHT: return PieceValue::knight;
-        case Piece::PAWN: return PieceValue::pawn;
-        case Piece::KING: return PieceValue::king;
+        case Piece::QUEEN: return PieceWeight::queen;
+        case Piece::ROOK: return PieceWeight::rook;
+        case Piece::BISHOP: return PieceWeight::bishop;
+        case Piece::KNIGHT: return PieceWeight::knight;
+        case Piece::PAWN: return PieceWeight::pawn;
+        case Piece::KING: return PieceWeight::king;
         default: return 0;
     }
 }
@@ -253,7 +269,7 @@ inline std::optional<Square> try_offset(Square sq, int file_offset, int rank_off
     {
         return {};
     }
-
+    
     return static_cast<Square>(new_square);
 }
 

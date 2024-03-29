@@ -1,0 +1,14 @@
+
+add_executable(kite
+                main.cpp types.hpp rays.hpp perft.hpp
+                bitboards.cpp bitboards.hpp 
+                position.cpp position.hpp
+                search.cpp search.hpp 
+                movegen.cpp movegen.hpp 
+                uci.cpp uci.hpp
+                moves.cpp moves.hpp
+                evaluation.cpp evaluation.hpp
+                )
+
+target_include_directories(kite PRIVATE src)
+

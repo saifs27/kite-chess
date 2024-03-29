@@ -12,14 +12,18 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 */
+#include "accumulator.hpp"
 
+namespace Kite::NNUE {
 
-#include "movegen.hpp"
+void NNUEAccumulator::refresh(
+    const LinearLayer& layer,
+    NNUEAccumulator& new_acc,
+    const std::vector<int>& active_features,
+    Color side
+    )
+{
 
-namespace Kite::Eval {
-
-int material_count(const Position& pos, Color side);
-int mobility(const Position& pos);
-float evaluate(const Position& pos);
+}
 
 }

@@ -12,14 +12,3 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 */
-
-
-#include "movegen.hpp"
-
-namespace Kite::Eval {
-
-int material_count(const Position& pos, Color side);
-int mobility(const Position& pos);
-float evaluate(const Position& pos);
-
-}

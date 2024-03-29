@@ -28,7 +28,7 @@ TEST_CASE("make move", "[move]") {
 TEST_CASE("population count", "[popcount]") {
     board.start_position();
     auto whitepawn {board.get_bitboard(Color::WHITE, Piece::PAWN)};
-    REQUIRE (population_count(whitepawn) == 8);
+    REQUIRE (Bitboard::population_count(whitepawn) == 8);
 }
 
 TEST_CASE("bitboards", "[bitboard]") {

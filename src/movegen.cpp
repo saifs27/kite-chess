@@ -1,3 +1,19 @@
+/*
+    Kite, a UCI compliant chess engine.
+    Copyright (C) 2024  Saif
+
+    Kite is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Kite is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+*/
+
+
 #include "movegen.hpp"
 
 namespace Kite
@@ -10,8 +26,8 @@ void MoveGen::generate_king_moves()
     Color op_side = static_cast<Color>((static_cast<int>(side) + 1) % 2);
     U64 checkingPieces = pos.pieces_attacking_king(pos.side());
     U64 king_pos = pos.get_bitboard(side, Piece::KING);
-    Square from = lsb(king_pos);
-    U64 bb = king_attacks(king_pos);
+    Square from = Bitboard::lsb(king_pos);
+    U64 bb = Bitboard::king_attacks(king_pos);
     U64 blockers = pos.colorsBB(side) | pos.colorsBB(op_side);
     U64 friendlyPieces = pos.colorsBB(side);
     U64 attackers = pos.get_attacks(op_side, blockers);
@@ -23,7 +39,7 @@ void MoveGen::generate_king_moves()
     
     while (!(is_empty(moves)))
     {
-        Square to = pop_lsb(moves);
+        Square to = Bitboard::pop_lsb(moves);
         moveFlag = (pos.get_piece(to) != Piece::EMPTY) ? Flag::CAPTURE : Flag::QUIET;
         Move new_move(from, to, moveFlag);
         moveList.push_back(new_move);
@@ -35,7 +51,7 @@ void MoveGen::generate_castles()
 {
     if (pos.is_check()) return;
     U64 kingPos = pos.get_bitboard(pos.side(), Piece::KING);
-    U64 rooksPos = pos.get_bitboard(pos.side(), Piece::ROOK);
+    //U64 rooksPos = pos.get_bitboard(pos.side(), Piece::ROOK);
     Square from = (pos.side() == Color::WHITE) ? Square::E1 : Square::E8;
     bool correctKingPos = !is_empty(kingPos & set_bit(from));
     if (!correctKingPos) return;
@@ -43,13 +59,12 @@ void MoveGen::generate_castles()
     Square toKingside = (pos.side() == Color::WHITE) ? Square::G1 : Square::G8;
     Square toQueenside = (pos.side() == Color::WHITE) ? Square::C1 : Square::C8;
 
-
     U64 kingsideMask = (pos.side() == Color::WHITE) ? 0x60 : 0x6000000000000000;
     U64 queensideAttackerMask = (pos.side() == Color::WHITE) ? 0xc : 0xc00000000000000;
     U64 queensideBlockerMask = (pos.side() == Color::WHITE) ? 0xe : 0xe00000000000000;
 
-    U64 blockers = pos.colorsBB(pos.side()) | pos.colorsBB(pos.get_opposite_side());
-    U64 attackers = pos.get_attacks(pos.get_opposite_side(), pos.colorsBB(Color::WHITE) | pos.colorsBB(Color::BLACK));
+    U64 blockers = pos.colorsBB(pos.side()) | pos.colorsBB(pos.opposite_side());
+    U64 attackers = pos.get_attacks(pos.opposite_side(), pos.colorsBB(Color::WHITE) | pos.colorsBB(Color::BLACK));
     bool canCastleKingside = is_empty((blockers | attackers) & kingsideMask);
     bool canCastleQueenside = is_empty( attackers & queensideAttackerMask) && is_empty(blockers & queensideBlockerMask);
     Castling kingsideFlag = (pos.side() == Color::WHITE) ? Castling::WhiteKingside : Castling::BlackKingside;
@@ -82,7 +97,7 @@ void MoveGen::generate_double_pawn_push()
     U64 one_sq_blockers = (side == Color::WHITE) ? (relevant_blockers & oneSqblockerMask) << 8 : (relevant_blockers & oneSqblockerMask) >> 8;
     U64 two_sq_blockers = (relevant_blockers & twoSqblockerMask);
     U64 blockers = one_sq_blockers | two_sq_blockers;
-    U64 moves = double_pawn_push(pawn_pos, side);
+    U64 moves = Bitboard::double_pawn_push(pawn_pos, side);
     moves &= blockers ^ moves;
     moves &= checkMask;
     U64 frombb;
@@ -92,9 +107,9 @@ void MoveGen::generate_double_pawn_push()
 
     while (!is_empty(moves))
     {
-    to = pop_lsb(moves);
+    to = Bitboard::pop_lsb(moves);
     frombb = (side == Color::WHITE) ? (set_bit(to) >> 16) : (set_bit(to) << 16);
-    from = pop_lsb(frombb);
+    from = Bitboard::pop_lsb(frombb);
     new_move.set_from(from);
     new_move.set_to(to);
     moveList.push_back(new_move);
@@ -113,7 +128,7 @@ void MoveGen::generate_pawn_push()
 
     Square from;
     Square to;
-    U64 moves = pawn_push(pawn_pos, side);
+    U64 moves = Bitboard::pawn_push(pawn_pos, side);
     moves &= (relevant_blockers ^ moves);
     moves &= checkMask;
     U64 frombb;
@@ -121,9 +136,9 @@ void MoveGen::generate_pawn_push()
 
     while (!is_empty(moves))
     {
-        to = pop_lsb(moves);
+        to = Bitboard::pop_lsb(moves);
         frombb = (side == Color::WHITE) ? (set_bit(to) >> 8) : (set_bit(to) << 8);     
-        from = pop_lsb(frombb);  
+        from = Bitboard::pop_lsb(frombb);  
         new_move.set_from(from);
         new_move.set_to(to);
         moveList.push_back(new_move);
@@ -136,18 +151,18 @@ void MoveGen::generate_pawn_captures()
     U64 mask = (pos.side() == Color::WHITE) ? ~(rank::seventh | rank::eighth) : ~(rank::second | rank::first);
     U64 pawn_pos = pos.get_bitboard(pos.side(), Piece::PAWN) & mask; // to deal with promotion captures elsewhere
     U64 attacks;
-    U64 opponent_pieces = pos.colorsBB(pos.get_opposite_side());
+    U64 opponent_pieces = pos.colorsBB(pos.opposite_side());
     Square from;
     Square to;
     while (!is_empty(pawn_pos))
     {
-        from = pop_lsb(pawn_pos);
-        attacks = pawn_attacks(set_bit(from), pos.side());
+        from = Bitboard::pop_lsb(pawn_pos);
+        attacks = Bitboard::pawn_attacks(set_bit(from), pos.side());
         attacks &= opponent_pieces;
         attacks &= checkMask;
         while (!is_empty(attacks))
         {
-            to = pop_lsb(attacks);
+            to = Bitboard::pop_lsb(attacks);
             Move move(from, to, Flag::CAPTURE);
             moveList.push_back(move);
         }
@@ -157,20 +172,20 @@ void MoveGen::generate_pawn_captures()
 
 void MoveGen::generate_en_passant()
 {
-    if (!pos.enPassant().has_value()) return;
-    if (pos.enPassant().value() == Square::A1) return;
+    if (!pos.en_passant().has_value()) return;
+    if (pos.en_passant().value() == Square::A1) return;
     U64 mask = (pos.side() == Color::WHITE) ? rank::sixth : rank::third;
-    U64 enPas = set_bit(pos.enPassant().value()) & mask;
+    U64 enPas = set_bit(pos.en_passant().value()) & mask;
     //enPas &= checkMask;
-    Move m(pos.enPassant().value(), pos.enPassant().value(), Flag::EN_PASSANT);
+    Move m(pos.en_passant().value(), pos.en_passant().value(), Flag::EN_PASSANT);
     
     if (!is_empty(enPas))
     {
         U64 pawnsBB = pos.get_bitboard(pos.side(), Piece::PAWN);
-        auto squares = get_squares(pawnsBB);
+        auto squares = Bitboard::get_squares(pawnsBB);
         for (auto square: squares)
         {
-            U64 pawnAttacks = pawn_attacks(set_bit(square), pos.side());
+            U64 pawnAttacks = Bitboard::pawn_attacks(set_bit(square), pos.side());
 
             if (!is_empty(enPas & pawnAttacks))
             {
@@ -184,7 +199,7 @@ void MoveGen::generate_en_passant()
 void MoveGen::generate_moves(Piece piece) 
 {
     Color side = pos.side();
-    Color op_side = pos.get_opposite_side();
+    Color op_side = pos.opposite_side();
 
     U64 piece_pos = pos.get_bitboard(side, piece);
     Square from;
@@ -197,23 +212,23 @@ void MoveGen::generate_moves(Piece piece)
     U64 capture_moves;
     do
     {
-        from = pop_lsb(piece_pos);
+        from = Bitboard::pop_lsb(piece_pos);
         frombb = set_bit(from);
 
         if (from == Square::EMPTY_SQUARE) {break;}
         switch (piece)
         {
             case Piece::KNIGHT:
-            bb = knight_attacks(frombb);
+            bb = Bitboard::knight_attacks(frombb);
             break;
             case Piece::BISHOP:
-            bb = bishop_attacks(from, blockers);
+            bb = Bitboard::bishop_attacks(from, blockers);
             break;
             case Piece::ROOK:
-            bb = rook_attacks(from, blockers);
+            bb = Bitboard::rook_attacks(from, blockers);
             break;
             case Piece::QUEEN:
-            bb = rook_attacks(from, blockers) | bishop_attacks(from, blockers);
+            bb = Bitboard::rook_attacks(from, blockers) | Bitboard::bishop_attacks(from, blockers);
             break;
             default:
             bb = 0x0ULL;
@@ -227,14 +242,14 @@ void MoveGen::generate_moves(Piece piece)
 
         while (!is_empty(moves))
         {
-            to = pop_lsb(moves);
+            to = Bitboard::pop_lsb(moves);
             new_move.set_to(to);
             moveList.push_back(new_move);
         }
 
         while (!is_empty(capture_moves))
         {
-            to = pop_lsb(capture_moves);
+            to = Bitboard::pop_lsb(capture_moves);
             new_move.set_to(to);
             new_move.set_flags(Flag::CAPTURE);
             moveList.push_back(new_move);
@@ -249,14 +264,14 @@ void MoveGen::generate_promotions()
     U64 blockerMask = (pos.side() == Color::WHITE) ? rank::eighth : rank::first;
     U64 pawns = pos.get_bitboard(pos.side(), Piece::PAWN) & mask;
     pawns &= checkMask;
-    U64 blockers = pos.colorsBB(pos.get_opposite_side()) & blockerMask;
+    U64 blockers = pos.colorsBB(pos.opposite_side()) & blockerMask;
     Move move(Square::A1, Square::A1, Flag::QUIET);
     while (!is_empty(pawns))
     {
 
-        Square from = pop_lsb(pawns);
-        U64 toBB = pawn_push_sq(from, pos.side());
-        Square to = lsb(toBB);
+        Square from = Bitboard::pop_lsb(pawns);
+        U64 toBB = Bitboard::pawn_push_sq(from, pos.side());
+        Square to = Bitboard::lsb(toBB);
         bool isBlocked = !is_empty(toBB & blockers);
         
         if (!isBlocked)
@@ -282,18 +297,18 @@ void MoveGen::generate_promotion_captures()
     U64 captureMask = (pos.side() == Color::WHITE) ? rank::eighth : rank::first;
     U64 pawns = pos.get_bitboard(pos.side(), Piece::PAWN) & mask;
     pawns &= checkMask;
-    U64 capturables = pos.colorsBB(pos.get_opposite_side()) & captureMask;
+    U64 capturables = pos.colorsBB(pos.opposite_side()) & captureMask;
     Move move(Square::A1, Square::A1, Flag::QUIET);
     while (!is_empty(pawns))
     {
 
-        Square from = pop_lsb(pawns);
-        U64 toBB = pawn_attacks_sq(from, pos.side());
+        Square from = Bitboard::pop_lsb(pawns);
+        U64 toBB = Bitboard::pawn_attacks_sq(from, pos.side());
         toBB &= capturables;
         
         while (!is_empty(toBB))
         {
-            Square to = pop_lsb(toBB);
+            Square to = Bitboard::pop_lsb(toBB);
             move.set_from(from);
             move.set_to(to);
             move.set_flags(Flag::PROMOTE_QUEEN_CAPTURE);
@@ -359,15 +374,15 @@ bool MoveGen::is_checkmate()
     U64 attackers = pos.pieces_attacking_king(pos.side());
 
     if (is_empty(attackers)) return false;
-    int numberOfAttackers = population_count(attackers); // to find double checks
+    int numberOfAttackers = Bitboard::population_count(attackers); // to find double checks
 
-    U64 friendlyPieces = pos.colorsBB(pos.side());
+    //U64 friendlyPieces = pos.colorsBB(pos.side());
 
     
     U64 blockers = (pos.colorsBB(Color::WHITE) | pos.colorsBB(Color::BLACK)) & ~attackers;
-    U64 attackMask = pos.get_attacks(pos.get_opposite_side(), blockers);
+    U64 attackMask = pos.get_attacks(pos.opposite_side(), blockers);
     U64 kingBB = pos.get_bitboard(pos.side(), Piece::KING);
-    Square kingSq = lsb(kingBB);
+    Square kingSq = Bitboard::lsb(kingBB);
 
     // Only have to check king moves if it is in double check.
     if (numberOfAttackers > 1) 
@@ -412,15 +427,6 @@ bool MoveGen::make_castle(Move move)
     if (castleFlag == Flag::KING_CASTLE || castleFlag == Flag::QUEEN_CASTLE)
     {
         if (!pos.fiftyMove().has_value() || !pos.castlingPerms().has_value()) return false;
-        auto incrementmove = pos.fiftyMove().value() + 1;
-
-        short castlingMask = (pos.side() == Color::WHITE) ? 0b0011 : 0b1100;
-        auto castling = (pos.castlingPerms().value()) ^ castlingMask;
-
-        U64 fromKBB = set_bit(move.from());
-        U64 toKBB = set_bit(move.to());
-
-
 
         pos.remove(Piece::KING, pos.side(), move.from());
         pos.add(Piece::KING, pos.side(), move.to());
@@ -439,11 +445,13 @@ bool MoveGen::make_castle(Move move)
                 RookSq = (pos.side() == Color::WHITE) ? Square::A1 : Square::A8;
                 RookSqTo = (pos.side() == Color::WHITE) ? Square::D1 : Square::D8;
                 break;
+            default:
+                return false;
 
         }
 
-        U64 fromRBB = set_bit(RookSq);
-        U64 toRBB = set_bit(RookSqTo);
+        //U64 fromRBB = set_bit(RookSq);
+        //U64 toRBB = set_bit(RookSqTo);
 
         pos.remove(Piece::ROOK, pos.side(), RookSq);
         pos.add(Piece::ROOK, pos.side(), RookSqTo);
@@ -460,13 +468,13 @@ bool MoveGen::make_capture(const Move move)
     
     if (move.has_capture_flag())
     {
-        const U64 fromBB = set_bit(move.from());
-        const U64 toBB = set_bit(move.to());
+        //const U64 fromBB = set_bit(move.from());
+        //const U64 toBB = set_bit(move.to());
         Piece captured = pos.get_piece(move.to());
         Piece piece = pos.get_piece(move.from());
 
         pos.remove(piece, pos.side(), move.from());
-        pos.remove(captured, pos.get_opposite_side(), move.to());
+        pos.remove(captured, pos.opposite_side(), move.to());
         pos.add(piece, pos.side(), move.to());
 
 
@@ -480,35 +488,28 @@ bool MoveGen::make_quiet(const Move move)
 {
     Piece piece = pos.get_piece(move.from());
     const U64 fromBB = set_bit(move.from());
-    const U64 toBB = set_bit(move.to());
-    if (fromBB & pos.colorsBB(pos.side()) == 0 || fromBB & pos.piecesBB(piece) == 0)
+
+    if ((fromBB & pos.colorsBB(pos.side())) == 0 || (fromBB & pos.piecesBB(piece)) == 0)
     {
         return false;
     }
 
     pos.remove(piece, pos.side(), move.from());
     pos.add(piece, pos.side(), move.to());
-    
-    if (move.flags() == Flag::DOUBLE_PAWN)
-    {
-        int sq = static_cast<int>(move.to());
-        int backSq = (pos.side() == Color::WHITE) ? (sq - 8) : (sq + 8);
-
-    }
 
     return true;
 }
 
 bool MoveGen::make_enPassant(Move move)
 {
-    if (!pos.enPassant().has_value()) return false;
-    Square enPassantSq = (pos.enPassant().value());
+    if (!pos.en_passant().has_value()) return false;
+    Square enPassantSq = (pos.en_passant().value());
     auto capturedPawn = (pos.side() == Color::WHITE) ? try_offset(enPassantSq, 0, -1) : try_offset(enPassantSq, 0, 1);
 
     if ((move.flags() == Flag::EN_PASSANT) && (enPassantSq != Square::A1) && (capturedPawn.has_value()))
     {
         
-        pos.remove(Piece::PAWN, pos.get_opposite_side(), capturedPawn.value());
+        pos.remove(Piece::PAWN, pos.opposite_side(), capturedPawn.value());
         pos.remove(Piece::PAWN, pos.side(), move.from());
         pos.add(Piece::PAWN, pos.side(), enPassantSq);
         return true;
@@ -543,7 +544,7 @@ bool MoveGen::make_promotion(Move move)
 
         if (captured != Piece::EMPTY) 
         {
-            pos.remove(captured, pos.get_opposite_side(), move.to());
+            pos.remove(captured, pos.opposite_side(), move.to());
         }
         pos.remove(Piece::PAWN, pos.side(), move.from());
         pos.add(promotedPiece, pos.side(), move.to());
@@ -567,7 +568,7 @@ bool MoveGen::make_move(const Move input)
 
     if (!game_state.has_value()) return false;
     //pos.gameState.push_back(game_state); 
-    Piece piece = pos.get_piece(move.from());
+    //Piece piece = pos.get_piece(move.from());
     bool isValid = false;
     switch(move.flags())
     {
@@ -609,12 +610,8 @@ bool MoveGen::make_move(const Move input)
 bool MoveGen::undo_quiet(Move move)
 {
         Piece piece = pos.get_piece(move.to());
-        const U64 prevBB = set_bit(move.from());
-        const U64 currentBB = set_bit(move.to());
-
         pos.remove(piece, pos.side(), move.to());
-        pos.add(piece, pos.side(), move.from());
-        
+        pos.add(piece, pos.side(), move.from());   
         return true;   
 }
 bool MoveGen::undo_castle(Move move)
@@ -622,8 +619,6 @@ bool MoveGen::undo_castle(Move move)
     if (move.flags() == Flag::KING_CASTLE || move.flags() == Flag::QUEEN_CASTLE)
     {
         Piece piece = pos.get_piece(move.to());
-        const U64 prevBB = set_bit(move.from());
-        const U64 currentBB = set_bit(move.to());
 
         pos.remove(piece, pos.side(), move.to());
         pos.add(piece, pos.side(), move.from());undo_quiet(move);
@@ -651,6 +646,8 @@ bool MoveGen::undo_castle(Move move)
 
                 return true;        
             }
+
+            default: return false;
         }
     
     }
@@ -665,19 +662,16 @@ bool MoveGen::undo_capture(Move move, Piece capture)
     if (move.has_capture_flag() && capture != Piece::EMPTY)
     {
         undo_quiet(move);
-        const U64 prevBB = set_bit(move.from());
-        const U64 currentBB = set_bit(move.to());
         if (move.flags() == Flag::EN_PASSANT && capture !=Piece::EMPTY)
             {
-                if (!pos.enPassant().has_value()) throw std::invalid_argument("no enPas value");
+                if (!pos.en_passant().has_value()) throw std::invalid_argument("no enPas value");
                 const Square enPasSq = pos.gameHistory.end()[-1].en_passant();
-                const U64 enPasBB = set_bit(enPasSq);
                 const Square capturedEnPas = (pos.side() == Color::WHITE) ? try_offset(enPasSq, 0, -1).value() : try_offset(enPasSq, 0, 1).value();
                 pos.add(Piece::PAWN, pos.side(), move.from());
-                pos.add(Piece::PAWN, pos.get_opposite_side(), capturedEnPas);
+                pos.add(Piece::PAWN, pos.opposite_side(), capturedEnPas);
                 return true;
             }
-        pos.add(capture, pos.get_opposite_side(), move.to());
+        pos.add(capture, pos.opposite_side(), move.to());
         return true;
     }
     throw std::invalid_argument(std::to_string(static_cast<int>(capture)));  
@@ -688,15 +682,13 @@ bool MoveGen::undo_promotion(Move move, Piece captured)
 {
 
     Piece piece = pos.get_piece(move.to());
-    const U64 prevBB = set_bit(move.from());
-    const U64 currentBB = set_bit(move.to());
 
     pos.remove(piece, pos.side(), move.to());
     pos.add(Piece::PAWN, pos.side(), move.from());
 
     if (captured != Piece::EMPTY)
     {
-        pos.add(captured, pos.get_opposite_side(), move.to());
+        pos.add(captured, pos.opposite_side(), move.to());
     }
     
     return true;
