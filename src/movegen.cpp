@@ -51,14 +51,13 @@ void MoveGen::generate_castles()
 {
     if (pos.is_check()) return;
     U64 kingPos = pos.get_bitboard(pos.side(), Piece::KING);
-    U64 rooksPos = pos.get_bitboard(pos.side(), Piece::ROOK);
+    //U64 rooksPos = pos.get_bitboard(pos.side(), Piece::ROOK);
     Square from = (pos.side() == Color::WHITE) ? Square::E1 : Square::E8;
     bool correctKingPos = !is_empty(kingPos & set_bit(from));
     if (!correctKingPos) return;
 
     Square toKingside = (pos.side() == Color::WHITE) ? Square::G1 : Square::G8;
     Square toQueenside = (pos.side() == Color::WHITE) ? Square::C1 : Square::C8;
-
 
     U64 kingsideMask = (pos.side() == Color::WHITE) ? 0x60 : 0x6000000000000000;
     U64 queensideAttackerMask = (pos.side() == Color::WHITE) ? 0xc : 0xc00000000000000;
@@ -377,7 +376,7 @@ bool MoveGen::is_checkmate()
     if (is_empty(attackers)) return false;
     int numberOfAttackers = Bitboard::population_count(attackers); // to find double checks
 
-    U64 friendlyPieces = pos.colorsBB(pos.side());
+    //U64 friendlyPieces = pos.colorsBB(pos.side());
 
     
     U64 blockers = (pos.colorsBB(Color::WHITE) | pos.colorsBB(Color::BLACK)) & ~attackers;
@@ -428,15 +427,6 @@ bool MoveGen::make_castle(Move move)
     if (castleFlag == Flag::KING_CASTLE || castleFlag == Flag::QUEEN_CASTLE)
     {
         if (!pos.fiftyMove().has_value() || !pos.castlingPerms().has_value()) return false;
-        auto incrementmove = pos.fiftyMove().value() + 1;
-
-        short castlingMask = (pos.side() == Color::WHITE) ? 0b0011 : 0b1100;
-        auto castling = (pos.castlingPerms().value()) ^ castlingMask;
-
-        U64 fromKBB = set_bit(move.from());
-        U64 toKBB = set_bit(move.to());
-
-
 
         pos.remove(Piece::KING, pos.side(), move.from());
         pos.add(Piece::KING, pos.side(), move.to());
@@ -455,11 +445,13 @@ bool MoveGen::make_castle(Move move)
                 RookSq = (pos.side() == Color::WHITE) ? Square::A1 : Square::A8;
                 RookSqTo = (pos.side() == Color::WHITE) ? Square::D1 : Square::D8;
                 break;
+            default:
+                return false;
 
         }
 
-        U64 fromRBB = set_bit(RookSq);
-        U64 toRBB = set_bit(RookSqTo);
+        //U64 fromRBB = set_bit(RookSq);
+        //U64 toRBB = set_bit(RookSqTo);
 
         pos.remove(Piece::ROOK, pos.side(), RookSq);
         pos.add(Piece::ROOK, pos.side(), RookSqTo);
@@ -476,8 +468,8 @@ bool MoveGen::make_capture(const Move move)
     
     if (move.has_capture_flag())
     {
-        const U64 fromBB = set_bit(move.from());
-        const U64 toBB = set_bit(move.to());
+        //const U64 fromBB = set_bit(move.from());
+        //const U64 toBB = set_bit(move.to());
         Piece captured = pos.get_piece(move.to());
         Piece piece = pos.get_piece(move.from());
 
@@ -496,21 +488,14 @@ bool MoveGen::make_quiet(const Move move)
 {
     Piece piece = pos.get_piece(move.from());
     const U64 fromBB = set_bit(move.from());
-    const U64 toBB = set_bit(move.to());
-    if (fromBB & pos.colorsBB(pos.side()) == 0 || fromBB & pos.piecesBB(piece) == 0)
+
+    if ((fromBB & pos.colorsBB(pos.side())) == 0 || (fromBB & pos.piecesBB(piece)) == 0)
     {
         return false;
     }
 
     pos.remove(piece, pos.side(), move.from());
     pos.add(piece, pos.side(), move.to());
-    
-    if (move.flags() == Flag::DOUBLE_PAWN)
-    {
-        int sq = static_cast<int>(move.to());
-        int backSq = (pos.side() == Color::WHITE) ? (sq - 8) : (sq + 8);
-
-    }
 
     return true;
 }
@@ -583,7 +568,7 @@ bool MoveGen::make_move(const Move input)
 
     if (!game_state.has_value()) return false;
     //pos.gameState.push_back(game_state); 
-    Piece piece = pos.get_piece(move.from());
+    //Piece piece = pos.get_piece(move.from());
     bool isValid = false;
     switch(move.flags())
     {
@@ -625,12 +610,8 @@ bool MoveGen::make_move(const Move input)
 bool MoveGen::undo_quiet(Move move)
 {
         Piece piece = pos.get_piece(move.to());
-        const U64 prevBB = set_bit(move.from());
-        const U64 currentBB = set_bit(move.to());
-
         pos.remove(piece, pos.side(), move.to());
-        pos.add(piece, pos.side(), move.from());
-        
+        pos.add(piece, pos.side(), move.from());   
         return true;   
 }
 bool MoveGen::undo_castle(Move move)
@@ -638,8 +619,6 @@ bool MoveGen::undo_castle(Move move)
     if (move.flags() == Flag::KING_CASTLE || move.flags() == Flag::QUEEN_CASTLE)
     {
         Piece piece = pos.get_piece(move.to());
-        const U64 prevBB = set_bit(move.from());
-        const U64 currentBB = set_bit(move.to());
 
         pos.remove(piece, pos.side(), move.to());
         pos.add(piece, pos.side(), move.from());undo_quiet(move);
@@ -667,6 +646,8 @@ bool MoveGen::undo_castle(Move move)
 
                 return true;        
             }
+
+            default: return false;
         }
     
     }
@@ -681,13 +662,10 @@ bool MoveGen::undo_capture(Move move, Piece capture)
     if (move.has_capture_flag() && capture != Piece::EMPTY)
     {
         undo_quiet(move);
-        const U64 prevBB = set_bit(move.from());
-        const U64 currentBB = set_bit(move.to());
         if (move.flags() == Flag::EN_PASSANT && capture !=Piece::EMPTY)
             {
                 if (!pos.en_passant().has_value()) throw std::invalid_argument("no enPas value");
                 const Square enPasSq = pos.gameHistory.end()[-1].en_passant();
-                const U64 enPasBB = set_bit(enPasSq);
                 const Square capturedEnPas = (pos.side() == Color::WHITE) ? try_offset(enPasSq, 0, -1).value() : try_offset(enPasSq, 0, 1).value();
                 pos.add(Piece::PAWN, pos.side(), move.from());
                 pos.add(Piece::PAWN, pos.opposite_side(), capturedEnPas);
@@ -704,8 +682,6 @@ bool MoveGen::undo_promotion(Move move, Piece captured)
 {
 
     Piece piece = pos.get_piece(move.to());
-    const U64 prevBB = set_bit(move.from());
-    const U64 currentBB = set_bit(move.to());
 
     pos.remove(piece, pos.side(), move.to());
     pos.add(Piece::PAWN, pos.side(), move.from());

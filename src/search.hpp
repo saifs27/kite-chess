@@ -19,6 +19,7 @@
 #include "position.hpp"
 #include "movegen.hpp"
 #include "evaluation.hpp"
+#include <algorithm>
 
 namespace Kite::Search {
 
@@ -38,8 +39,7 @@ void order_moves(std::vector<Move> moves);
 std::vector<Move> filter_illegal_moves(MoveGen& moves);
 int quiesce(Position& pos, MoveGen& moves, int alpha, int beta); // Needed to avoid the horizon effect
 int alpha_beta(Position& pos, MoveGen& moves, int alpha, int beta, int depthLeft);
-int search(Position& pos, int depth);
-RootMove search_root(Position& pos, int depth);   
+RootMove search(Position& pos, int depth);   
 
 
 

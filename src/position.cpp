@@ -258,7 +258,7 @@ std::optional<short> Position::update_castlingPerm(const Move move) const {
                 break;
         }
     }
-    if (colorMask & currentCastlingPerms == 0) {return currentCastlingPerms;}
+    if ((colorMask & currentCastlingPerms) == 0) {return currentCastlingPerms;}
 
     if (piece == Piece::KING) 
     {
@@ -380,6 +380,7 @@ bool Position::is_check() const
 
 U64 Position::pin_mask(Color color) const
 {
+    // TODO: finish pin mask
     Color op_side = (color == Color::WHITE) ? Color::BLACK : Color::WHITE;
 
     U64 attacks = get_attacks(color, 0);

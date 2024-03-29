@@ -269,7 +269,7 @@ inline std::optional<Square> try_offset(Square sq, int file_offset, int rank_off
     {
         return {};
     }
-
+    
     return static_cast<Square>(new_square);
 }
 
