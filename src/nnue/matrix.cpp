@@ -12,21 +12,4 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 */
-#include "accumulator.hpp"
-
-namespace Kite::NNUE {
-
-void Accumulator::refresh (const LinearLayer& layer, Accumulator& new_acc, const std::vector<int>& active_features, Color side)
-{
-    for (int i = 0; i < size::M; i++)
-    {
-        new_acc.data[static_cast<int>(side)][i] = layer.at(i).bias;
-    }
-
-    for (int i : active_features)
-    {
-        
-    }
-}
-
-}
+#include "matrix.hpp"

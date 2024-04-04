@@ -8,6 +8,9 @@ add_executable(kite
                 uci.cpp uci.hpp
                 moves.cpp moves.hpp
                 evaluation.cpp evaluation.hpp
+                nnue/matrix.cpp
+                nnue/layers.cpp 
+                nnue/accumulator.cpp
                 )
 
 target_include_directories(kite PRIVATE src)

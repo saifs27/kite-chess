@@ -12,21 +12,31 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 */
-#include "accumulator.hpp"
 
+#pragma once
+#include <algorithm>
 namespace Kite::NNUE {
 
-void Accumulator::refresh (const LinearLayer& layer, Accumulator& new_acc, const std::vector<int>& active_features, Color side)
-{
-    for (int i = 0; i < size::M; i++)
-    {
-        new_acc.data[static_cast<int>(side)][i] = layer.at(i).bias;
-    }
 
-    for (int i : active_features)
+enum class Order {ROW_MAJOR, COLUMN_MAJOR};
+
+template <typename T, Order U, std::size_t Rows, std::size_t Cols>
+struct Matrix
+{
+    std::array<T, Rows*Cols> data;
+    T at(int row_index, int column_index)
     {
-        
+        int index = (U == Order::ROW_MAJOR) ? (column_index + row_index * Rows) : (row_index + Cols * column_index);
+        return data.at(index);    
     }
-}
+    Matrix()
+
+
+
+
+};
+
+
+
 
 }

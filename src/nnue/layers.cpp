@@ -12,3 +12,16 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 */
+
+#include "layers.hpp"
+namespace Kite::NNUE {
+
+ClippedRELU::ClippedRELU(int size, const std::vector<float>& input)
+{
+    for (auto i : input)
+    {
+        output.push_back(std::min(std::max(i, 0.0f), 1.0f));
+    }
+
+}
+}

@@ -15,6 +15,8 @@
 
 #pragma once
 #include <array>
+#include <algorithm>
+
 namespace Kite::NNUE {
 
 struct Node
@@ -24,14 +26,33 @@ struct Node
 };
 
 
+template <std::size_t N, std::size_t M>
 struct Layer
 {
-    std::array<Node, 32> data;
-    
-
-    
+    std::array<std::array<float, N>, M> weight;
+    float bias;
+    int num_inputs = N;
+    int num_outputs;
+    Layer(const std::array<float, 32>& features);
 
 };
+
+struct ClippedRELU
+{
+    /*
+    A modified RELU where
+
+    f(x) = x for x >= 0 and x =< 1
+         = 1 for x > 1
+         = 0 for x < 0 
+    */
+    std::vector<float> output = {};
+
+    ClippedRELU(int size, const std::vector<float>& input);
+    void set_relu(int size, const std::vector<float>& input);
+};
+
+void clipped_relu(int size, const std::vector<float>& input, const std::vector<float>& output);
 
 
 

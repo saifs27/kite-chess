@@ -18,25 +18,29 @@
 #include <vector>
 #include "../search.hpp"
 #include "../types.hpp"
+#include "layers.hpp"
+#include "misc.hpp"
 namespace Kite::NNUE {
 struct LinearLayer
 {
-    int weight;
-    int bias;
+    std::array<Node, 32> data;
+    LinearLayer(std::array<Node, 32> input) : data(input) {};
+    Node at(int i) const {return data.at(i);}
 
 };
-struct NNUEAccumulator
+struct Accumulator
 {
-    std::array<std::array<float, 64>, 2> v;
+    std::array<std::array<float, size::M>, 2> data;
+    float at(Color side, int n) const {return data.at(static_cast<int>(side)).at(n);}
     void refresh(
         const LinearLayer& layer, // L_0
-        NNUEAccumulator& new_acc, //store result
+        Accumulator& new_acc, //store result
         const std::vector<int>& active_features, 
         Color side
     );
     void update(
         const LinearLayer& layer, 
-        NNUEAccumulator& new_acc, 
+        Accumulator& new_acc, 
         const std::vector<int>& removed_features,
         const std::vector<int>& added_features,
         Color side);
