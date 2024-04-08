@@ -14,6 +14,8 @@
 */
 
 #pragma once
+#include "matrix.hpp"
+#include "layers.hpp"
 namespace Kite::NNUE {
 
 namespace size

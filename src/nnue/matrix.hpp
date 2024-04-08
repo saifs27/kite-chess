@@ -23,20 +23,26 @@ enum class Order {ROW_MAJOR, COLUMN_MAJOR};
 template <typename T, Order U, std::size_t Rows, std::size_t Cols>
 struct Matrix
 {
-    std::array<T, Rows*Cols> data;
     T at(int row_index, int column_index)
     {
         int index = (U == Order::ROW_MAJOR) ? (column_index + row_index * Rows) : (row_index + Cols * column_index);
         return data.at(index);    
     }
-    Matrix()
+    Matrix(){std::fill(data.begin(), data.end(), 0);}
+    void assign(int i, int j, T input) {}
+    T&& operator()(int i, int j){return data.at(index());}
+    Matrix operator*(const Matrix& M);
+    Matrix operator*(const Matrix<T, U, Cols, 1>& M);
 
-
-
+    private:
+    T index(int row_index, int column_index) 
+    {
+        if constexpr (U == Order::ROW_MAJOR) return column_index + row_index * Rows;
+        return row_index + Cols * column_index;
+    }
+    std::array<T, Rows*Cols> data;
 
 };
-
-
 
 
 }

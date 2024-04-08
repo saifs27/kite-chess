@@ -16,21 +16,16 @@
 #pragma once
 #include <array>
 #include <algorithm>
+#include "matrix.hpp"
 
 namespace Kite::NNUE {
-
-struct Node
-{
-    int weight;
-    int bias;
-};
 
 
 template <std::size_t N, std::size_t M>
 struct Layer
 {
-    std::array<std::array<float, N>, M> weight;
-    float bias;
+    Matrix<float, Order::COLUMN_MAJOR, N, M> weight;
+    Matrix<float, Order::COLUMN_MAJOR, N, 1> bias;
     int num_inputs = N;
     int num_outputs;
     Layer(const std::array<float, 32>& features);

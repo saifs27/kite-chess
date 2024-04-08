@@ -20,20 +20,22 @@
 #include "../types.hpp"
 #include "layers.hpp"
 #include "misc.hpp"
+#include "matrix.hpp"
 namespace Kite::NNUE {
 struct LinearLayer
 {
-    std::array<Node, 32> data;
-    LinearLayer(std::array<Node, 32> input) : data(input) {};
-    Node at(int i) const {return data.at(i);}
+    std::array<float, 32> data;
+    LinearLayer(std::array<float, 32> input) : data(input) {};
+    float at(int i) const {return data.at(i);}
 
 };
 struct Accumulator
 {
-    std::array<std::array<float, size::M>, 2> data;
-    float at(Color side, int n) const {return data.at(static_cast<int>(side)).at(n);}
+    Matrix<float, Order::COLUMN_MAJOR, size::M, 2> data;
+    float& operator()(int i, int j){return data(i, j);}
+
     void refresh(
-        const LinearLayer& layer, // L_0
+        const Layer& layer, // L_0
         Accumulator& new_acc, //store result
         const std::vector<int>& active_features, 
         Color side

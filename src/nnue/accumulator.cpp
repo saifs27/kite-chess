@@ -16,11 +16,12 @@
 
 namespace Kite::NNUE {
 
-void Accumulator::refresh (const LinearLayer& layer, Accumulator& new_acc, const std::vector<int>& active_features, Color side)
+void Accumulator::refresh (const Layer& layer, Accumulator& new_acc, const std::vector<int>& active_features, Color side)
 {
+    int perspective = static_cast<int>(side);
     for (int i = 0; i < size::M; i++)
     {
-        new_acc.data[static_cast<int>(side)][i] = layer.at(i).bias;
+        new_acc(perspective, i) = layer.
     }
 
     for (int i : active_features)
