@@ -30,7 +30,7 @@ struct Matrix
     }
     Matrix(){std::fill(data.begin(), data.end(), 0);}
     void assign(int i, int j, T input) {}
-    T&& operator()(int i, int j){return data.at(index());}
+    T& operator()(int i, int j){return data.at(index());}
     Matrix operator*(const Matrix& M);
     Matrix operator*(const Matrix<T, U, Cols, 1>& M);
 

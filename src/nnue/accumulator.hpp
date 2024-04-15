@@ -22,27 +22,22 @@
 #include "misc.hpp"
 #include "matrix.hpp"
 namespace Kite::NNUE {
-struct LinearLayer
-{
-    std::array<float, 32> data;
-    LinearLayer(std::array<float, 32> input) : data(input) {};
-    float at(int i) const {return data.at(i);}
-
-};
+    
 struct Accumulator
 {
     Matrix<float, Order::COLUMN_MAJOR, size::M, 2> data;
     float& operator()(int i, int j){return data(i, j);}
 
     void refresh(
-        const Layer& layer, // L_0
+        const Layer<size::M, size::N>& layer, // L_0
         Accumulator& new_acc, //store result
         const std::vector<int>& active_features, 
         Color side
     );
     void update(
-        const LinearLayer& layer, 
-        Accumulator& new_acc, 
+        const Layer<size::M, size::N>& layer, 
+        Accumulator& new_acc,
+        Accumulator& prev_acc,
         const std::vector<int>& removed_features,
         const std::vector<int>& added_features,
         Color side);

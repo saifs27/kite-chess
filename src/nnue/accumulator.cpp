@@ -16,18 +16,79 @@
 
 namespace Kite::NNUE {
 
-void Accumulator::refresh (const Layer& layer, Accumulator& new_acc, const std::vector<int>& active_features, Color side)
+void Accumulator::refresh (const Layer<size::M, size::N>& layer, 
+                           Accumulator& new_acc, 
+                           const std::vector<int>& active_features, 
+                           Color side)
 {
     int perspective = static_cast<int>(side);
     for (int i = 0; i < size::M; i++)
     {
-        new_acc(perspective, i) = layer.
+        auto bias = layer.bias;
+        new_acc(perspective, i) = bias.at(i, 0);
     }
 
-    for (int i : active_features)
+    for (int a: active_features)
     {
-        
+        for (int i = 0; i < size::M; i++)
+        {
+            auto weight = layer.weight;
+            new_acc(perspective, i) += weight(a, i);
+        }
     }
 }
+
+    void update(const Layer<size::M, size::N>& layer, 
+                Accumulator& new_acc, 
+                Accumulator& prev_acc, 
+                const std::vector<int>& removed_features, 
+                const std::vector<int>& added_features, 
+                Color side)
+    {
+        int perspective = static_cast<int>(side);
+        // copy previous values
+        for (int i = 0; i < size::M; i++)
+        {
+            new_acc(perspective, i) = prev_acc(perspective, i);
+        }
+
+        for (int f : removed_features)
+        {
+            for (int i = 0; i < size::M; i++)
+            {
+                auto weight = layer.weight;
+                new_acc(perspective, i) -= weight(f, i);
+            }
+        }
+
+        for (int f : added_features)
+        {
+            for (int i = 0; i < size::M; i++)
+            {
+                auto weight = layer.weight;
+                new_acc(perspective, i) += weight(f, i);
+            }
+
+        }
+
+
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 }

@@ -145,8 +145,8 @@ Piece Position::get_piece(const Square sq) const {
 Color Position::check_square_color(const Square sq) const{
     U64 sqBB = set_bit(sq);
     if (!is_empty(pieceBB[static_cast<int>(Color::WHITE)] & sqBB)) return Color::WHITE;
-    else if (!is_empty(pieceBB[static_cast<int>(Color::BLACK) & sqBB])) return Color::BLACK;
-    else return Color::NONE;
+    if (!is_empty(pieceBB[static_cast<int>(Color::BLACK) & sqBB])) return Color::BLACK;
+    return Color::NONE;
 }
 
 Square Position::captured_enPassant(Square enPasSq, Color color) const

@@ -86,10 +86,10 @@ std::string piece_to_string(Piece piece)
 Piece string_to_piece(const char string)
 {
     if (string == 'Q') return Piece::QUEEN;
-    else if (string == 'R') return Piece::ROOK;
-    else if (string == 'N' ) return Piece::KNIGHT;
-    else if (string == 'B') return Piece::BISHOP;
-    else return Piece::EMPTY;
+    if (string == 'R') return Piece::ROOK;
+    if (string == 'N' ) return Piece::KNIGHT;
+    if (string == 'B') return Piece::BISHOP;
+    return Piece::EMPTY;
 }
 
 std::string move_to_uci(Move move)
