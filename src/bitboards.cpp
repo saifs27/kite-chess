@@ -42,18 +42,17 @@ Square msb(const U64 bitboard)
 }
 
 Square lsb(const U64 bitboard) 
-{
-    Square sq;
-    U64 sqbb;
-    for (int i = 0; i < 64; i++) {
-        sq = static_cast<Square>(i);
-        sqbb = set_bit(sq);
-        if ((bitboard & sqbb) == sqbb) {
-            return sq;
-        }
-    }
-
-    return Square::EMPTY_SQUARE;
+{ 
+    /*
+    Using De Bruijn multiplication to find least significant bit of
+    bitboard more efficiently. 
+    
+    See https://www.chessprogramming.org/BitScan
+    */
+    if (bitboard == 0) return Square::EMPTY_SQUARE;
+    const U64 debruijn64 = 0x03f79d71b4cb0a89;
+    int sq = BitScan::index64[((bitboard & -bitboard) * debruijn64) >> 58];
+    return static_cast<Square>(sq);
 }
 
 Square pop_lsb(U64& bitboard) {
