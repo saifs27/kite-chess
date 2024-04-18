@@ -40,6 +40,7 @@ class Position {
     Position();
     Position(std::string fen);
     void start_position();
+    void set_fen(std::string fen);
 
     void read_fen(std::string fen);
 

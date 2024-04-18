@@ -258,7 +258,7 @@ std::optional<short> Position::update_castlingPerm(const Move move) const {
                 break;
         }
     }
-    if ((colorMask & currentCastlingPerms) == 0) {return currentCastlingPerms;}
+    if ((colorMask & currentCastlingPerms) == 0) return currentCastlingPerms;
 
     if (piece == Piece::KING) 
     {
@@ -267,7 +267,7 @@ std::optional<short> Position::update_castlingPerm(const Move move) const {
 
     }
 
-    else if (piece == Piece::ROOK) 
+    if (piece == Piece::ROOK) 
     {
         int castling_side;
         
@@ -325,7 +325,7 @@ void Position::print_board() const
         color = Color::WHITE;
         if ((colorsBB(Color::WHITE) & check_sq) != 0) {color = Color::WHITE;}
         else if ((colorsBB(Color::BLACK) & check_sq) != 0) {color = Color::BLACK;}
-        else {continue;}
+        else continue;
 
         for (int j = 2; j < 8; j++) {
             Piece piece = static_cast<Piece>(j);
@@ -532,9 +532,12 @@ U64 Position::check_mask(Color color) const
     return checkMask;
 }
 
-
-
 Position::Position(std::string fen)
+{
+    set_fen(fen);
+}
+
+void Position::set_fen(std::string fen)
 {
     _score.set_score(Result::EMPTY);
     set_colorBB(Color::WHITE, 0x0ULL);

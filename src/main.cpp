@@ -33,10 +33,13 @@ int main() {
     Kite::Timer timer;
     Kite::Position board("8/2k5/3q4/8/8/8/3Q4/7K w - - 0 1");
     //board.start_position();
-    //Smyslov::MoveGen moves(board);
+    Kite::MoveGen moves(board);
     //moves.generate_all_moves();
     auto score =  Kite::Search::search(board, 1);
     std::cout << "score: " << score.score << '\n';
+
+    auto score2 = Kite::Search::alpha_beta(board, moves, -100000, 100000, 1);
+    std::cout << "alpha beta: " << score2 << '\n';
  
     //game_loop(board, moves);
    

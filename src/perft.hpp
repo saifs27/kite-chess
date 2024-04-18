@@ -150,14 +150,4 @@ inline void debug_perft(Position& pos, short initial_depth)
     }
 }
 
-
-
-
-
-
-
-
-
-
-
 }

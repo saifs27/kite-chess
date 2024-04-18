@@ -25,13 +25,10 @@ void order_moves(const Position& pos, std::vector<Move> moves)
         int moveScore = 0;
         Piece fromPieceType = pos.get_piece(move.from());
 
-        if (move.has_capture_flag())
-        {
-            Piece capturePieceType = pos.get_piece(move.to());
-            moveScore = 10 * get_piece_value(capturePieceType) - get_piece_value(fromPieceType);
-                       
-        }
-
+        if (!move.has_capture_flag()) continue;
+        
+        Piece capturePieceType = pos.get_piece(move.to());
+        moveScore = 10 * get_piece_value(capturePieceType) - get_piece_value(fromPieceType);
     }
 }
 
@@ -43,11 +40,10 @@ std::vector<Move> filter_illegal_moves(MoveGen& moves)
     for (auto move : moves.move_list())
     {
         isLegalMove = moves.make_move(move);
-        if (isLegalMove)
-        {
-            legal_move_list.push_back(move);
-            moves.undo_move();
-        }
+        if (!isLegalMove) continue;
+        
+        legal_move_list.push_back(move);
+        moves.undo_move();
     }
     return legal_move_list;
 }
@@ -95,9 +91,6 @@ int alpha_beta(Position& pos, MoveGen& moves, int alpha, int beta, int depthLeft
     return alpha;
 }
 
-
-
-
 RootMove search(Position& pos, int depthLeft)
 {
     const Move nullMove = Move(Square::A1, Square::A1, Flag::QUIET);
@@ -117,7 +110,7 @@ RootMove search(Position& pos, int depthLeft)
     int score;
     for (Move move : moveList)
     {
-        score = alpha_beta(pos, moves, alpha, beta, depthLeft);
+        score = -alpha_beta(pos, moves, -beta, -alpha, depthLeft);
         if (score >= beta) 
         {
             bestMove = move;

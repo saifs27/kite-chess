@@ -6,7 +6,7 @@
 # Kite Chess Engine
 
 ## About
-Kite is a UCI chess engine which analyzes and outputs the best moves. (Still a work in progress)
+Kite is a work in progress UCI chess engine which analyzes and outputs the best moves.
 
 ## Build Instructions
 
@@ -18,3 +18,5 @@ cd build
 cmake ..
 make
 ```
+
+

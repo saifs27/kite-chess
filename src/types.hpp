@@ -86,6 +86,8 @@ inline constexpr U64 seventh = 0xff000000000000;
 inline constexpr U64 eighth  = 0xff00000000000000;
 }
 
+
+
 namespace PieceWeight
 {
     inline constexpr int queen = 900;
