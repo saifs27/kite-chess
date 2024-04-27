@@ -14,32 +14,29 @@
 */
 
 #pragma once
-#include <array>
 #include <algorithm>
+#include <array>
+
 #include "matrix.hpp"
 
 namespace Kite::NNUE {
 
-
 template <std::size_t N, std::size_t M>
-struct Layer
-{
+struct Layer {
     Matrix<float, Order::COLUMN_MAJOR, N, M> weight;
     Matrix<float, Order::COLUMN_MAJOR, N, 1> bias;
     int num_inputs = N;
     int num_outputs;
     Layer(const std::array<float, 32>& features);
-
 };
 
-struct ClippedRELU
-{
+struct ClippedRELU {
     /*
     A modified RELU where
 
     f(x) = x for x >= 0 and x =< 1
          = 1 for x > 1
-         = 0 for x < 0 
+         = 0 for x < 0
     */
     std::vector<float> output = {};
 
@@ -47,18 +44,7 @@ struct ClippedRELU
     void set_relu(int size, const std::vector<float>& input);
 };
 
-void clipped_relu(int size, const std::vector<float>& input, const std::vector<float>& output);
+void clipped_relu(int size, const std::vector<float>& input,
+                  const std::vector<float>& output);
 
-
-
-
-
-
-
-
-
-
-
-
-
-}
+}  // namespace Kite::NNUE
