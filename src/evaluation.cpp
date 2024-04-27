@@ -13,17 +13,17 @@
     GNU General Public License for more details.
 */
 
-
 #include "evaluation.hpp"
 
-namespace Kite::Eval
-{
-int material_count(const Position& pos, Color side)
-{
-    int queens = Bitboard::population_count(pos.get_bitboard(side, Piece::QUEEN));
-    int bishops = Bitboard::population_count(pos.get_bitboard(side, Piece::BISHOP));
+namespace Kite::Eval {
+int material_count(const Position& pos, Color side) {
+    int queens =
+        Bitboard::population_count(pos.get_bitboard(side, Piece::QUEEN));
+    int bishops =
+        Bitboard::population_count(pos.get_bitboard(side, Piece::BISHOP));
     int rooks = Bitboard::population_count(pos.get_bitboard(side, Piece::ROOK));
-    int knights = Bitboard::population_count(pos.get_bitboard(side, Piece::KNIGHT));
+    int knights =
+        Bitboard::population_count(pos.get_bitboard(side, Piece::KNIGHT));
     int pawns = Bitboard::population_count(pos.get_bitboard(side, Piece::PAWN));
 
     auto queen_val = queens * PieceWeight::queen;
@@ -35,14 +35,10 @@ int material_count(const Position& pos, Color side)
     return queen_val + bishop_val + rook_val + knight_val + pawn_val;
 }
 
-float evaluate(const Position& pos)
-{
-    auto materialDiff = material_count(pos, pos.side())- material_count(pos, pos.opposite_side());
+float evaluate(const Position& pos) {
+    auto materialDiff = material_count(pos, pos.side()) -
+                        material_count(pos, pos.opposite_side());
     return materialDiff;
 }
 
-
-
-
-
-}
+}  // namespace Kite::Eval

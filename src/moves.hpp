@@ -13,30 +13,27 @@
     GNU General Public License for more details.
 */
 
-
 #pragma once
 #include "types.hpp"
 namespace Kite {
 
-struct Move
-{
-    private:
+struct Move {
+   private:
     Square _from;
     Square _to;
     Flag _flag;
 
-    public:
+   public:
     Move(Square from, Square to, Flag flag)
-    : _from(from), _to(to), _flag(flag)
-    {}
+        : _from(from), _to(to), _flag(flag) {}
 
-    const Square from() const {return _from;} ;
-    const Square to() const {return _to;};
-    const Flag flags() const {return _flag;};
+    const Square from() const { return _from; };
+    const Square to() const { return _to; };
+    const Flag flags() const { return _flag; };
 
-    void set_from(Square from){_from = from;};
-    void set_to(Square to) {_to = to;};
-    void set_flags(Flag flags) {_flag = flags;};
+    void set_from(Square from) { _from = from; };
+    void set_to(Square to) { _to = to; };
+    void set_flags(Flag flags) { _flag = flags; };
 
     bool has_capture_flag() const;
     bool has_promotion_flag() const;
@@ -44,61 +41,54 @@ struct Move
     Piece get_promotion_piece() const;
     bool switch_flag_to_capture();
     Square get_enPassant_square() const;
-
-
-    
-
 };
 
-
-class GameState
-{
-    private:
+class GameState {
+   private:
     Move _move;
-    int _fiftyMove  = 0;
+    int _fiftyMove = 0;
     short _castlingPerm = 0b1111;
     Piece _captured = Piece::EMPTY;
     Square _enPassant = Square::A1;
-    public:
-    GameState(Move move, int fiftyMove, short castling, Piece capture, Square enPas)
-    : _move(move), _enPassant(enPas), _captured(capture), _castlingPerm(castling), _fiftyMove(fiftyMove)
-    {
-        if (!is_valid_gameState())
-        {
+
+   public:
+    GameState(Move move, int fiftyMove, short castling, Piece capture,
+              Square enPas)
+        : _move(move),
+          _enPassant(enPas),
+          _captured(capture),
+          _castlingPerm(castling),
+          _fiftyMove(fiftyMove) {
+        if (!is_valid_gameState()) {
             throw std::invalid_argument("invalid gamestate.");
         }
     }
 
-    Move move() const {return _move;}
-    int fifty_move() const {return _fiftyMove;}
-    short castling_perms() const {return _castlingPerm;}
-    Piece captured() const {return _captured;}
-    Square en_passant() const {return _enPassant;}
+    Move move() const { return _move; }
+    int fifty_move() const { return _fiftyMove; }
+    short castling_perms() const { return _castlingPerm; }
+    Piece captured() const { return _captured; }
+    Square en_passant() const { return _enPassant; }
 
-    void set_move(const Move move) {_move = move;}
-    void set_fifty_move(const int half_moves) {_fiftyMove = half_moves;}
-    void set_castling_perms(const short castlingPerms) {_castlingPerm = castlingPerms;}
-    void set_captured(Piece captured) {_captured = captured;}
-    void set_enPassant(Square sq){ _enPassant = sq;}
-    bool is_valid_gameState()
-    {
-
+    void set_move(const Move move) { _move = move; }
+    void set_fifty_move(const int half_moves) { _fiftyMove = half_moves; }
+    void set_castling_perms(const short castlingPerms) {
+        _castlingPerm = castlingPerms;
+    }
+    void set_captured(Piece captured) { _captured = captured; }
+    void set_enPassant(Square sq) { _enPassant = sq; }
+    bool is_valid_gameState() {
         bool isValidCastling = (_castlingPerm >= 0 && _castlingPerm <= 0b1111);
         bool isValidEnPas = square_in_range(static_cast<int>(_enPassant));
-        bool isValidCapture = piece_in_range(static_cast<int>(_captured)) || _captured == Piece::EMPTY;
+        bool isValidCapture = piece_in_range(static_cast<int>(_captured)) ||
+                              _captured == Piece::EMPTY;
 
-        if (move().has_capture_flag() && captured() == Piece::EMPTY) return false;
+        if (move().has_capture_flag() && captured() == Piece::EMPTY)
+            return false;
 
         return isValidCapture && isValidCastling && isValidCapture;
-
     }
-
 };
-
-
-
-
-
 
 /*
 
@@ -133,10 +123,9 @@ struct Move
     bool is_capture(const U64 opponentBB) const;
     Piece get_promotion_piece() const;
     bool switch_flag_to_capture();
-    Square get_enPassant_square() const;   
+    Square get_enPassant_square() const;
 
 };
 */
 
-
-}
+}  // namespace Kite
