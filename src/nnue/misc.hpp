@@ -14,5 +14,14 @@
 */
 
 #pragma once
+#include "layers.hpp"
+#include "matrix.hpp"
+namespace Kite::NNUE {
 
-struct LinearLayer;
+namespace size {
+inline constexpr int N = 256;
+inline constexpr int M = 64;
+inline constexpr int K = 32;
+}  // namespace size
+
+}  // namespace Kite::NNUE

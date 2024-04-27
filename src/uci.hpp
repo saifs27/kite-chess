@@ -13,11 +13,11 @@
     GNU General Public License for more details.
 */
 
-
 #pragma once
 #include <string>
-#include "types.hpp"
+
 #include "position.hpp"
+#include "types.hpp"
 namespace Kite {
 namespace UCI {
 inline const std::string engine_version = "Kite 2024";
@@ -29,7 +29,5 @@ std::optional<Move> uci_to_move(Position& pos, std::string uci);
 std::vector<std::string> split(std::string str, char split);
 void uci_loop();
 
-}
-}
-
-
+}  // namespace UCI
+}  // namespace Kite

@@ -16,30 +16,24 @@
 #pragma once
 #include <array>
 #include <vector>
+
 #include "../search.hpp"
 #include "../types.hpp"
+#include "layers.hpp"
+#include "matrix.hpp"
+#include "misc.hpp"
 namespace Kite::NNUE {
-struct LinearLayer
-{
-    int weight;
-    int bias;
 
-};
-struct NNUEAccumulator
-{
-    std::array<std::array<float, 64>, 2> v;
-    void refresh(
-        const LinearLayer& layer, // L_0
-        NNUEAccumulator& new_acc, //store result
-        const std::vector<int>& active_features, 
-        Color side
-    );
-    void update(
-        const LinearLayer& layer, 
-        NNUEAccumulator& new_acc, 
-        const std::vector<int>& removed_features,
-        const std::vector<int>& added_features,
-        Color side);
+struct Accumulator {
+    Matrix<float, Order::COLUMN_MAJOR, size::M, 2> data;
+    float& operator()(int i, int j) { return data(i, j); }
+
+    void refresh(const Layer<size::M, size::N>& layer,  // L_0
+                 Accumulator& new_acc,                  // store result
+                 const std::vector<int>& active_features, Color side);
+    void update(const Layer<size::M, size::N>& layer, Accumulator& new_acc,
+                Accumulator& prev_acc, const std::vector<int>& removed_features,
+                const std::vector<int>& added_features, Color side);
 };
 
-}
+}  // namespace Kite::NNUE

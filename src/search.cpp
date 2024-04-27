@@ -13,49 +13,40 @@
     GNU General Public License for more details.
 */
 
-
 #include "search.hpp"
 
 namespace Kite::Search {
 
-void order_moves(const Position& pos, std::vector<Move> moves)
-{
-    for (Move move : moves)
-    {
+void order_moves(const Position& pos, std::vector<Move> moves) {
+    for (Move move : moves) {
         int moveScore = 0;
         Piece fromPieceType = pos.get_piece(move.from());
 
-        if (move.has_capture_flag())
-        {
-            Piece capturePieceType = pos.get_piece(move.to());
-            moveScore = 10 * get_piece_value(capturePieceType) - get_piece_value(fromPieceType);
-                       
-        }
+        if (!move.has_capture_flag()) continue;
 
+        Piece capturePieceType = pos.get_piece(move.to());
+        moveScore = 10 * get_piece_value(capturePieceType) -
+                    get_piece_value(fromPieceType);
     }
 }
 
-std::vector<Move> filter_illegal_moves(MoveGen& moves)
-{
+std::vector<Move> filter_illegal_moves(MoveGen& moves) {
     bool isLegalMove;
     std::vector<Move> legal_move_list;
 
-    for (auto move : moves.move_list())
-    {
+    for (auto move : moves.move_list()) {
         isLegalMove = moves.make_move(move);
-        if (isLegalMove)
-        {
-            legal_move_list.push_back(move);
-            moves.undo_move();
-        }
+        if (!isLegalMove) continue;
+
+        legal_move_list.push_back(move);
+        moves.undo_move();
     }
     return legal_move_list;
 }
 
-int quiesce(Position& pos, MoveGen& moves, int alpha, int beta)
-{
+int quiesce(Position& pos, MoveGen& moves, int alpha, int beta) {
     /*
-    The quiescence search makes sure to only stop the search in quiet 
+    The quiescence search makes sure to only stop the search in quiet
     positions (no captures or checks) to avoid the horizon effect.
     */
     int stand_pat = Eval::evaluate(pos);
@@ -64,8 +55,7 @@ int quiesce(Position& pos, MoveGen& moves, int alpha, int beta)
     int score;
     auto move_list = filter_illegal_moves(moves);
 
-    for (Move move : move_list)
-    {
+    for (Move move : move_list) {
         if (!move.has_capture_flag()) break;
         moves.make_move(move);
         score = -quiesce(pos, moves, -beta, -alpha);
@@ -76,38 +66,31 @@ int quiesce(Position& pos, MoveGen& moves, int alpha, int beta)
     }
 
     return alpha;
-
 }
 
-int alpha_beta(Position& pos, MoveGen& moves, int alpha, int beta, int depthLeft)
-{
+int alpha_beta(Position& pos, MoveGen& moves, int alpha, int beta,
+               int depthLeft) {
     if (depthLeft <= 0) return quiesce(pos, moves, alpha, beta);
     moves.generate_all_moves();
     auto moveList = filter_illegal_moves(moves);
     int score;
-    for (Move move : moveList)
-    {
+    for (Move move : moveList) {
         score = -alpha_beta(pos, moves, -beta, -alpha, depthLeft - 1);
         if (score >= beta) return beta;
-        if (score > alpha) alpha = score; 
+        if (score > alpha) alpha = score;
     }
 
     return alpha;
 }
 
-
-
-
-RootMove search(Position& pos, int depthLeft)
-{
+RootMove search(Position& pos, int depthLeft) {
     const Move nullMove = Move(Square::A1, Square::A1, Flag::QUIET);
     const int infinity = std::numeric_limits<int>::max();
-    int alpha = -infinity; 
+    int alpha = -infinity;
     int beta = infinity;
     Move bestMove = nullMove;
     MoveGen moves(pos);
-    if (depthLeft == 0)
-    {
+    if (depthLeft == 0) {
         int eval = quiesce(pos, moves, alpha, beta);
         return {nullMove, eval};
     }
@@ -115,31 +98,19 @@ RootMove search(Position& pos, int depthLeft)
     moves.generate_all_moves();
     auto moveList = filter_illegal_moves(moves);
     int score;
-    for (Move move : moveList)
-    {
-        score = alpha_beta(pos, moves, alpha, beta, depthLeft);
-        if (score >= beta) 
-        {
+    for (Move move : moveList) {
+        score = -alpha_beta(pos, moves, -beta, -alpha, depthLeft);
+        if (score >= beta) {
             bestMove = move;
-            //return {bestMove, beta};
+            // return {bestMove, beta};
         }
-        if (score > alpha)
-        {
+        if (score > alpha) {
             alpha = score;
             bestMove = move;
         }
     }
 
     return {bestMove, alpha};
-
 }
 
-
-
-
-
-
-
-
-
-}
+}  // namespace Kite::Search

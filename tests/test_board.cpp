@@ -60,6 +60,10 @@ TEST_CASE ("msb", "[msb]") {
     REQUIRE (Bitboard::msb(set_bit(Square::D4)) == Square::D4);
 }
 
+TEST_CASE ("lsb", "[lsb]") {
+    REQUIRE (Bitboard::lsb(0xc104410010000000) == Square::E4);
+}
+
 
 
 
