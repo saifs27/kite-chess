@@ -5,6 +5,8 @@
 
 using namespace Kite;
 Position board;
+PositionKey poskey;
+
 
 
 TEST_CASE("uci", "[uci]") {
@@ -46,8 +48,8 @@ TEST_CASE("misc board", "[misc board]") {
 
 TEST_CASE("check mask" "[check mask]")
 {
-    Position pos("8/5rpk/4Q3/P1p1p1p1/4p3/4B3/3R1PP1/q5K1 w - - 3 50");
-    Position queenCheck("Q3k3/8/8/8/8/8/8/6K1 w - - 0 1");
+    Position pos("8/5rpk/4Q3/P1p1p1p1/4p3/4B3/3R1PP1/q5K1 w - - 3 50", poskey);
+    Position queenCheck("Q3k3/8/8/8/8/8/8/6K1 w - - 0 1", poskey);
     REQUIRE (pos.check_mask(Color::WHITE) == 0x3f);
     REQUIRE (queenCheck.check_mask(Color::BLACK) == 0xf00000000000000);
 }

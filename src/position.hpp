@@ -25,6 +25,7 @@
 #include "moves.hpp"
 #include "rays.hpp"
 #include "types.hpp"
+#include "zobrist.hpp"
 
 namespace Kite {
 class Position {
@@ -32,13 +33,13 @@ class Position {
     Score _score;
     std::array<U64, 8> pieceBB = {0, 0, 0, 0, 0, 0, 0, 0};
     Color _side = Color::WHITE;
+    PositionKey& keys;
 
    public:
     std::vector<GameState> gameHistory = {};
 
-   public:
-    Position();
-    Position(std::string fen);
+    Position(PositionKey& poskey);
+    Position(std::string fen, PositionKey& poskey);
     void start_position();
     void set_fen(std::string fen);
 
@@ -90,6 +91,7 @@ class Position {
     std::optional<short> castlingPerms() const;
     U64 get_bitboard(const Color color, const Piece piece) const;
     Piece get_piece(const Square sq) const;
+    Color get_color(const Square sq) const;
     Color check_square_color(
         const Square sq) const;  // Check if square has white or black piece.
                                  // Returns Color::NONE if empty.
@@ -102,6 +104,8 @@ class Position {
     U64 pieces_attacking_king(Color color) const;
     U64 pin_mask(Color color) const;
     U64 check_mask(Color color) const;
+
+    U64 generate_zobrist() const;
 };
 
 }  // namespace Kite
