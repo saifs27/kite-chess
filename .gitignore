@@ -1,5 +1,9 @@
 /build*
+<<<<<<< HEAD
 .vscode/
 .vs/
 .idea/
 out/
+=======
+/.vscode
+>>>>>>> parent of 7fef086 (update gitignore)
