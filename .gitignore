@@ -1,6 +1,4 @@
 /build*
-.vscode/
-.vs/
-.idea/
-out/
 /.vscode
+/out
+/.vs
