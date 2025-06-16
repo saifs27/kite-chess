@@ -11,9 +11,8 @@ add_executable(kite
                 nnue/matrix.cpp
                 nnue/layers.cpp 
                 nnue/accumulator.cpp
-                 "zobrist.cpp")
-
-target_compile_features(kite PRIVATE cxx_std_17)
+                )
+target_compile_features(kite PRIVATE cxx_std_20)
 
 target_include_directories(kite PRIVATE src)
 

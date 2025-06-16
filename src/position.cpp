@@ -15,7 +15,7 @@
 
 #include "position.hpp"
 namespace Kite {
-Position::Position(PositionKey& poskeys) : keys(poskeys) {
+Position::Position() {
     set_colorBB(Color::WHITE, 0x0ULL);
     set_colorBB(Color::BLACK, 0x0ULL);
     set_pieceBB(Piece::PAWN, 0x0ULL);
@@ -25,7 +25,7 @@ Position::Position(PositionKey& poskeys) : keys(poskeys) {
     set_pieceBB(Piece::QUEEN, 0x0ULL);
     set_pieceBB(Piece::KING, 0x0ULL);
     Move null(Square::A1, Square::A1, Flag::QUIET);
-    GameState game(null, 0, 0b1111, Piece::EMPTY, Square::A1, 0);
+    GameState game(null, 0, 0b1111, Piece::EMPTY, Square::A1);
     gameHistory.push_back(game);
 }
 void Position::start_position() {
@@ -58,10 +58,9 @@ std::optional<GameState> Position::next_game_state(Move move) const {
     bool isValidEnPas = square_in_range(static_cast<int>(enPas));
 
     if (move.has_capture_flag() && capture == Piece::EMPTY) return {};
-    
+
     if (isValidCapture && isValidCastle && isValidEnPas) {
-        U64 posID = generate_zobrist();
-        GameState board(move, move50, castlingRights.value(), capture, enPas, posID);
+        GameState board(move, move50, castlingRights.value(), capture, enPas);
         return board;
     }
     return {};
@@ -124,11 +123,12 @@ Piece Position::get_piece(const Square sq) const {
     return Piece::EMPTY;
 }
 
-
 Color Position::check_square_color(const Square sq) const {
     U64 sqBB = set_bit(sq);
-    if (!is_empty(colorsBB(Color::WHITE) & sqBB)) return Color::WHITE;
-    if (!is_empty(colorsBB(Color::BLACK) & sqBB)) return Color::BLACK;
+    if (!is_empty(pieceBB[static_cast<int>(Color::WHITE)] & sqBB))
+        return Color::WHITE;
+    if (!is_empty(pieceBB[static_cast<int>(Color::BLACK) & sqBB]))
+        return Color::BLACK;
     return Color::NONE;
 }
 
@@ -513,9 +513,7 @@ U64 Position::check_mask(Color color) const {
     return checkMask;
 }
 
-Position::Position(std::string fen, PositionKey& poskeys): keys(poskeys) {
-    set_fen(fen);
-}
+Position::Position(std::string fen) { set_fen(fen); }
 
 void Position::set_fen(std::string fen) {
     _score.set_score(Result::EMPTY);
@@ -712,39 +710,8 @@ void Position::set_fen(std::string fen) {
     Color side = (fen_side == "w") ? Color::WHITE : Color::BLACK;
     set_side(side);
     Move nullMove(Square::A1, Square::A1, Flag::QUIET);
-    U64 posID = generate_zobrist();
-    GameState game(nullMove, halfmoves, castling, Piece::EMPTY, enPasSquare, 0);
+    GameState game(nullMove, halfmoves, castling, Piece::EMPTY, enPasSquare);
     gameHistory.push_back(game);
-}
-
-U64 Position::generate_zobrist() const {
-    U64 piece_key = 0;
-    U64 en_pas_key = keys.get_en_pas_key(
-        get_file(en_passant().value_or(Square::EMPTY_SQUARE)));
-    U64 castling_key = keys.get_castling_key(castlingPerms().value_or(0));
-    U64 side_key = keys.get_side_key(side());
-
-    U64 nonempty_squares =
-        colorsBB(Color::WHITE) | colorsBB(Color::BLACK);
-    U64 sq = 1;
-    int sq_idx = 0;
-
-    Piece piece;
-    Color piece_color = Color::NONE;
-    Square square;
-    for (int i = 0; i < 64; i++) {
-        if (sq_idx >= 64) break;
-        if ((nonempty_squares & sq) != 0) {
-            piece = get_piece(static_cast<Square>(sq_idx));
-            piece_color = check_square_color(static_cast<Square>(sq_idx));
-            square = static_cast<Square>(i);
-            piece_key ^= keys.get_piece_key(square, piece_color, piece);
-        }
-        sq <<= 1;
-        sq_idx += 1;
-    }
-
-    return piece_key ^ en_pas_key ^ castling_key ^ side_key;
 }
 
 }  // namespace Kite

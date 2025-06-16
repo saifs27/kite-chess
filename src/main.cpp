@@ -24,33 +24,22 @@
 #include "search.hpp"
 #include "types.hpp"
 #include "uci.hpp"
-#include "zobrist.hpp"
 
 void game_loop(Kite::Position& board, Kite::MoveGen moves);
 
 int main() {
     Kite::Timer timer;
-   
-    Kite::PositionKey poskey;
-    poskey.init();
-    Kite::Position board("8/2k5/3q4/8/8/8/3Q4/7K w - - 0 1", poskey);
+    Kite::Position board("8/2k5/3q4/8/8/8/3Q4/7K w - - 0 1");
     // board.start_position();
     Kite::MoveGen moves(board);
-    /*
-    std::cout << poskey.get_piece_key(Kite::Square::A1, Kite::Color::WHITE,
-                           Kite::Piece::KNIGHT)
-              << '\n';
-
-    */
     // moves.generate_all_moves();
-    /*
-    auto score = Kite::Search::search(board, 0);
+    auto score = Kite::Search::search(board, 1);
     std::cout << "score: " << score.score << '\n';
 
     auto score2 = Kite::Search::alpha_beta(board, moves, -100000, 100000, 1);
-    std::cout << "alpha beta: " << score2 << '\n'; */
+    std::cout << "alpha beta: " << score2 << '\n';
 
-     game_loop(board, moves);
+    // game_loop(board, moves);
 }
 
 void game_loop(Kite::Position& board, Kite::MoveGen moves) {
@@ -68,7 +57,6 @@ void game_loop(Kite::Position& board, Kite::MoveGen moves) {
 
         moves.generate_all_moves();
         std::cout << "Legal moves: " << moves.movelist_size() << '\n';
-        std::cout << board.gameHistory.back().posID() << '\n';
         std::cout << "Move: ";
 
         std::string my_move;

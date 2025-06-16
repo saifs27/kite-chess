@@ -1,16 +1,11 @@
 cmake_minimum_required(VERSION 3.22.1)
-set (CMAKE_CXX_STANDARD 11)
+
 project(
     KiteChess
     VERSION 1.0
     DESCRIPTION "A chess engine"
     LANGUAGES CXX)
 
-IF(MSVC)
-    SET_PROPERTY(GLOBAL PROPERTY USE_FOLDERS ON)
-ENDIF()
-
-#target_compile_features(KiteChess PRIVATE cxx_std_17)
     # Add local project module path so CMake includes custom CMake modules.
 list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake/Modules")
 

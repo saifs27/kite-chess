@@ -4,9 +4,8 @@
 #include "../src/movegen.cpp"
 
 using namespace Kite;
-PositionKey poskey;
-poskey.init();
-Position opera_game("1n1Rkb1r/p4ppp/4q3/4p1B1/4P3/8/PPP2PPP/2K5 b k - 1 17", poskey);
+
+Position opera_game("1n1Rkb1r/p4ppp/4q3/4p1B1/4P3/8/PPP2PPP/2K5 b k - 1 17");
 MoveGen opera_moves(opera_game);
 
 Position moscow("rnbqkbnr/pp2pppp/3p4/1Bp5/4P3/5N2/PPPP1PPP/RNBQK2R b KQkq - 1 3");
